@@ -66,6 +66,16 @@ export function MusicToggle() {
   const [songNote, setSongNote] = useState("");
   const [song, setSong] = useState<(Song & { queue: string[] }) | null>(null);
 
+  // The little player can be dragged anywhere, or shrunk to a thin bar, so it never sits on top of what you need.
+  const [spot, setSpot] = useState<{ x: number; y: number } | null>(null);
+  const [small, setSmall] = useState(true); // just the bar by default: the video is one tap away
+  function startDrag(e: React.PointerEvent<HTMLDivElement>) {
+    const box = e.currentTarget.parentElement!.getBoundingClientRect(), dx = e.clientX - box.left, dy = e.clientY - box.top;
+    const move = (ev: PointerEvent) => setSpot({ x: Math.max(0, Math.min(window.innerWidth - box.width, ev.clientX - dx)), y: Math.max(0, Math.min(window.innerHeight - 40, ev.clientY - dy)) });
+    const up = () => { window.removeEventListener("pointermove", move); window.removeEventListener("pointerup", up); };
+    window.addEventListener("pointermove", move); window.addEventListener("pointerup", up);
+    e.preventDefault();
+  }
   async function searchSongs() {
     const q = songQuery.trim();
     const pasted = songIdFrom(q);
@@ -166,8 +176,8 @@ export function MusicToggle() {
         <span className="music-label">{playing ? label : "Music"}</span>
       </button>
       {song && (
-        <div className="song-player" role="region" aria-label={`Now playing: ${song.title}`}>
-          <div className="song-bar"><span title={song.title}>♪ {song.title}</span><button type="button" aria-label="Stop the song" onClick={stopSong}>×</button></div>
+        <div className={`song-player${small ? " is-small" : ""}`} role="region" aria-label={`Now playing: ${song.title}`} style={spot ? { left: spot.x, top: spot.y, right: "auto", bottom: "auto" } : undefined}>
+          <div className="song-bar" onPointerDown={startDrag} title="Drag to move"><span title={song.title}>♪ {song.title}</span><button type="button" aria-label={small ? "Show the player" : "Shrink the player"} onPointerDown={(e) => e.stopPropagation()} onClick={() => setSmall((v) => !v)}>{small ? "▢" : "–"}</button><button type="button" aria-label="Stop the song" onPointerDown={(e) => e.stopPropagation()} onClick={stopSong}>×</button></div>
           <iframe key={song.id} title="YouTube player" src={`https://www.youtube-nocookie.com/embed/${song.id}?autoplay=1&playsinline=1&rel=0${song.queue.length ? `&playlist=${song.queue.join(",")}` : ""}`} allow="autoplay; encrypted-media" referrerPolicy="strict-origin-when-cross-origin" />
         </div>
       )}

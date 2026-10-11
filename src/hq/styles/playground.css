@@ -645,3 +645,8 @@ button:hover > .emoji-3d, button:hover > .emoji-flat { transform: translateY(-3p
 .react-who { min-height: 26px; padding: 0 8px; border: 0; background: none; color: var(--lav); font: inherit; font-size: 12px; font-weight: 800; cursor: pointer; }
 .react-names { margin: 2px 0 0; padding: 6px 10px; list-style: none; display: grid; gap: 3px; border-radius: 10px; background: var(--surface-2); font-size: 12.5px; max-width: 100%; }
 .react-names li { display: flex; align-items: center; gap: 6px; overflow-wrap: anywhere; }
+
+.bell .icon-btn.is-on { color: var(--lav); }
+.bell-menu .station-icon { font-weight: 800; }
+@media (max-width: 900px) { .hud-actions .text-btn { padding: 0 5px; } .hud-actions .icon-btn { width: 36px; } }
+@media (max-width: 480px) { .hud-name { display: none; } }

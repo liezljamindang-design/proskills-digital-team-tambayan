@@ -6,6 +6,7 @@ import { safeImage } from "../media";
 import { MANUAL } from "../status";
 import { ARCADE, PUBLIC, useHq } from "../store";
 import { batchesOf, displayName, FOODS, REACTIONS, type Profile, type Quote } from "../types";
+import { notifyOthers, refreshPush } from "./push";
 import { loadHistory, saveMarks, saveMessage } from "./history";
 import { startRoster } from "./roster";
 import { createLocalTransport } from "./localTransport";
@@ -153,6 +154,7 @@ export async function joinOffice(joining: Profile): Promise<void> {
     },
   });
   useHq.getState().setJoined(true);
+  void refreshPush();
   announceTakeover();
   window.setTimeout(() => { const mine = useHq.getState().me; if (mine) transport?.updateProfile(mine, myPos); }, 1500); // in case an older device of yours just left
   window.clearInterval(takeoverTimer);
@@ -173,6 +175,7 @@ export function say(text: string, to?: string, image?: string, reply?: Quote) {
   const line = { id, from: me.id, name, text: clean, time: clock(), image, reply };
   useHq.getState().addLine(to ?? PUBLIC, line);
   saveMessage(to ?? PUBLIC, line, me);
+  if (to !== ARCADE) void notifyOthers({ to: room ? undefined : to, room, text: clean });
   useHq.getState().showBubble(me.id, clean || (image?.startsWith("data:") ? "📷 Photo" : "GIF"), Boolean(to) && to !== ARCADE);
 }
 

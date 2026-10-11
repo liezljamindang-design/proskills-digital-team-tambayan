@@ -3,6 +3,7 @@ import { Composer } from "./components/Composer";
 import { Arcade } from "./components/Arcade";
 import { celebrants } from "./birthday";
 import { EmoteBar } from "./components/EmoteBar";
+import { SitPrompt } from "./components/SitPrompt";
 import { RoomCard } from "./components/RoomCard";
 import { HelpDialog } from "./components/HelpDialog";
 import { Hud } from "./components/Hud";
@@ -42,6 +43,7 @@ export function Headquarters() {
             <FloorMap />
             {gameOpen && <Arcade />}
             {!gameOpen && <RoomCard />}
+            {!gameOpen && <SitPrompt />}
           </div>
           <div className="quick-say">
             <EmoteBar />

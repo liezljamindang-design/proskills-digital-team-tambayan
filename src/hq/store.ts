@@ -67,8 +67,10 @@ interface State {
   walkRequest: { zone: ZoneId } | null;
   walkToZone: (zone: ZoneId) => void;
   /** Asks the movement loop to seat you on the sofa or stand you back up. */
-  poseRequest: { pose: "sit" | "stand" } | null;
-  requestPose: (pose: "sit" | "stand") => void;
+  poseRequest: { pose: "sit" | "stand"; seat?: string } | null;
+  requestPose: (pose: "sit" | "stand", seat?: string) => void;
+  /** The seat you are standing next to, if any. */
+  nearSeat: string | null;
   /** True when the browser refused to open the meeting by itself. */
   meetingBlocked: boolean;
   overview: boolean;
@@ -149,7 +151,8 @@ export const useHq = create<State>((set, get) => ({
   walkRequest: null,
   walkToZone: (zone) => set({ selectedZone: zone, walkRequest: { zone } }),
   poseRequest: null,
-  requestPose: (pose) => set({ poseRequest: { pose } }),
+  requestPose: (pose, seat) => set({ poseRequest: { pose, seat } }),
+  nearSeat: null,
   meetingBlocked: false,
   overview: false,
   setOverview: (overview) => set({ overview }),

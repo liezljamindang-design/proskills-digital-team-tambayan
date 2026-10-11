@@ -46,7 +46,13 @@ export function useMovement({ svgRef, cameraRef, avatarRef, boxesRef, onSlot }: 
       // The floor is large, so the camera stays close and follows you. "Whole floor" zooms back out.
       return { x: sx, y: sy - 20, z: 1.55 };
     }
+    function updateNearSeat() {
+      let best: string | null = null, bestD = 1.0;
+      for (const s of SEATS) { const d = Math.hypot(s.x - pos.x, s.y - pos.y); if (d < bestD) { bestD = d; best = s.furniture; } }
+      if (best !== useHq.getState().nearSeat) useHq.setState({ nearSeat: best });
+    }
     function updateSlot() {
+      updateNearSeat();
       const next = slotFor(pos, boxesRef.current);
       if (next !== slot) { slot = next; onSlot(next); }
     }
@@ -184,7 +190,7 @@ export function useMovement({ svgRef, cameraRef, avatarRef, boxesRef, onSlot }: 
       if (s.walkRequest && s.walkRequest !== prev.walkRequest) walkTo(zoneEntry(s.walkRequest.zone));
       if (s.overview !== prev.overview) kick();
       if (s.poseRequest && s.poseRequest !== prev.poseRequest) {
-        if (s.poseRequest.pose === "sit") goSit("lounge-sofa"); else { pendingSeat = null; getUp(); }
+        if (s.poseRequest.pose === "sit") goSit(s.poseRequest.seat ?? "lounge-sofa"); else { pendingSeat = null; getUp(); }
         kick();
       }
     });

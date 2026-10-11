@@ -335,7 +335,11 @@ export function buildOffice(): Office {
   box(wallX, 0.02, 5.5, 0.05, 1.9, 22, 52, "screen").castShadow = false;
   box(wallX, 0.07, 5.6, 0.01, 1.7, 25, 49, "#16324f", { emissive: "#3f8fe6", emissiveIntensity: 0.6 }).castShadow = false;
   box(wallZ, 3.0, 0.02, 2.4, 0.04, 14, 34, "#ffffff").castShadow = false; box(wallZ, 2.95, 0.0, 2.5, 0.03, 13, 35, "dark").castShadow = false;
-  [["#e03131", 3.2, 28, 0.9], ["#1565c0", 3.2, 23, 1.4], ["#2f9e44", 3.2, 18, 0.7]].forEach(([c, lx, z, len]) => box(wallZ, Number(lx), 0.06, Number(len), 0.01, Number(z), Number(z) + 1.2, String(c)).castShadow = false);
+  // The class and its schedule, written on the whiteboard.
+  [[HQ.classTitle, 27.5, "#10141c", 0.4], [`Schedule: ${HQ.classSchedule}`, 19.5, "#15803d", 0.3]].forEach(([text, z, color, tall]) => {
+    const line = new THREE.Mesh(new THREE.PlaneGeometry(Number(tall) * 5.2, Number(tall)), new THREE.MeshBasicMaterial({ map: label(String(text).slice(0, 34), String(color), 44), transparent: true }));
+    line.position.set(4.2, Number(z) / UNIT, 0.075); wallZ.add(line);
+  });
   const clock = new THREE.Mesh(new THREE.CylinderGeometry(0.32, 0.32, 0.05, 32), material("#ffffff")); clock.rotation.x = Math.PI / 2; clock.position.set(11.7, 58 / UNIT, 0.05); wallZ.add(clock);
   const rim = new THREE.Mesh(new THREE.TorusGeometry(0.32, 0.03, 8, 32), material(COLORS.dark)); rim.position.copy(clock.position); wallZ.add(rim);
   box(wallZ, 11.69, 0.08, 0.02, 0.01, 58, 67, "dark").castShadow = false; box(wallZ, 11.7, 0.08, 0.18, 0.01, 57.5, 58.5, "dark").castShadow = false;

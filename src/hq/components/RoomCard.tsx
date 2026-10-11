@@ -123,6 +123,7 @@ export function RoomCard() {
         );
       })()}
 
+      {zone === "focus" && <p className="class-info"><strong>{HQ.classTitle}</strong><span>Schedule: {HQ.classSchedule}</span></p>}
       {zone === "focus" && (
         HQ.classroomUrl ? (
           <>

@@ -1,4 +1,4 @@
-import type { SupabaseClient } from "@supabase/supabase-js";
+import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 
 /**
  * Supabase settings. Both values are safe to publish: the "anon" key only
@@ -13,9 +13,10 @@ const KEY = env.VITE_SUPABASE_ANON_KEY || env.NEXT_PUBLIC_SUPABASE_ANON_KEY || e
 export const supabaseConfigured = Boolean(URL && KEY);
 
 let client: Promise<SupabaseClient> | null = null;
-/** Loads the Supabase library only when it is actually needed. */
+/** The one Supabase client for this page. */
 export function getSupabase(): Promise<SupabaseClient> {
   if (!supabaseConfigured) return Promise.reject(new Error("Supabase is not configured"));
-  client ??= import("@supabase/supabase-js").then(({ createClient }) => createClient(URL!, KEY!));
+  // Bundled with the page on purpose: a piece loaded later can go missing when a new version is published mid-visit.
+  client ??= Promise.resolve(createClient(URL!, KEY!));
   return client;
 }

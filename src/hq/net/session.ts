@@ -5,6 +5,7 @@ import { MANUAL } from "../status";
 import { PUBLIC, useHq } from "../store";
 import type { Profile } from "../types";
 import { createLocalTransport } from "./localTransport";
+import { createSupabaseTransport } from "./supabaseTransport";
 import { supabaseConfigured } from "./supabase";
 import type { Point, Transport } from "./transport";
 
@@ -45,7 +46,7 @@ function noteZone(id: string, name: string, from: string | null, to: string | nu
 
 export async function joinOffice(me: Profile): Promise<void> {
   transport?.leave();
-  transport = supabaseConfigured ? (await import("./supabaseTransport")).createSupabaseTransport() : createLocalTransport();
+  transport = supabaseConfigured ? createSupabaseTransport() : createLocalTransport();
   const s = useHq.getState;
   await transport.join({ ...me, birthYear: undefined }, myPos, {
     onPeer: (peer) => {

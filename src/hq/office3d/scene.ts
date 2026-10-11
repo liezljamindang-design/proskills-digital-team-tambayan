@@ -241,16 +241,16 @@ export function buildOffice(): Office {
   lawn.position.set(W / 2, -0.5, D / 2); lawn.receiveShadow = true; root.add(lawn);
   box(root, ENTRANCE.from - 0.2, D, ENTRANCE.to - ENTRANCE.from + 0.4, 12, -14.5, -13.8, "#e8dcc4").castShadow = false;
   const outside: [number, number][] = [];
-  for (let tx = -3; tx <= W + 3; tx += 5.5) if (Math.abs(tx - W / 2) > 3) outside.push([tx + (tx % 2), D + 2.5 + ((tx * 7) % 3)]);
-  for (let ty = 1; ty <= D; ty += 5) outside.push([W + 2.5 + (ty % 2), ty]);
-  outside.push([-4, D + 6], [W / 2 + 6, D + 8], [W / 2 - 7, D + 7.5], [W + 5, D + 5]);
+  for (let tx = -2; tx <= W + 3; tx += 9) if (Math.abs(tx - W / 2) > 4) outside.push([tx, D + 3.5 + ((tx * 7) % 3)]);
+  for (let ty = 2; ty <= D; ty += 9) outside.push([W + 3 + (ty % 2), ty]);
+  outside.push([W / 2 + 7, D + 8], [W / 2 - 8, D + 8]);
   for (const [tx, ty] of outside) {
     const g = new THREE.Group(); g.position.y = -14 / UNIT; root.add(g);
     box(g, tx - 0.08, ty - 0.08, 0.16, 0.16, 0, 34, "trunk");
     ball(g, tx, ty, 54, 0.75, COLORS.leaf); ball(g, tx - 0.45, ty + 0.2, 42, 0.5, COLORS.leaf2); ball(g, tx + 0.45, ty - 0.15, 44, 0.52, COLORS.leaf2);
   }
-  for (let bx = 1.5; bx < W; bx += 3.2) if (Math.abs(bx - W / 2) > 1.6) { const b = ball(root, bx, D + 0.8, -6, 0.55, COLORS.leaf2, 0.7); b.castShadow = true; }
-  for (let by = 2; by < D; by += 3.5) { const b = ball(root, W + 0.9, by, -6, 0.55, COLORS.leaf2, 0.7); b.castShadow = true; }
+  for (let bx = 3; bx < W; bx += 7) if (Math.abs(bx - W / 2) > 2.5) { const b = ball(root, bx, D + 0.8, -6, 0.55, COLORS.leaf2, 0.7); b.castShadow = true; }
+  for (let by = 6; by < D; by += 9) { const b = ball(root, W + 0.9, by, -6, 0.55, COLORS.leaf2, 0.7); b.castShadow = true; }
   ["#ff4fa3", "#ffd43b", "#ffffff", "#ff922b"].forEach((color, i) => { for (let k = 0; k < 5; k++) ball(root, ENTRANCE.from - 1.7 + i * 0.25 + k * 0.05, D + 0.5 + (k % 2) * 0.25 + i * 0.1, -11, 0.07, color); });
 
   // Inside: hanging lights, a pond on the Garden Deck, a TV, a whiteboard, a clock and a neon arcade sign.

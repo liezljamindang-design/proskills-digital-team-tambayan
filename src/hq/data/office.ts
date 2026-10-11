@@ -96,7 +96,7 @@ export const FURNITURE: FurnitureItem[] = [
   { id: "deck-bench", kind: "sofa", x: 13.4, y: 6.0, w: 1.8, h: 0.6 },
   { id: "deck-table", kind: "low-table", x: 13.9, y: 7.0, w: 0.8, h: 0.5 },
   bean("bean-3", 16.2, 6.4), bean("bean-4", 15.8, 7.6),
-  tree("deck-t1", 12.3, 5.2), tree("deck-t2", 17.2, 5.2), tree("deck-t3", 17.2, 8.6), tree("deck-t4", 12.3, 8.6),
+  tree("deck-t1", 12.3, 5.2), tree("deck-t2", 17.2, 5.2), tree("deck-t4", 12.3, 8.6),
   plant("deck-p1", 14.9, 5.2), plant("deck-p2", 17.5, 6.9), lamp("deck-lamp", 16.2, 5.3),
 
   // Sleeping Quarters
@@ -131,16 +131,15 @@ export const FURNITURE: FurnitureItem[] = [
 
   // Basketball Court
   { id: "hoop-1", kind: "hoop", x: 0.5, y: 17.9, w: 0.3, h: 0.8 }, { id: "hoop-2", kind: "hoop", x: 6.4, y: 17.9, w: 0.3, h: 0.8 },
-  { id: "court-bench", kind: "sofa", x: 2.4, y: 14.5, w: 2.2, h: 0.5 }, tree("court-tree", 0.2, 14.3),
+  { id: "court-bench", kind: "sofa", x: 2.4, y: 14.5, w: 2.2, h: 0.5 }, 
 
   // Swimming Pool
   bean("pool-bean-1", 7.7, 20.8), bean("pool-bean-2", 8.7, 20.9), bean("pool-bean-3", 11.4, 20.8),
-  { id: "pool-bench", kind: "sofa", x: 8.8, y: 14.7, w: 2.2, h: 0.5 }, tree("pool-tree", 11.8, 14.7), lamp("pool-lamp", 7.6, 14.9),
+  { id: "pool-bench", kind: "sofa", x: 8.8, y: 14.7, w: 2.2, h: 0.5 }, lamp("pool-lamp", 7.6, 14.9),
 
   // Main Entrance
   { id: "front-desk", kind: "reception", x: 14.0, y: 17.4, w: 0.6, h: 1.5 },
-  tree("plaza-tree-1", 13.1, 15.0), tree("plaza-tree-2", 20.4, 15.0),
-  plant("plaza-plant-1", 15.6, 21.5), plant("plaza-plant-2", 18.1, 21.5), lamp("plaza-lamp", 20.6, 21.4),
+  tree("plaza-tree-1", 13.1, 15.0),   plant("plaza-plant-1", 15.6, 21.5), plant("plaza-plant-2", 18.1, 21.5), lamp("plaza-lamp", 20.6, 21.4),
   { id: "plaza-bench", kind: "sofa", x: 18.4, y: 17.6, w: 2.2, h: 0.6 },
 
   // Canteen

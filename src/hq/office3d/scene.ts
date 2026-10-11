@@ -198,13 +198,12 @@ function classSign() {
     if (on === shown) return;
     shown = on;
     c.clearRect(0, 0, 1024, 176); c.textAlign = "center"; c.textBaseline = "middle";
-    c.fillStyle = "#10141c"; c.font = "800 78px Nunito, system-ui, sans-serif"; c.fillText(HQ.classTitle.slice(0, 26), 512, 50, 1000);
-    const left = `Mon-Fri ${HQ.classSchedule}`.slice(0, 40), right = on ? "Class ongoing" : "No Class Ongoing";
-    c.font = "700 40px Nunito, system-ui, sans-serif";
-    const lw = c.measureText(left).width, rw = c.measureText(right).width, gap = 70, start = 512 - (lw + gap + rw) / 2;
-    c.textAlign = "left"; c.fillStyle = "#15803d"; c.fillText(left, start, 132);
-    c.fillStyle = on ? "#17b02a" : "#9aa3b2"; c.beginPath(); c.arc(start + lw + gap / 2, 132, 9, 0, 7); c.fill();
-    c.fillStyle = on ? "#0f7a22" : "#c0392b"; c.fillText(right, start + lw + gap, 132);
+    c.fillStyle = "#10141c"; c.font = "800 66px Nunito, system-ui, sans-serif"; c.fillText(HQ.classTitle.slice(0, 26), 512, 38, 1000);
+    c.fillStyle = "#15803d"; c.font = "700 38px Nunito, system-ui, sans-serif"; c.fillText("Monday to Friday", 512, 98, 1000);
+    const left = `${HQ.classSchedule} - `.slice(0, 40), right = on ? "Class Ongoing" : "No Class Ongoing";
+    const lw = c.measureText(left).width, rw = c.measureText(right).width, start = 512 - (lw + rw) / 2;
+    c.textAlign = "left"; c.fillText(left, start, 146);
+    c.fillStyle = on ? "#0f7a22" : "#c0392b"; c.font = "800 38px Nunito, system-ui, sans-serif"; c.fillText(right, start + lw, 146);
     texture.needsUpdate = true;
   }
   refresh(0);

@@ -123,7 +123,7 @@ export function RoomCard() {
         );
       })()}
 
-      {zone === "focus" && <p className="class-info"><strong>{HQ.classTitle}</strong><span>Schedule: Monday to Friday, {HQ.classSchedule}</span><span className={classOngoing() ? "class-on" : "class-off"}>● {classOngoing() ? "Class ongoing" : "No Class Ongoing"}</span></p>}
+      {zone === "focus" && <p className="class-info"><strong>{HQ.classTitle}</strong><span>Monday to Friday</span><span>{HQ.classSchedule} - <b className={classOngoing() ? "class-on" : "class-off"}>{classOngoing() ? "Class Ongoing" : "No Class Ongoing"}</b></span></p>}
       {zone === "focus" && (
         HQ.classroomUrl ? (
           <>

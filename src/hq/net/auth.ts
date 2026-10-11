@@ -5,8 +5,11 @@ import { getSupabase, supabaseConfigured } from "./supabase";
 export interface SavedProfile { name?: string; role?: string; look?: Look; best?: number; birthday?: string }
 export interface Account { id: string; email: string; saved: SavedProfile }
 
-/** Accounts exist only in live mode. In preview mode everyone is a guest on their own device. */
-export const accountsEnabled = supabaseConfigured;
+/**
+ * By default anyone with the link walks straight in as a guest. Set VITE_REQUIRE_SIGNIN=true
+ * to make people sign in with an account created in the Supabase dashboard instead.
+ */
+export const accountsEnabled = supabaseConfigured && import.meta.env.VITE_REQUIRE_SIGNIN === "true";
 
 export async function currentAccount(): Promise<Account | null> {
   const supabase = await getSupabase();

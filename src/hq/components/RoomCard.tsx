@@ -129,6 +129,7 @@ export function RoomCard() {
           <>
             <p>{blocked ? "Your browser stopped Zoom from opening by itself. Use the button instead." : "🎓 Live training. The class Zoom opens when you walk in. Use the button if it did not."}</p>
             <button type="button" className="btn-primary" onClick={() => openMeeting(HQ.classroomUrl)}>Join the live training</button>
+            {!HQ.classroomOwnLink && <p className="muted">No separate training link is set yet, so this opens the team Zoom.</p>}
           </>
         ) : <p>🎓 This is the Classroom. The training Zoom link has not been added yet.</p>
       )}

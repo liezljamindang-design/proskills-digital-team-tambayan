@@ -119,7 +119,7 @@ export function Floor3D() {
       const mode = useHq.getState().camMode;
       if (mode === "iso" || mode === "free") {
         cam.azGoal -= dx * 0.008; cam.az = cam.azGoal;
-        if (mode === "free") cam.el = Math.min(1.45, Math.max(0.12, cam.el + dy * 0.006));
+        cam.el = Math.min(1.45, Math.max(0.12, cam.el + dy * 0.006));
       } else {
         // Walking views: sideways turns you, up and down tilts the camera.
         cam.heading -= dx * 0.008; cam.steerAt = performance.now();
@@ -200,7 +200,7 @@ export function Floor3D() {
       const dt = Math.min(0.05, (now - last) / 1000), t = now / 1000;
       last = now;
       const s = useHq.getState(), mode = s.camMode, mine = self();
-      if (mode !== lastMode) { if (mine && (mode === "third" || mode === "first")) cam.heading = mine.facing; if (mine && mode === "front") cam.heading = mine.facing; lastMode = mode; }
+      if (mode !== lastMode) { cam.tilt = 0; if (mine && (mode === "third" || mode === "first")) cam.heading = mine.facing; if (mine && mode === "front") cam.heading = mine.facing; lastMode = mode; }
       const partyOn = Boolean(s.me?.act?.party) || Object.values(s.peers).some((p) => p.act?.party);
 
       for (const a of actors.values()) {
@@ -238,7 +238,7 @@ export function Floor3D() {
       else if (mode === "front") { fov = 50; wantPos.set(mx, 1.5, mz).addScaledVector(fwd, 3.2 / Math.sqrt(s.zoom)); wantLook.set(mx, 0.85, mz); wantPos.y += cam.tilt * 2.5; }
       else if (mode === "first") { fov = 72; wantPos.set(mx, 1.18, mz).addScaledVector(fwd, 0.12); wantLook.copy(wantPos).addScaledVector(fwd, 2); wantLook.y += cam.tilt * 2.4 - 0.12; }
       else {
-        const whole = s.overview, el = mode === "free" ? cam.el : 0.62, dist = whole ? 48 : 19 / s.zoom;
+        const whole = s.overview, el = cam.el, dist = whole ? 48 : 19 / s.zoom;
         wantLook.set(whole ? FLOOR.width / 2 : mx, whole ? 0 : 0.6, whole ? FLOOR.depth / 2 : mz);
         wantPos.copy(wantLook).add(new THREE.Vector3(Math.sin(cam.az) * Math.cos(el), Math.sin(el), Math.cos(cam.az) * Math.cos(el)).multiplyScalar(dist));
       }

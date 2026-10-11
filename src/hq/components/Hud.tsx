@@ -1,3 +1,4 @@
+import { Coin } from "./Coin";
 import { HQ } from "../config";
 import { liveMode } from "../net/session";
 import { useHq } from "../store";
@@ -39,7 +40,7 @@ export function Hud() {
       <div className="hud-actions">
         {joined && (
           <button type="button" className="coin-btn" onClick={() => setShopOpen(true)} aria-label={`${coins} coins, ${streak} day streak. Open the shop`}>
-            <span aria-hidden="true">🪙</span> {coins} <span className="coin-streak" aria-hidden="true">🔥 {streak}</span>
+            <Coin /> <span key={coins} className="coin-count">{coins}</span> <span className="coin-streak" aria-hidden="true">🔥 {streak}</span>
             {toast && <span key={toast.n} className="coin-toast" role="status">{toast.text}</span>}
           </button>
         )}

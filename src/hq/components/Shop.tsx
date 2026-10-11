@@ -1,3 +1,4 @@
+import { Coin } from "./Coin";
 import { buy, EARNING, onSale, SHOP, wear, type ShopItem } from "../economy";
 import { ChibiFull, PetArt } from "../office/Chibi";
 import { useHq } from "../store";
@@ -27,7 +28,7 @@ export function Shop() {
         ) : (
           !onSale(item) ? <span className="muted">No longer sold</span> :
           <button type="button" className="btn-primary" disabled={coins < item.price} onClick={() => buy(item)}
-            aria-label={`Buy ${item.name} for ${item.price} coins${coins < item.price ? ", not enough coins yet" : ""}`}>🪙 {item.price}</button>
+            aria-label={`Buy ${item.name} for ${item.price} coins${coins < item.price ? ", not enough coins yet" : ""}`}><Coin size={16} /> {item.price}</button>
         )}
       </li>
     );
@@ -40,7 +41,7 @@ export function Shop() {
           <div><p className="eyebrow">Tambayan shop</p><h2 id="shop-title">Skins, hats and pets</h2></div>
           <button type="button" className="icon-btn" onClick={() => setOpen(false)} aria-label="Close the shop">✕</button>
         </header>
-        <p className="shop-balance"><span>🪙 <strong>{coins}</strong> coins</span><span>🔥 <strong>{me.streak ?? 0}</strong> day streak</span></p>
+        <p className="shop-balance"><span className="shop-coins"><Coin size={22} /> <strong>{coins}</strong> coins</span><span>🔥 <strong>{me.streak ?? 0}</strong> day streak</span></p>
         <details className="shop-how">
           <summary>How to earn coins</summary>
           <ul>

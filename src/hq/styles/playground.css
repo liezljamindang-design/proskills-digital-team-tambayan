@@ -547,3 +547,18 @@ button:hover > .emoji-3d, button:hover > .emoji-flat { transform: translateY(-3p
 .app-done { font-weight: 800; color: var(--ok); }
 .app-link { font-family: var(--font-mono); font-size: 12.5px; overflow-wrap: anywhere; padding: 8px 10px; border-radius: 10px; background: var(--surface-2); }
 @media (max-width: 900px) { .bottom-nav { grid-template-columns: repeat(6, 1fr); } .bottom-nav button { font-size: 10.5px; } }
+
+/* Coins */
+.coin { flex: none; display: block; filter: drop-shadow(0 1px 0 rgba(0, 0, 0, 0.15)); }
+.coin-btn { gap: 6px; padding: 0 12px 0 6px; border: 2px solid #e0a100; background: linear-gradient(180deg, #fff6cf, #ffe27a); color: #4a3500; font-size: 14.5px; box-shadow: 0 2px 0 #c98f00; transition: transform 0.12s; }
+.coin-btn:hover { background: linear-gradient(180deg, #fffbe6, #ffe993); transform: translateY(-1px); }
+.coin-btn:active { transform: translateY(2px); box-shadow: 0 0 0 #c98f00; }
+.coin-btn .coin { width: 24px; height: 24px; }
+.coin-btn:hover .coin { animation: coin-spin 0.7s ease; }
+.coin-count { display: inline-block; animation: coin-pop 0.45s ease; }
+.coin-streak { border-left-color: rgba(74, 53, 0, 0.25); }
+.shop-coins, .shop-item button { display: inline-flex; align-items: center; justify-content: center; gap: 5px; }
+@keyframes coin-pop { 0% { transform: scale(1.6); color: #b06a00; } 100% { transform: scale(1); } }
+@keyframes coin-spin { 50% { transform: scaleX(0.1); } }
+@media (max-width: 900px) { .coin-btn { padding: 0 9px 0 5px; } }
+@media (prefers-reduced-motion: reduce) { .coin-count, .coin-btn:hover .coin { animation: none; } }

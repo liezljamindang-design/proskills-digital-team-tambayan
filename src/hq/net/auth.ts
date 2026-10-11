@@ -67,3 +67,21 @@ export async function signInWith(provider: SocialProvider): Promise<void> {
   const { error } = await supabase.auth.signInWithOAuth({ provider, options: { redirectTo: window.location.origin } });
   if (error) throw new Error(error.message);
 }
+
+/** Calls back whenever someone becomes signed in, including just after returning from Google or Facebook. */
+export async function onSignedIn(callback: (account: Account) => void): Promise<void> {
+  const supabase = await getSupabase();
+  supabase.auth.onAuthStateChange((_event, session) => {
+    const user = session?.user;
+    if (user) callback({ id: user.id, email: user.email ?? "", saved: (user.user_metadata ?? {}) as SavedProfile, admin: isAdmin(user) });
+  });
+}
+
+/** If Google or Facebook sent the person back with an error, this returns it in plain words and tidies the address bar. */
+export function returnError(): string {
+  const params = new URLSearchParams(`${window.location.search.slice(1)}&${window.location.hash.slice(1)}`);
+  const text = params.get("error_description") ?? params.get("error");
+  if (!text) return "";
+  window.history.replaceState(null, "", window.location.pathname);
+  return text.replace(/\+/g, " ");
+}

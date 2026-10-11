@@ -1,6 +1,6 @@
 import { useEffect, useState, type FormEvent, useRef } from "react";
 import { HQ } from "../config";
-import { accountsEnabled, changePassword, currentAccount, saveToAccount, signIn, signInWith, signOut, signUp, socialProviders, type Account } from "../net/auth";
+import { accountsEnabled, changePassword, currentAccount, onSignedIn, returnError, saveToAccount, signIn, signInWith, signOut, signUp, socialProviders, type Account } from "../net/auth";
 import { startRoster } from "../net/roster";
 import { joinOffice, liveMode, updateMyProfile } from "../net/session";
 import { DEFAULT_LOOK } from "../office/Chibi";
@@ -37,7 +37,11 @@ export function Welcome() {
   // Live mode: pick up an existing session, so returning teammates walk straight in.
   useEffect(() => {
     if (!accountsEnabled) return;
+    const problem = returnError();
+    if (problem) setFailed(`Sign-in didn't finish. The sign-in service said: "${problem}"`);
     currentAccount().then(setAccount).catch(() => setFailed("Couldn't reach the sign-in service. Check your connection and reload.")).finally(() => setChecking(false));
+    // A sign-in that completes a moment after the page loads (coming back from Google) is picked up here.
+    void onSignedIn((signedIn) => setAccount((current) => current ?? signedIn)).catch(() => undefined);
   }, []);
 
   async function enter(name: string, role: string, look: Look, birthday?: string, birthYear?: number, firstName?: string, batches: number[] = []) {

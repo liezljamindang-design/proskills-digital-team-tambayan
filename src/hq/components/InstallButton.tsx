@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useHq } from "../store";
 
 interface InstallEvent extends Event { prompt: () => Promise<void> }
 
@@ -48,16 +49,15 @@ const MenuSteps = () => (
   </ol>
 );
 
-/** Top-bar button on computers. */
+/** Always in the top bar, so the download is still one tap away after the green strip is closed. */
 export function InstallButton() {
-  const { mode, install } = useInstall();
-  const [open, setOpen] = useState(false);
+  const { mode } = useInstall();
   if (!mode) return null;
   return (
-    <>
-      <button type="button" className="text-btn install-btn" aria-expanded={mode === "apple" ? open : undefined} onClick={() => (mode === "prompt" ? install() : setOpen(!open))}>Install app</button>
-      {open && mode === "apple" && <div className="install-pop" role="dialog" aria-label="Install on iPhone or iPad"><strong>Install on iPhone or iPad</strong><AppleSteps /></div>}
-    </>
+    <button type="button" className="text-btn install-btn" aria-label="Get the app" title="Get the app" onClick={() => useHq.setState({ tab: "app", sheetOpen: true })}>
+      <svg viewBox="0 0 24 24" width="17" height="17" aria-hidden="true"><path d="M12 4v10M8 10.5l4 4 4-4M5 19h14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>
+      <span className="install-label">Get app</span>
+    </button>
   );
 }
 

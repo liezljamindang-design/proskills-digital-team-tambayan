@@ -489,7 +489,17 @@ button:hover > .emoji-3d, button:hover > .emoji-flat { transform: translateY(-3p
 .chibi-3d canvas { display: block; width: 100%; height: 100%; }
 
 .install-btn { font-weight: 800; color: var(--lav); }
-@media (max-width: 900px) { .install-btn { display: none; } }
+.install-banner { display: none; }
+.install-pop { position: fixed; right: 12px; top: 60px; z-index: 50; width: min(300px, calc(100% - 24px)); padding: 12px 14px; border-radius: 14px; background: var(--surface); border: 1px solid var(--line); box-shadow: var(--shadow); font-size: 14px; }
+.install-pop ol { margin: 6px 0 0; padding-left: 20px; display: grid; gap: 4px; }
+@media (max-width: 900px) {
+  .install-btn { display: none; }
+  .install-banner { display: flex; align-items: center; gap: 8px; padding: 6px 8px 6px 14px; background: var(--lav); color: var(--on-accent); font-size: 13.5px; font-weight: 700; }
+  .install-banner p { flex: 1; min-width: 0; margin: 0; }
+  .install-banner button { min-height: 36px; padding: 0 12px; border-radius: 999px; border: 0; font: inherit; font-weight: 800; cursor: pointer; background: var(--on-accent); color: var(--lav); }
+  .install-banner .install-x { background: none; color: inherit; padding: 0 8px; font-size: 18px; }
+  .install-steps { flex-basis: 100%; }
+}
 
 /* Voice chat */
 .voice { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-bottom: 8px; }
@@ -501,3 +511,32 @@ button:hover > .emoji-3d, button:hover > .emoji-flat { transform: translateY(-3p
 .voice-list li.is-speaking { border-color: #2f9e44; box-shadow: 0 0 0 3px rgba(47, 158, 68, 0.25); }
 .voice-list .voice-alone { border-style: dashed; color: var(--ink-2); font-weight: 600; }
 .voice .field-error { margin: 0; flex-basis: 100%; }
+
+/* Phones: the Tambayan fills the screen like an app. One slim top bar, the office, then the controls. */
+@media (max-width: 900px) {
+  .hq { height: 100dvh; min-height: 0; overflow: hidden; }
+  .hq-main { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+  .hq-stage { flex: 1; min-height: 0; display: flex; flex-direction: column; padding: 0 12px 6px; gap: 6px; }
+  .hq-intro .eyebrow, .hq-intro h1, .hq-lede { display: none; }
+  .hq-intro:not(:has(.birthday-ribbon)) { display: none; }
+  .hud { flex-wrap: nowrap; padding: 4px 6px 4px 12px; padding-top: calc(4px + env(safe-area-inset-top, 0px)); gap: 6px; }
+  .hud-status, .demo-badge { display: none; }
+  .hud-brand { flex: 1; min-width: 0; gap: 8px; }
+  .hud-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 14.5px; }
+  .hud-actions { flex: none; margin-left: 0; }
+  .hud-actions .icon-btn { width: 40px; }
+  .hud-actions .text-btn { padding: 0 7px; font-size: 13px; }
+  .coin-btn { padding: 0 9px; }
+  .coin-toast { right: auto; left: 0; }
+  .stage-body { flex: 1; min-height: 0; margin-inline: -12px; }
+  .stage-body > .floor { flex: 1; height: auto; min-height: 0; margin-inline: 0; }
+  .in-arcade .stage-body { min-height: 0; }
+  .quick-say { padding-bottom: 0; }
+  .quick-say .emotes, .quick-say .voice { flex-wrap: nowrap; overflow-x: auto; margin: 0 -12px 6px; padding: 0 12px 3px; scrollbar-width: none; }
+  .quick-say .emotes::-webkit-scrollbar, .quick-say .voice::-webkit-scrollbar { display: none; }
+  .quick-say .emotes > *, .quick-say .voice > * { flex: none; }
+  .quick-say .voice-list { flex-wrap: nowrap; }
+  .emote { min-height: 40px; }
+  .room-card { left: 8px; right: 8px; bottom: 8px; max-width: none; max-height: 60%; overflow-y: auto; }
+}
+@media (max-width: 380px) { .hud-name { display: none; } }

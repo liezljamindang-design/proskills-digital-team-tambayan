@@ -6,7 +6,7 @@ import type { FurnitureItem } from "../types";
 /** The office as a 3D model: floor, rooms, walls and every piece of furniture. Floor (x, y) maps to 3D (x, z). */
 export const UNIT = 36; // the flat drawing's height pixels per floor unit
 const COLORS = {
-  desk: "#ffffff", dark: "#2b3140", soft: "#3f8fe6", gold: "#f4c21f", pot: "#f1f3f7", green: "#2fb344", shade: "#fff1c2",
+  desk: "#ffffff", dark: "#2b3140", soft: "#2aa845", gold: "#f4c21f", pot: "#f1f3f7", green: "#2fb344", shade: "#fff1c2",
   trunk: "#a9794d", wall: "#e9edf4", leaf: "#33b34a", leaf2: "#1e8f35", screen: "#10141c",
 };
 type M = keyof typeof COLORS;
@@ -148,7 +148,7 @@ export function buildOffice(): Office {
   for (const gy of [10.4, 11.4, 12.4, 13.4]) { const l = box(root, 0.1, gy - 0.01, 5.8, 0.02, 0.5, 0.75, "#35e6ff", { emissive: "#35e6ff", emissiveIntensity: 0.8 }); l.castShadow = false; }
   for (const gx of [1, 2, 3, 4, 5]) { const l = box(root, gx - 0.01, 9.9, 0.02, 4.0, 0.5, 0.75, "#35e6ff", { emissive: "#35e6ff", emissiveIntensity: 0.8 }); l.castShadow = false; }
   const plaza = new THREE.Mesh(new THREE.CylinderGeometry(1.75, 1.75, 0.02, 48), material("#fbe9a8")); plaza.position.set(9, 0.025, 7.85); plaza.receiveShadow = true; root.add(plaza);
-  for (const r of RUGS) { const rug = box(root, r.x, r.y, r.w, r.h, 0.5, 1.4, "#1f8ae0"); rug.castShadow = false; const edge = box(root, r.x + 0.1, r.y + 0.1, r.w - 0.2, r.h - 0.2, 1.4, 1.6, "#2f9bf0"); edge.castShadow = false; }
+  for (const r of RUGS) { const rug = box(root, r.x, r.y, r.w, r.h, 0.5, 1.4, "#22a03c"); rug.castShadow = false; const edge = box(root, r.x + 0.1, r.y + 0.1, r.w - 0.2, r.h - 0.2, 1.4, 1.6, "#35b850"); edge.castShadow = false; }
 
   // The two outer walls. Each hides itself when the camera swings round to its side.
   const wallX = new THREE.Group(), wallZ = new THREE.Group();

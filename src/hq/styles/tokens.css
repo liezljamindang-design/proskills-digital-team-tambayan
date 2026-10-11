@@ -1,5 +1,5 @@
 /* Layout: the office is the stage, with chat, people and rooms in a column beside it.
-   Palette: bright green, blue and yellow on white with black, playful but readable. */
+   Palette: bright green first, with yellow and a little blue on white with black, playful but readable. */
 :root {
   --bg: #f7f9fc;
   --surface: #ffffff;
@@ -7,8 +7,8 @@
   --ink: #10141c;
   --ink-2: #4a5568;
   --line: #dfe5ee;
-  --lav: #1565c0;          /* primary: blue */
-  --lav-soft: #cfe3fa;
+  --lav: #15803d;          /* primary: green */
+  --lav-soft: #d3f2da;
   --gold: #7a5c00;         /* yellow, darkened for text */
   --gold-soft: #f4c21f;
   --ok: #1b7f2a;           /* green */
@@ -19,26 +19,26 @@
   --floor-side-a: #d3dbe6;
   --floor-side-b: #c2cbd8;
   --plate: #ffffff;
-  --plate-edge: #cfe3fa;
+  --plate-edge: #d3f2da;
   --on-accent: #ffffff;
   --wall-a: #f4f7fb;
   --wall-b: #e6ebf3;
-  --glass: rgba(21, 101, 192, 0.1);
-  --glass-edge: rgba(21, 101, 192, 0.4);
+  --glass: rgba(21, 128, 61, 0.1);
+  --glass-edge: rgba(21, 128, 61, 0.4);
   --desk-t: #ffffff; --desk-l: #d9e0ea; --desk-r: #c6cfdc;
   --dark-t: #2b3140; --dark-l: #1e2330; --dark-r: #161a25;
-  --soft-t: #4f9df0; --soft-l: #2f7fd6; --soft-r: #2369b8;
+  --soft-t: #4cc463; --soft-l: #2aa845; --soft-r: #1f8c38;
   --goldm-t: #ffd95a; --goldm-l: #f4c21f; --goldm-r: #d6a50e;
   --pot-t: #ffffff; --pot-l: #e3e8f0; --pot-r: #cfd6e2;
   --green-t: #33c447; --green-l: #17b02a; --green-r: #129022;
   --leaf-a: #33b34a; --leaf-b: #1e8f35;
   --screen: #10141c;
-  --screen-ink: #6fb4ff;
+  --screen-ink: #7ee08f;
   --screen-gold: #f4c21f;
   --screen-alert: #33c447;
-  --vein: rgba(21, 101, 192, 0.1);
+  --vein: rgba(21, 128, 61, 0.1);
   --tile: rgba(16, 20, 28, 0.08);
-  --rug: #1f8ae0;
+  --rug: #22a03c;
   --rug-edge: #f4c21f;
   --shade-t: #fff6d6; --shade-l: #ffe89a; --shade-r: #f4d56a;
   --lamp-glow: rgba(255, 220, 110, 0.36);
@@ -55,14 +55,14 @@
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
     --bg: #0d1117; --surface: #161b24; --surface-2: #1f2633; --ink: #f5f7fa; --ink-2: #b4bdcc; --line: #2b3444;
-    --lav: #6fb4ff; --lav-soft: #173a63; --gold: #f4c21f; --gold-soft: #b8900f; --ok: #4fd563; --warn: #f0b24a; --off: #667085; --green: #33c447;
-    --floor: #171d28; --floor-side-a: #10151d; --floor-side-b: #0b0f15; --plate: #1d2430; --plate-edge: #173a63; --on-accent: #0d1117;
-    --wall-a: #1f2633; --wall-b: #1a202b; --glass: rgba(111, 180, 255, 0.1); --glass-edge: rgba(111, 180, 255, 0.4);
+    --lav: #5fdc7a; --lav-soft: #143f20; --gold: #f4c21f; --gold-soft: #b8900f; --ok: #4fd563; --warn: #f0b24a; --off: #667085; --green: #33c447;
+    --floor: #171d28; --floor-side-a: #10151d; --floor-side-b: #0b0f15; --plate: #1d2430; --plate-edge: #143f20; --on-accent: #0d1117;
+    --wall-a: #1f2633; --wall-b: #1a202b; --glass: rgba(95, 220, 122, 0.1); --glass-edge: rgba(95, 220, 122, 0.4);
     --desk-t: #3a4354; --desk-l: #2d3545; --desk-r: #252c3a; --dark-t: #0b0e14; --dark-l: #07090d; --dark-r: #040508;
-    --soft-t: #2f7fd6; --soft-l: #2369b8; --soft-r: #1b5596; --goldm-t: #f4c21f; --goldm-l: #d6a50e; --goldm-r: #b0880b;
+    --soft-t: #2aa845; --soft-l: #1f8c38; --soft-r: #17702c; --goldm-t: #f4c21f; --goldm-l: #d6a50e; --goldm-r: #b0880b;
     --pot-t: #4a5364; --pot-l: #3b4353; --pot-r: #313848; --green-t: #2aa83c; --green-l: #1b8a2c; --green-r: #156f23;
-    --leaf-a: #33b34a; --leaf-b: #1e8f35; --screen: #05070a; --screen-ink: #6fb4ff; --screen-gold: #f4c21f; --screen-alert: #4fd563;
-    --vein: rgba(111, 180, 255, 0.12); --tile: rgba(255, 255, 255, 0.06); --rug: #1b5596; --rug-edge: #d6a50e;
+    --leaf-a: #33b34a; --leaf-b: #1e8f35; --screen: #05070a; --screen-ink: #7ee08f; --screen-gold: #f4c21f; --screen-alert: #4fd563;
+    --vein: rgba(95, 220, 122, 0.12); --tile: rgba(255, 255, 255, 0.06); --rug: #1b7a30; --rug-edge: #d6a50e;
     --shade-t: #ffe9a8; --shade-l: #f0d07a; --shade-r: #d9b65e; --lamp-glow: rgba(255, 214, 120, 0.28);
     --bubble: #f5f7fa; --bubble-private: #ffe89a; --shadow: 0 16px 44px rgba(0, 0, 0, 0.5);
     color-scheme: dark;
@@ -70,14 +70,14 @@
 }
 :root[data-theme="dark"] {
   --bg: #0d1117; --surface: #161b24; --surface-2: #1f2633; --ink: #f5f7fa; --ink-2: #b4bdcc; --line: #2b3444;
-  --lav: #6fb4ff; --lav-soft: #173a63; --gold: #f4c21f; --gold-soft: #b8900f; --ok: #4fd563; --warn: #f0b24a; --off: #667085; --green: #33c447;
-  --floor: #171d28; --floor-side-a: #10151d; --floor-side-b: #0b0f15; --plate: #1d2430; --plate-edge: #173a63; --on-accent: #0d1117;
-  --wall-a: #1f2633; --wall-b: #1a202b; --glass: rgba(111, 180, 255, 0.1); --glass-edge: rgba(111, 180, 255, 0.4);
+  --lav: #5fdc7a; --lav-soft: #143f20; --gold: #f4c21f; --gold-soft: #b8900f; --ok: #4fd563; --warn: #f0b24a; --off: #667085; --green: #33c447;
+  --floor: #171d28; --floor-side-a: #10151d; --floor-side-b: #0b0f15; --plate: #1d2430; --plate-edge: #143f20; --on-accent: #0d1117;
+  --wall-a: #1f2633; --wall-b: #1a202b; --glass: rgba(95, 220, 122, 0.1); --glass-edge: rgba(95, 220, 122, 0.4);
   --desk-t: #3a4354; --desk-l: #2d3545; --desk-r: #252c3a; --dark-t: #0b0e14; --dark-l: #07090d; --dark-r: #040508;
-  --soft-t: #2f7fd6; --soft-l: #2369b8; --soft-r: #1b5596; --goldm-t: #f4c21f; --goldm-l: #d6a50e; --goldm-r: #b0880b;
+  --soft-t: #2aa845; --soft-l: #1f8c38; --soft-r: #17702c; --goldm-t: #f4c21f; --goldm-l: #d6a50e; --goldm-r: #b0880b;
   --pot-t: #4a5364; --pot-l: #3b4353; --pot-r: #313848; --green-t: #2aa83c; --green-l: #1b8a2c; --green-r: #156f23;
-  --leaf-a: #33b34a; --leaf-b: #1e8f35; --screen: #05070a; --screen-ink: #6fb4ff; --screen-gold: #f4c21f; --screen-alert: #4fd563;
-  --vein: rgba(111, 180, 255, 0.12); --tile: rgba(255, 255, 255, 0.06); --rug: #1b5596; --rug-edge: #d6a50e;
+  --leaf-a: #33b34a; --leaf-b: #1e8f35; --screen: #05070a; --screen-ink: #7ee08f; --screen-gold: #f4c21f; --screen-alert: #4fd563;
+  --vein: rgba(95, 220, 122, 0.12); --tile: rgba(255, 255, 255, 0.06); --rug: #1b7a30; --rug-edge: #d6a50e;
   --shade-t: #ffe9a8; --shade-l: #f0d07a; --shade-r: #d9b65e; --lamp-glow: rgba(255, 214, 120, 0.28);
   --bubble: #f5f7fa; --bubble-private: #ffe89a; --shadow: 0 16px 44px rgba(0, 0, 0, 0.5);
   color-scheme: dark;

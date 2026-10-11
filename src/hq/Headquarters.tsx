@@ -14,6 +14,7 @@ import { Pong, PongPrompt } from "./components/Pong";
 import { RoomCard } from "./components/RoomCard";
 import { HelpDialog } from "./components/HelpDialog";
 import { Hud } from "./components/Hud";
+import { InstallBanner } from "./components/InstallButton";
 import { SidePanel } from "./components/SidePanel";
 import { Welcome } from "./components/Welcome";
 import { HQ } from "./config";
@@ -38,6 +39,7 @@ export function Headquarters() {
   return (
     <div className={`hq${sheetOpen ? " sheet-open" : ""}${gameOpen ? " in-arcade" : ""}${partyOn ? " party" : ""}`}>
       <Hud />
+      <InstallBanner />
       <main className="hq-main">
         <section className="hq-stage" aria-labelledby="hq-title">
           <header className="hq-intro">

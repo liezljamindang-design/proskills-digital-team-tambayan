@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from "react";
 import { birthdayKey, MONTHS } from "../birthday";
 import { useHq } from "../store";
+import { usePhoto } from "../photo";
 import { Chibi3DPreview } from "./Chibi3DPreview";
 import { ChibiFull, randomLook } from "../office/Chibi";
 import { BATCHES, batchesOf, type Look, type Profile } from "../types";
@@ -26,6 +27,7 @@ export function AvatarBuilder({ initial, submitLabel, onSubmit, onCancel, admin 
   const [year, setYear] = useState(initial?.birthYear ?? 0);
   const view3d = useHq((s) => s.view3d);
   const [error, setError] = useState("");
+  const [photo, noPhoto] = usePhoto();
   const [showTag, setShowTag] = useState(() => { try { return localStorage.getItem("playground.hideAdmin") !== "1"; } catch { return true; } });
 
   function submit(e: FormEvent) {
@@ -40,6 +42,7 @@ export function AvatarBuilder({ initial, submitLabel, onSubmit, onCancel, admin 
   return (
     <form className="builder" onSubmit={submit} noValidate>
       <div className="builder-preview">
+        {photo && <img className="builder-photo" src={photo} alt="Your profile photo" referrerPolicy="no-referrer" onError={noPhoto} />}
         {view3d ? <Chibi3DPreview look={look} size={210} /> : <ChibiFull look={look} size={170} />}
         <button type="button" className="btn-secondary" onClick={() => setLook((l) => ({ ...randomLook(), hat: l.hat, pet: l.pet }))}>Surprise me</button>
       </div>

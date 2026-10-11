@@ -6,7 +6,7 @@ import type { Look, Profile } from "../types";
 interface Props {
   initial: Profile | null;
   submitLabel: string;
-  onSubmit: (name: string, role: string, look: Look, birthday?: string) => void;
+  onSubmit: (name: string, role: string, look: Look, birthday?: string, birthYear?: number) => void;
   onCancel?: () => void;
 }
 
@@ -17,6 +17,7 @@ export function AvatarBuilder({ initial, submitLabel, onSubmit, onCancel }: Prop
   const [look, setLook] = useState<Look>(initial?.look ?? DEFAULT_LOOK);
   const [month, setMonth] = useState(initial?.birthday ? Number(initial.birthday.slice(0, 2)) : 0);
   const [day, setDay] = useState(initial?.birthday ? Number(initial.birthday.slice(3)) : 0);
+  const [year, setYear] = useState(initial?.birthYear ?? 0);
   const [error, setError] = useState("");
   const set = <K extends keyof Look>(key: K, value: Look[K]) => setLook((l) => ({ ...l, [key]: value }));
 
@@ -24,7 +25,7 @@ export function AvatarBuilder({ initial, submitLabel, onSubmit, onCancel }: Prop
     e.preventDefault();
     if (!name.trim()) return setError("Enter the name your teammates will see.");
     if ((month > 0) !== (day > 0)) return setError("Pick both a month and a day for your birthday, or leave both empty.");
-    onSubmit(name.trim().slice(0, 24), role.trim().slice(0, 40), look, month && day ? birthdayKey(month, day) : undefined);
+    onSubmit(name.trim().slice(0, 24), role.trim().slice(0, 40), look, month && day ? birthdayKey(month, day) : undefined, month && day && year ? year : undefined);
   }
 
   const swatches = (label: string, key: "skin" | "hair" | "outfit", colors: string[]) => (
@@ -68,8 +69,12 @@ export function AvatarBuilder({ initial, submitLabel, onSubmit, onCancel }: Prop
               <option value={0}>Day</option>
               {Array.from({ length: month ? new Date(2024, month, 0).getDate() : 31 }, (_, i) => <option key={i} value={i + 1}>{i + 1}</option>)}
             </select>
+            <select aria-label="Birthday year" value={year} onChange={(e) => setYear(Number(e.target.value))}>
+              <option value={0}>Year</option>
+              {Array.from({ length: 80 }, (_, i) => new Date().getFullYear() - 14 - i).map((y) => <option key={y} value={y}>{y}</option>)}
+            </select>
           </div>
-          <p className="field-hint">No year needed. On your day the office puts up a banner with your name.</p>
+          <p className="field-hint">On your day the office puts up a banner with your name. The year is optional and stays private: teammates never see it.</p>
         </fieldset>
 
         {swatches("Skin", "skin", SKINS)}

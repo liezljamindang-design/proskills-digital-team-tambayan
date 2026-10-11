@@ -59,6 +59,8 @@ export interface Profile {
   act?: Act;
   /** Month and day only, as "MM-DD". */
   birthday?: string;
+  /** Kept on your own account and device only. It is never sent to other people. */
+  birthYear?: number;
 }
 export type ManualStatus = "dnd" | "brb" | "meeting" | "working" | "client" | "interview" | "call";
 export type Mood = "happy" | "angry" | "dance" | "blink";

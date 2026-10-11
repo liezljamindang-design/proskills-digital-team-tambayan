@@ -44,7 +44,7 @@ export async function joinOffice(me: Profile): Promise<void> {
   transport?.leave();
   transport = supabaseConfigured ? (await import("./supabaseTransport")).createSupabaseTransport() : createLocalTransport();
   const s = useHq.getState;
-  await transport.join(me, myPos, {
+  await transport.join({ ...me, birthYear: undefined }, myPos, {
     onPeer: (peer) => {
       const old = s().peers[peer.id];
       const isNew = !old;
@@ -99,7 +99,7 @@ export function updateMyProfile(me: Profile) {
   const old = useHq.getState().me;
   if (old && transport) changes(old, me).forEach((text) => note(me.id, me.name, text));
   useHq.getState().setMe(me);
-  transport?.updateProfile(me, myPos);
+  transport?.updateProfile({ ...me, birthYear: undefined }, myPos);
 }
 
 export const myPosition = () => myPos;

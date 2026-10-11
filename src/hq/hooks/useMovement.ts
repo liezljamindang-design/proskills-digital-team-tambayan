@@ -42,9 +42,10 @@ export function useMovement({ svgRef, cameraRef, avatarRef, boxesRef, onSlot }: 
     function cameraGoal() {
       if (useHq.getState().overview) return { x: CENTRE.x, y: CENTRE.y, z: 1 };
       const [sx, sy] = project(pos.x, pos.y);
-      if (mobile.matches) return { x: sx, y: sy - 14, z: 2.1 };
+      const zoom = useHq.getState().zoom;
+      if (mobile.matches) return { x: sx, y: sy - 14, z: 2.1 * zoom };
       // The floor is large, so the camera stays close and follows you. "Whole floor" zooms back out.
-      return { x: sx, y: sy - 20, z: 1.55 };
+      return { x: sx, y: sy - 20, z: 1.55 * zoom };
     }
     function updateNearSeat() {
       let best: string | null = null, bestD = 1.0;
@@ -188,18 +189,25 @@ export function useMovement({ svgRef, cameraRef, avatarRef, boxesRef, onSlot }: 
 
     const unsubscribe = useHq.subscribe((s, prev) => {
       if (s.walkRequest && s.walkRequest !== prev.walkRequest) walkTo(zoneEntry(s.walkRequest.zone));
-      if (s.overview !== prev.overview) kick();
+      if (s.overview !== prev.overview || s.zoom !== prev.zoom) kick();
       if (s.poseRequest && s.poseRequest !== prev.poseRequest) {
         if (s.poseRequest.pose === "sit") goSit(s.poseRequest.seat ?? "lounge-sofa"); else { pendingSeat = null; getUp(); }
         kick();
       }
     });
+    // Scrolling over the office zooms it. Ctrl/trackpad pinch arrives as a wheel event too.
+    function onWheel(e: WheelEvent) {
+      if (blocked()) return;
+      e.preventDefault();
+      useHq.getState().zoomBy(e.deltaY < 0 ? 1.1 : 1 / 1.1);
+    }
+    svg.addEventListener("wheel", onWheel, { passive: false });
     window.addEventListener("keydown", onKeyDown); window.addEventListener("keyup", onKeyUp); window.addEventListener("blur", onBlur);
     svg.addEventListener("click", onClick); mobile.addEventListener("change", kick);
 
     Object.assign(cam, cameraGoal()); updateSlot(); draw();
     return () => {
-      cancelAnimationFrame(raf); unsubscribe();
+      cancelAnimationFrame(raf); unsubscribe(); svg.removeEventListener("wheel", onWheel);
       window.removeEventListener("keydown", onKeyDown); window.removeEventListener("keyup", onKeyUp); window.removeEventListener("blur", onBlur);
       svg.removeEventListener("click", onClick); mobile.removeEventListener("change", kick);
     };

@@ -21,6 +21,8 @@ export function FloorMap() {
   const selected = useHq((s) => s.selectedZone);
   const overview = useHq((s) => s.overview);
   const setOverview = useHq((s) => s.setOverview);
+  const zoom = useHq((s) => s.zoom);
+  const zoomBy = useHq((s) => s.zoomBy);
   const me = useHq((s) => s.me);
   const myZone = useHq((s) => s.myZone);
   const peers = useHq((s) => s.peers);
@@ -204,6 +206,10 @@ export function FloorMap() {
           </g>
         </g>
       </svg>
+      <div className="zoom-controls" role="group" aria-label="Zoom">
+        <button type="button" onClick={() => zoomBy(1.2)} disabled={!overview && zoom >= 2.2} aria-label="Zoom in">+</button>
+        <button type="button" onClick={() => zoomBy(1 / 1.2)} disabled={!overview && zoom <= 0.5} aria-label="Zoom out">−</button>
+      </div>
       {overview ? (
         <p className="floor-note">Showing the whole floor. Move to follow yourself again.</p>
       ) : (

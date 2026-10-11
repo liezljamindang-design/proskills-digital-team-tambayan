@@ -268,3 +268,10 @@ h1, h2 { font-weight: 800; letter-spacing: -0.01em; }
 .chibi.mood-laugh { transform-origin: 50% 100%; animation: pg-laugh 0.3s ease-in-out infinite; }
 @keyframes pg-laugh { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-1.4px); } }
 @media (prefers-reduced-motion: reduce) { .chibi .pulse, .chibi .float-up, .chibi .tears, .chibi .dots, .chibi.mood-laugh { animation: none; } }
+
+/* Zoom buttons, above "Whole floor" */
+.zoom-controls { position: absolute; right: 0; bottom: 44px; z-index: 1; display: grid; border: 1px solid var(--line); border-radius: 10px; overflow: hidden; background: var(--surface); }
+.zoom-controls button { width: 44px; height: 44px; border: 0; background: none; color: var(--ink); font-size: 22px; font-weight: 700; line-height: 1; cursor: pointer; }
+.zoom-controls button + button { border-top: 1px solid var(--line); }
+.zoom-controls button:hover:not(:disabled) { background: var(--surface-2); }
+.zoom-controls button:disabled { opacity: 0.35; cursor: default; }

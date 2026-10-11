@@ -73,6 +73,9 @@ interface State {
   nearSeat: string | null;
   /** True when the browser refused to open the meeting by itself. */
   meetingBlocked: boolean;
+  /** How close the camera sits while it follows you. 1 is the normal distance. */
+  zoom: number;
+  zoomBy: (factor: number) => void;
   overview: boolean;
   setOverview: (overview: boolean) => void;
 }
@@ -154,6 +157,12 @@ export const useHq = create<State>((set, get) => ({
   requestPose: (pose, seat) => set({ poseRequest: { pose, seat } }),
   nearSeat: null,
   meetingBlocked: false,
+  zoom: Math.min(2.2, Math.max(0.5, Number(read("playground.zoom")) || 1)),
+  zoomBy: (factor) => {
+    const zoom = Math.min(2.2, Math.max(0.5, +(get().zoom * factor).toFixed(3)));
+    write("playground.zoom", String(zoom));
+    set({ zoom, overview: false });
+  },
   overview: false,
   setOverview: (overview) => set({ overview }),
 }));

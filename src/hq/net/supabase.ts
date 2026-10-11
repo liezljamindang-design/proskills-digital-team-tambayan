@@ -5,8 +5,10 @@ import type { SupabaseClient } from "@supabase/supabase-js";
  * allows what the project's own security rules allow. Without them the HQ
  * runs in preview mode.
  */
-const URL = import.meta.env.VITE_SUPABASE_URL as string | undefined;
-const KEY = import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined;
+const env = import.meta.env as Record<string, string | undefined>;
+// Vercel's Supabase integration names these NEXT_PUBLIC_…; a manual setup uses VITE_….
+const URL = env.VITE_SUPABASE_URL || env.NEXT_PUBLIC_SUPABASE_URL;
+const KEY = env.VITE_SUPABASE_ANON_KEY || env.NEXT_PUBLIC_SUPABASE_ANON_KEY || env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
 
 export const supabaseConfigured = Boolean(URL && KEY);
 

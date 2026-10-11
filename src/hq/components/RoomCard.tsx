@@ -1,6 +1,7 @@
 import { HQ } from "../config";
 import { ZONES } from "../data/office";
 import { openMeeting, setAct, updateMyProfile } from "../net/session";
+import { ChibiPortrait } from "../office/Chibi";
 import { zoneAt } from "../office/engine";
 import { MANUAL, statusOf, WORK_STATUSES } from "../status";
 import { useHq } from "../store";
@@ -59,6 +60,18 @@ export function RoomCard() {
           </>
         ) : <p>The Zoom link has not been added yet.</p>
       )}
+      {zone === "huddle" && (() => {
+        const inside = Object.values(peers).filter((p) => zoneAt(p.x, p.y) === "huddle").sort((a, b) => a.name.localeCompare(b.name));
+        return (
+          <>
+            <p className="roster-title">In the meeting room · {inside.length + 1}</p>
+            <ul className="roster">
+              <li><ChibiPortrait look={me.look} size={28} /> {me.name} (you)</li>
+              {inside.map((p) => <li key={p.id}><ChibiPortrait look={p.look} size={28} /> {p.name}</li>)}
+            </ul>
+          </>
+        );
+      })()}
 
       {zone === "focus" && (
         <>

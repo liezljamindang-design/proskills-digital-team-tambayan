@@ -1,3 +1,4 @@
+import { SEAT_IDS } from "../data/office";
 import type { FurnitureItem } from "../types";
 import { project } from "./iso";
 import { Box, panelY } from "./primitives";
@@ -204,5 +205,6 @@ const RENDERERS = {
 
 export function Furniture({ item }: { item: FurnitureItem }) {
   const Render = RENDERERS[item.kind];
-  return <Render {...item} />;
+  // Anything you can sit on is clickable: clicking walks you over and sits you down.
+  return SEAT_IDS.has(item.id) ? <g className="seat" data-seat={item.id}><Render {...item} /></g> : <Render {...item} />;
 }

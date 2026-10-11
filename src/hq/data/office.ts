@@ -122,6 +122,22 @@ export const RUGS = [
   { id: "rug-huddle", x: 7.7, y: 0.6, w: 2.6, h: 2.5 },
 ];
 
-/** Where a chibi sits on the lounge sofa, and the foot of each bed, where a sleeping chibi is placed. */
-export const SOFA_SEATS = [{ x: 1.1, y: 6.3 }, { x: 1.7, y: 6.3 }, { x: 2.3, y: 6.3 }];
+/** A place to sit: where the chibi is placed on the floor, and how far it is nudged on screen to land on the seat. */
+export interface Seat { furniture: string; x: number; y: number; dx: number; dy: number }
+const SEAT_HEIGHT: Partial<Record<FurnitureItem["kind"], number>> = { chair: 10, stool: 14, beanbag: 9 };
+/** Every chair, stool, bean bag and sofa. Each spot is just in front of the piece so the chibi draws over it. */
+export const SEATS: Seat[] = FURNITURE.flatMap((f): Seat[] => {
+  const z = SEAT_HEIGHT[f.kind];
+  if (z !== undefined) {
+    const d = f.h / 2 + 0.03;
+    return [{ furniture: f.id, x: f.x + f.w / 2, y: f.y + f.h + 0.03, dx: 32 * d, dy: -16 * d - z + 3 }];
+  }
+  if (f.kind === "sofa" && f.w >= f.h) {
+    const n = Math.max(1, Math.floor((f.w - 0.4) / 0.6) + 1);
+    return Array.from({ length: n }, (_, i) => ({ furniture: f.id, x: f.x + 0.5 + i * ((f.w - 1) / Math.max(1, n - 1)), y: f.y + f.h + 0.2, dx: 0, dy: -8 }));
+  }
+  return [];
+});
+export const SEAT_IDS = new Set(SEATS.map((s) => s.furniture));
+/** The foot of each bed, where a sleeping chibi is placed. */
 export const BED_FEET = FURNITURE.filter((f) => f.kind === "bed").map((b) => ({ x: b.x + b.w / 2, y: b.y + b.h + 0.03 }));

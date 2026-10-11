@@ -66,6 +66,8 @@ export type Drink = "coffee" | "iced" | "tea";
 /** What a person is doing right now. Shared live with everyone, never saved. */
 export interface Act {
   pose?: "sit" | "sleep";
+  /** While sitting: how far the chibi is nudged on screen to land on the seat. */
+  at?: { dx: number; dy: number };
   drink?: Drink;
   phone?: boolean;
   mood?: Mood;

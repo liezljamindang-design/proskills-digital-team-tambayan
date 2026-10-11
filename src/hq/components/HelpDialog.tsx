@@ -15,6 +15,7 @@ export function HelpDialog() {
         <div><dt>Play</dt><dd>Walk into the Recreation Room and the arcade opens, with everyone who is inside. Chat stays open beside it.</dd></div>
         <div><dt>Your look</dt><dd>My avatar changes your name and chibi any time.</dd></div>
         <div><dt>Rooms do things</dt><dd>Order a drink in the Café, sit and scroll in the Lounge, stop in the Sleeping Quarters to nap, set what you are working on in the Work Room, and walk into the Collaboration Room to open the team Zoom.</dd></div>
+        <div><dt>Sit</dt><dd>Click any chair, stool, bean bag or sofa to walk over and sit on it. Move to stand up.</dd></div>
         <div><dt>React</dt><dd>Use the Happy, Angry, Dance and Blink buttons above the message box.</dd></div>
       </dl>
       <p className="muted">

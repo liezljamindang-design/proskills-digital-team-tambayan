@@ -1,6 +1,6 @@
 import { useEffect, type RefObject } from "react";
 import { HQ } from "../config";
-import { ARCADE_SPOT, BED_FEET, FLOOR, SOFA_SEATS, START } from "../data/office";
+import { ARCADE_SPOT, BED_FEET, FLOOR, SEATS, START, type Seat } from "../data/office";
 import { openMeeting, reportMove, setAct, updateMyProfile } from "../net/session";
 import { WORK_STATUSES } from "../status";
 import { canStand, findPath, sceneToFloor, slotFor, SPEED, zoneAt, zoneEntry, type Box, type Point } from "../office/engine";
@@ -56,22 +56,22 @@ export function useMovement({ svgRef, cameraRef, avatarRef, boxesRef, onSlot }: 
       camera!.setAttribute("transform", `translate(${CENTRE.x} ${CENTRE.y}) scale(${cam.z.toFixed(4)}) translate(${(-cam.x).toFixed(2)} ${(-cam.y).toFixed(2)})`);
     }
     // Resting: sitting on the sofa or asleep on a bed. `restFrom` is where you were standing before.
-    let restFrom: Point | null = null, wasMoving = false;
-    const nearest = (spots: Point[]) => {
+    let restFrom: Point | null = null, wasMoving = false, pendingSeat: string | null = null;
+    const nearest = <T extends Point>(spots: T[]): T => {
       const taken = Object.values(useHq.getState().peers);
       const free = spots.filter((s) => !taken.some((t) => Math.hypot(t.x - s.x, t.y - s.y) < 0.25));
       return (free.length ? free : spots).reduce((a, b) => (Math.hypot(a.x - pos.x, a.y - pos.y) <= Math.hypot(b.x - pos.x, b.y - pos.y) ? a : b));
     };
-    function rest(pose: "sit" | "sleep", spots: Point[]) {
+    function rest(pose: "sit" | "sleep", spots: (Point & Partial<Seat>)[]) {
       if (restFrom || !spots.length) return;
       const spot = nearest(spots);
       restFrom = { ...pos };
       pos.x = spot.x; pos.y = spot.y; path = [];
-      updateSlot(); reportMove({ ...pos }); setAct({ pose });
+      updateSlot(); reportMove({ ...pos }); setAct({ pose, at: pose === "sit" ? { dx: spot.dx ?? 0, dy: spot.dy ?? -8 } : undefined });
     }
     function getUp() {
       if (restFrom) { pos.x = restFrom.x; pos.y = restFrom.y; restFrom = null; updateSlot(); reportMove({ ...pos }); }
-      if (useHq.getState().me?.act?.pose) setAct({ pose: undefined });
+      if (useHq.getState().me?.act?.pose) setAct({ pose: undefined, at: undefined });
     }
     const leaveOverview = () => { if (useHq.getState().overview) useHq.getState().setOverview(false); };
 
@@ -116,6 +116,8 @@ export function useMovement({ svgRef, cameraRef, avatarRef, boxesRef, onSlot }: 
       avatar!.classList.toggle("is-walking", moving);
       // Coming to a stop in the Sleeping Quarters puts you to bed.
       if (wasMoving && !moving && !held.size && !path.length && zone === "nap") rest("sleep", BED_FEET);
+      // Arriving at a seat you clicked sits you down on it.
+      if (wasMoving && !moving && !held.size && !path.length && pendingSeat) { const id = pendingSeat; pendingSeat = null; sitOn(id); }
       wasMoving = moving;
 
       const goal = cameraGoal(), k = reduce.matches ? 1 : 1 - Math.exp(-dt * 3.2);
@@ -125,8 +127,30 @@ export function useMovement({ svgRef, cameraRef, avatarRef, boxesRef, onSlot }: 
       if (moving || held.size || path.length || !settled) raf = requestAnimationFrame(frame);
       else running = false;
     }
+    const seatsOf = (id: string) => SEATS.filter((s) => s.furniture === id);
+    function sitOn(id: string) {
+      const spots = seatsOf(id);
+      if (spots.some((s) => Math.hypot(s.x - pos.x, s.y - pos.y) < 1.2)) rest("sit", spots);
+    }
+    /** Walks to the nearest place you can stand beside a seat, then sits. */
+    function goSit(id: string) {
+      const spots = seatsOf(id);
+      if (!spots.length) return;
+      const seat = spots.reduce((a, b) => (Math.hypot(a.x - pos.x, a.y - pos.y) <= Math.hypot(b.x - pos.x, b.y - pos.y) ? a : b));
+      let stand: Point | null = null;
+      for (const r of [0, 0.25, 0.45, 0.65, 0.9]) {
+        for (let k = 0; k < 12 && !stand; k++) {
+          const p = { x: seat.x + Math.cos((k * Math.PI) / 6) * r, y: seat.y + Math.sin((k * Math.PI) / 6) * r };
+          if (canStand(p.x, p.y)) stand = p;
+        }
+        if (stand) break;
+      }
+      if (!stand) return;
+      walkTo(stand);
+      if (path.length) pendingSeat = id; else sitOn(id);
+    }
     function kick() { if (running) return; running = true; last = performance.now(); raf = requestAnimationFrame(frame); }
-    function walkTo(target: Point) { leaveOverview(); getUp(); path = findPath(pos, target); kick(); }
+    function walkTo(target: Point) { pendingSeat = null; leaveOverview(); getUp(); path = findPath(pos, target); kick(); }
 
     const blocked = () => { const s = useHq.getState(); return !s.joined || s.editingAvatar || s.helpOpen || s.gameOpen; };
     function onKeyDown(e: KeyboardEvent) {
@@ -134,7 +158,7 @@ export function useMovement({ svgRef, cameraRef, avatarRef, boxesRef, onSlot }: 
       const el = e.target as HTMLElement | null;
       if (el && (el.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName))) return;
       e.preventDefault();
-      held.add(e.key); leaveOverview(); getUp(); kick();
+      held.add(e.key); pendingSeat = null; leaveOverview(); getUp(); kick();
     }
     const onKeyUp = (e: KeyboardEvent) => { held.delete(e.key); };
     const onBlur = () => held.clear();
@@ -146,6 +170,8 @@ export function useMovement({ svgRef, cameraRef, avatarRef, boxesRef, onSlot }: 
       if (person?.dataset.peer) { useHq.getState().openThread(person.dataset.peer); return; }
       // Clicking an arcade cabinet walks you into the Recreation Room, which opens the arcade.
       if (target.closest("[data-open='game']")) { walkTo(ARCADE_SPOT); return; }
+      const seat = target.closest<SVGGElement>("[data-seat]");
+      if (seat?.dataset.seat) { goSit(seat.dataset.seat); return; }
       const ctm = camera!.getScreenCTM();
       if (!ctm) return;
       const p = new DOMPoint(e.clientX, e.clientY).matrixTransform(ctm.inverse());
@@ -158,7 +184,7 @@ export function useMovement({ svgRef, cameraRef, avatarRef, boxesRef, onSlot }: 
       if (s.walkRequest && s.walkRequest !== prev.walkRequest) walkTo(zoneEntry(s.walkRequest.zone));
       if (s.overview !== prev.overview) kick();
       if (s.poseRequest && s.poseRequest !== prev.poseRequest) {
-        if (s.poseRequest.pose === "sit") rest("sit", SOFA_SEATS); else getUp();
+        if (s.poseRequest.pose === "sit") goSit("lounge-sofa"); else { pendingSeat = null; getUp(); }
         kick();
       }
     });

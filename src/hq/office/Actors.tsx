@@ -51,7 +51,7 @@ interface FigureProps {
 export function Figure({ look, name, bubble, self, status, act, party }: FigureProps) {
   const pose = act?.pose;
   // Asleep: laid along the bed, head on the pillow. Sitting: raised onto the sofa seat.
-  const body = pose === "sleep" ? "translate(-3 -12) rotate(63) scale(1.02)" : pose === "sit" ? "translate(0 -8) scale(1.3)" : "scale(1.3)";
+  const body = pose === "sleep" ? "translate(-3 -12) rotate(63) scale(1.02)" : pose === "sit" ? `translate(${act?.at?.dx ?? 0} ${act?.at?.dy ?? -8}) scale(1.3)` : "scale(1.3)";
   const label = name.length > 12 ? `${name.slice(0, 11)}…` : name;
   const tagW = Math.max(26, label.length * 4.6 + 12);
   return (

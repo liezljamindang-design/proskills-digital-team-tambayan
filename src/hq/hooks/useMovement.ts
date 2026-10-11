@@ -2,7 +2,7 @@ import { useEffect, type RefObject } from "react";
 import { HQ } from "../config";
 import { earnForMeeting } from "../economy";
 import { ARCADE_SPOT, BED_FEET, FLOOR, SEATS, START, type Seat } from "../data/office";
-import { openMeeting, reportMove, setAct, updateMyProfile } from "../net/session";
+import { openMeeting, react, reportMove, setAct, updateMyProfile } from "../net/session";
 import { WORK_STATUSES } from "../status";
 import { canStand, findPath, sceneToFloor, slotFor, SPEED, zoneAt, zoneEntry, type Box, type Point } from "../office/engine";
 import { project } from "../office/iso";
@@ -64,6 +64,7 @@ export function useMovement({ svgRef, cameraRef, avatarRef, boxesRef, onSlot }: 
       camera!.setAttribute("transform", `translate(${CENTRE.x} ${CENTRE.y}) scale(${cam.z.toFixed(4)}) translate(${(-cam.x).toFixed(2)} ${(-cam.y).toFixed(2)})`);
     }
     // Resting: sitting on the sofa or asleep on a bed. `restFrom` is where you were standing before.
+    let pokes: number[] = [];
     let restFrom: Point | null = null, wasMoving = false, pendingSeat: string | null = null;
     const nearest = <T extends Point>(spots: T[]): T => {
       const taken = Object.values(useHq.getState().peers);
@@ -174,8 +175,22 @@ export function useMovement({ svgRef, cameraRef, avatarRef, boxesRef, onSlot }: 
     function onClick(e: MouseEvent) {
       const target = e.target as Element;
       // Clicking a person opens a private chat with them.
+      // Poking your own chibi makes it react. Poke it too many times and it gets dizzy.
+      if (target.closest(".avatar")) {
+        const now = performance.now();
+        pokes = pokes.filter((t) => now - t < 3000); pokes.push(now);
+        const dizzy = pokes.length >= 5;
+        avatar!.classList.remove("is-boing", "is-dizzy");
+        void avatar!.getBoundingClientRect(); // restart the animation
+        avatar!.classList.add(dizzy ? "is-dizzy" : "is-boing");
+        const reactions = ["laugh", "wow", "shy", "love", "happy"] as const;
+        react(dizzy ? "cry" : reactions[Math.floor(Math.random() * reactions.length)]);
+        if (dizzy) { pokes = []; useHq.getState().showBubble(useHq.getState().me?.id ?? "", "Stop poking me! 😵", false); }
+        return;
+      }
       const person = target.closest<SVGGElement>("[data-peer]");
-      if (person?.dataset.peer) { useHq.getState().openThread(person.dataset.peer); return; }
+      if (person?.dataset.peer) { useHq.getState().selectPeer(person.dataset.peer); return; }
+      if (useHq.getState().selectedPeer) useHq.getState().selectPeer(null);
       // Clicking an arcade cabinet walks you into the Recreation Room, which opens the arcade.
       if (target.closest("[data-open='game']")) { walkTo(ARCADE_SPOT); return; }
       const seat = target.closest<SVGGElement>("[data-seat]");

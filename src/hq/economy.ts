@@ -6,7 +6,13 @@ import { useHq } from "./store";
  * Coins, the daily streak and the shop. This is for fun, not security: balances
  * live on each person's own profile, so a determined teammate could cheat.
  */
-export interface ShopItem { id: string; kind: "hat" | "pet"; name: string; emoji: string; price: number }
+export interface ShopItem {
+  id: string; kind: "hat" | "pet" | "fx"; name: string; emoji: string; price: number;
+  /** Limited editions can only be bought before this date (YYYY-MM-DD). Owners keep them afterwards. */
+  until?: string;
+  note?: string;
+}
+export const onSale = (item: ShopItem) => !item.until || new Date() < new Date(`${item.until}T00:00:00`);
 export const SHOP: ShopItem[] = [
   { id: "party", kind: "hat", name: "Party hat", emoji: "🥳", price: 25 },
   { id: "cap", kind: "hat", name: "Baseball cap", emoji: "🧢", price: 30 },
@@ -19,6 +25,9 @@ export const SHOP: ShopItem[] = [
   { id: "cat", kind: "pet", name: "Cat", emoji: "🐈", price: 150 },
   { id: "dog", kind: "pet", name: "Dog", emoji: "🐕", price: 150 },
   { id: "robot", kind: "pet", name: "Robot", emoji: "🤖", price: 200 },
+  { id: "ghost", kind: "fx", name: "Halloween Ghost", emoji: "👻", price: 180, until: "2026-11-02", note: "Halloween 2026" },
+  { id: "gold", kind: "fx", name: "Golden Founder", emoji: "🏆", price: 300, until: "2026-12-01", note: "Opening season" },
+  { id: "rainbow", kind: "fx", name: "Rainbow", emoji: "🌈", price: 250 },
 ];
 export const EARNING = { daily: 20, streakBonus: 5, streakCap: 7, chat: 1, chatCap: 20, win: 10, best: 15, meeting: 5 };
 
@@ -72,7 +81,7 @@ export function dailyCheckIn() {
 
 export function buy(item: ShopItem): boolean {
   const me = useHq.getState().me;
-  if (!me || (me.owned ?? []).includes(item.id) || (me.coins ?? 0) < item.price) return false;
+  if (!me || !onSale(item) || (me.owned ?? []).includes(item.id) || (me.coins ?? 0) < item.price) return false;
   updateMyProfile({ ...me, coins: (me.coins ?? 0) - item.price, owned: [...(me.owned ?? []), item.id], look: { ...me.look, [item.kind]: item.id } });
   persist();
   return true;

@@ -293,7 +293,7 @@ export function ChibiArt({ look, act }: { look: Look; act?: Act }) {
   const sleeve = fit === "cool" ? "#1b1d26" : fit === "formal" ? "#1f2a44" : fit === "punk" ? "#16161d" : look.outfit;
   const body = fit === "formal" ? "#ffffff" : fit === "punk" ? "#16161d" : look.outfit;
   return (
-    <g className={`chibi${mood ? ` mood-${mood}` : ""}`} transform={sitting ? "translate(0 2.4)" : undefined}>
+    <g className={`chibi${mood ? ` mood-${mood}` : ""}${look.fx ? ` fx-${look.fx}` : ""}`} transform={sitting ? "translate(0 2.4)" : undefined}>
       <BackHair look={look} />
       <rect x={-3.7} y={-5.4} width={2.9} height={sitting ? 2.4 : 4.6} rx={1.2} fill={legs} />
       <rect x={0.8} y={-5.4} width={2.9} height={sitting ? 2.4 : 4.6} rx={1.2} fill={legs} />

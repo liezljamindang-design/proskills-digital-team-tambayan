@@ -10,7 +10,7 @@ import { startRoster } from "./roster";
 import { createLocalTransport } from "./localTransport";
 import { createSupabaseTransport } from "./supabaseTransport";
 import { supabaseConfigured } from "./supabase";
-import type { Point, Transport } from "./transport";
+import type { Point, PongMsg, Transport } from "./transport";
 
 /** The one live connection to the office, and the actions that go through it. */
 let transport: Transport | null = null;
@@ -96,6 +96,14 @@ export async function joinOffice(me: Profile): Promise<void> {
       const thread = msg.room ?? (msg.to ? msg.from : PUBLIC); // a private message files under its sender
       // Arcade chat is only for people who are inside the arcade right now.
       if (msg.room === ARCADE && s().myZone !== "game") return;
+      if (msg.pong) { receivePong(msg.from, msg.name, msg.pong); return; }
+      if (msg.poke && POKES[msg.poke.kind]) {
+        const poke = POKES[msg.poke.kind], mine = msg.poke.to === s().me?.id;
+        note(msg.from, msg.name, `${poke.verb} ${mine ? "you" : String(msg.poke.toName).slice(0, 40)} ${poke.emoji}`);
+        s().showBubble(msg.from, `${poke.emoji} ${mine ? "you!" : String(msg.poke.toName).slice(0, 24)}`, false);
+        if (mine) { ping(); react("happy"); }
+        return;
+      }
       if (msg.partyOver) { if (s().me?.act?.party) setAct({ party: undefined }); return; }
       if (msg.react && typeof msg.react.id === "string" && REACTIONS.includes(msg.react.emoji)) return applyReaction(thread, msg.react.id, msg.react.emoji, msg.from, Boolean(msg.react.on));
       if (msg.pin && typeof msg.pin.id === "string") return s().patchLine(thread, msg.pin.id, (l) => ({ ...l, pinned: Boolean(msg.pin!.on) }));
@@ -103,7 +111,9 @@ export async function joinOffice(me: Profile): Promise<void> {
       const image = safeImage(msg.image) ? msg.image : undefined; // never show an image we did not expect
       const text = typeof msg.text === "string" ? msg.text.slice(0, 280) : "";
       if (!text && !image) return;
-      s().addLine(thread, { id: msg.id, from: msg.from, name: msg.name, text, time: clock(), image, reply });
+      const mention = mentionsMe(text);
+      if (mention) ping();
+      s().addLine(thread, { id: msg.id, from: msg.from, name: msg.name, text, time: clock(), image, reply, mention });
       s().showBubble(msg.from, text || (image?.startsWith("data:") ? "📷 Photo" : "GIF"), Boolean(msg.to || (msg.room && msg.room !== ARCADE)));
     },
   });
@@ -212,4 +222,89 @@ export function toggleParty() {
   if (!running) { setAct({ party: true }); return; }
   if (me.act?.party) setAct({ party: undefined });
   transport.chat({ id: nextId(), from: me.id, name: displayName(me), text: "", partyOver: true });
+}
+
+/** Friendly gestures you can aim at a teammate. */
+export const POKES: Record<string, { label: string; verb: string; emoji: string }> = {
+  wave: { label: "Wave", verb: "waved at", emoji: "👋" },
+  highfive: { label: "High-five", verb: "high-fived", emoji: "🙌" },
+  hug: { label: "Hug", verb: "hugged", emoji: "🤗" },
+  cheer: { label: "Cheer", verb: "cheered for", emoji: "🎉" },
+};
+export function poke(kind: string, to: string) {
+  const state = useHq.getState(), me = state.me, target = state.peers[to];
+  if (!me || !target || !transport || !POKES[kind]) return;
+  const toName = displayName(target);
+  transport.chat({ id: nextId(), from: me.id, name: displayName(me), text: "", poke: { kind, to, toName } });
+  note(me.id, displayName(me), `${POKES[kind].verb} ${toName} ${POKES[kind].emoji}`);
+  state.showBubble(me.id, `${POKES[kind].emoji} ${target.name}`, false);
+  react("happy");
+}
+
+/** True when a message calls me by @username or @firstname. */
+function mentionsMe(text: string): boolean {
+  const me = useHq.getState().me;
+  if (!me) return false;
+  const names = [me.name, me.firstName].filter(Boolean).map((n) => n!.toLowerCase().replace(/\s+/g, ""));
+  const tags = (text.toLowerCase().match(/@[\p{L}\p{N}_.-]+/gu) ?? []).map((t) => t.slice(1));
+  return tags.some((t) => t === "everyone" || names.some((n) => n === t || n.startsWith(t) && t.length >= 3));
+}
+
+let audio: AudioContext | null = null;
+/** A short, soft two-note chime, for mentions and gestures aimed at you. */
+function ping() {
+  try {
+    audio ??= new AudioContext();
+    const now = audio.currentTime;
+    [660, 880].forEach((freq, i) => {
+      const osc = audio!.createOscillator(), gain = audio!.createGain();
+      osc.frequency.value = freq; osc.type = "sine";
+      gain.gain.setValueAtTime(0.0001, now + i * 0.12);
+      gain.gain.exponentialRampToValueAtTime(0.08, now + i * 0.12 + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + i * 0.12 + 0.25);
+      osc.connect(gain).connect(audio!.destination);
+      osc.start(now + i * 0.12); osc.stop(now + i * 0.12 + 0.3);
+    });
+  } catch { /* no sound available */ }
+}
+
+// ---- Ping-pong between two people ----
+type PongListener = (msg: PongMsg) => void;
+let pongListener: PongListener | null = null;
+/** The open game listens here for the other player's moves. */
+export function onPong(listener: PongListener | null) { pongListener = listener; }
+export function sendPong(to: string, msg: PongMsg) {
+  const me = useHq.getState().me;
+  if (me && transport) transport.chat({ id: nextId(), from: me.id, name: displayName(me), text: "", to, pong: msg });
+}
+function receivePong(from: string, name: string, msg: PongMsg) {
+  const state = useHq.getState(), current = state.pong;
+  if (msg.k === "invite") {
+    if (current) { sendPong(from, { k: "decline" }); return; } // already busy with another game
+    useHq.setState({ pong: { opp: from, name: String(name).slice(0, 40), stage: "invited", host: false } });
+    ping();
+    return;
+  }
+  if (!current || current.opp !== from) return;
+  if (msg.k === "accept" && current.stage === "inviting") useHq.setState({ pong: { ...current, stage: "playing" } });
+  else if (msg.k === "decline" && current.stage === "inviting") { useHq.setState({ pong: null, toast: { text: `${current.name} can't play right now`, n: Date.now() } }); }
+  else if (msg.k === "quit" && current.stage !== "playing") useHq.setState({ pong: null });
+  else pongListener?.(msg);
+}
+export function invitePong(to: string) {
+  const target = useHq.getState().peers[to];
+  if (!target || useHq.getState().pong) return;
+  useHq.setState({ pong: { opp: to, name: displayName(target), stage: "inviting", host: true } });
+  sendPong(to, { k: "invite" });
+}
+export function answerPong(accept: boolean) {
+  const current = useHq.getState().pong;
+  if (!current || current.stage !== "invited") return;
+  sendPong(current.opp, { k: accept ? "accept" : "decline" });
+  useHq.setState({ pong: accept ? { ...current, stage: "playing" } : null });
+}
+export function leavePong() {
+  const current = useHq.getState().pong;
+  if (current) sendPong(current.opp, { k: "quit" });
+  useHq.setState({ pong: null });
 }

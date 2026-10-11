@@ -1,4 +1,4 @@
-import { buy, EARNING, SHOP, wear, type ShopItem } from "../economy";
+import { buy, EARNING, onSale, SHOP, wear, type ShopItem } from "../economy";
 import { ChibiFull, PetArt } from "../office/Chibi";
 import { useHq } from "../store";
 import { Dialog } from "./Dialog";
@@ -16,14 +16,16 @@ export function Shop() {
     return (
       <li key={item.id} className={`shop-item${wearing ? " is-on" : ""}`}>
         <div className="shop-preview">
-          {item.kind === "hat"
-            ? <ChibiFull look={{ ...me.look, hat: item.id }} size={84} />
+          {item.kind !== "pet"
+            ? <ChibiFull look={{ ...me.look, [item.kind]: item.id }} size={84} />
             : <svg viewBox="-12 -18 24 20" width={64} height={54} aria-hidden="true"><PetArt id={item.id} /></svg>}
         </div>
         <strong>{item.name}</strong>
+        {item.until && <span className="limited">Limited · {item.note} · {onSale(item) ? `until ${new Date(`${item.until}T00:00:00`).toLocaleDateString([], { month: "short", day: "numeric" })}` : "ended"}</span>}
         {has ? (
           <button type="button" className="btn-secondary" onClick={() => wear(item)}>{wearing ? "Take off" : item.kind === "pet" ? "Bring along" : "Wear"}</button>
         ) : (
+          !onSale(item) ? <span className="muted">No longer sold</span> :
           <button type="button" className="btn-primary" disabled={coins < item.price} onClick={() => buy(item)}
             aria-label={`Buy ${item.name} for ${item.price} coins${coins < item.price ? ", not enough coins yet" : ""}`}>🪙 {item.price}</button>
         )}
@@ -35,7 +37,7 @@ export function Shop() {
     <Dialog open={open} onClose={() => setOpen(false)} labelledBy="shop-title">
       <div className="shop">
         <header className="panel-head">
-          <div><p className="eyebrow">Tambayan shop</p><h2 id="shop-title">Hats and pets</h2></div>
+          <div><p className="eyebrow">Tambayan shop</p><h2 id="shop-title">Skins, hats and pets</h2></div>
           <button type="button" className="icon-btn" onClick={() => setOpen(false)} aria-label="Close the shop">✕</button>
         </header>
         <p className="shop-balance"><span>🪙 <strong>{coins}</strong> coins</span><span>🔥 <strong>{me.streak ?? 0}</strong> day streak</span></p>
@@ -48,6 +50,8 @@ export function Shop() {
             <li>Walk into the Collaboration Room: {EARNING.meeting} coins, once a day.</li>
           </ul>
         </details>
+        <h3 className="panel-title">Limited edition skins</h3>
+        <ul className="shop-grid">{SHOP.filter((i) => i.kind === "fx").map(row)}</ul>
         <h3 className="panel-title">Hats</h3>
         <ul className="shop-grid">{SHOP.filter((i) => i.kind === "hat").map(row)}</ul>
         <h3 className="panel-title">Pets</h3>

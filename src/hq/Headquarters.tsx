@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { BottomNav } from "./components/BottomNav";
 import { Composer } from "./components/Composer";
 import { Arcade } from "./components/Arcade";
@@ -7,6 +8,8 @@ import { Shop } from "./components/Shop";
 import { EmoteBar } from "./components/EmoteBar";
 import { SitPrompt } from "./components/SitPrompt";
 import { Party } from "./components/Party";
+import { PeerCard } from "./components/PeerCard";
+import { Pong, PongPrompt } from "./components/Pong";
 import { RoomCard } from "./components/RoomCard";
 import { HelpDialog } from "./components/HelpDialog";
 import { Hud } from "./components/Hud";
@@ -25,6 +28,8 @@ export function Headquarters() {
   const peers = useHq((s) => s.peers);
   const joined = useHq((s) => s.joined);
   const party = joined ? celebrants(me, peers) : [];
+  const unreadTotal = useHq((s) => Object.values(s.unread).reduce((a, b) => a + b, 0));
+  useEffect(() => { document.title = unreadTotal > 0 ? `(${unreadTotal}) ${HQ.name}` : HQ.name; }, [unreadTotal]);
   const partyOn = Boolean(me?.act?.party) || Object.values(peers).some((p) => p.act?.party);
 
   return (
@@ -49,6 +54,7 @@ export function Headquarters() {
             {gameOpen && <Arcade />}
             {!gameOpen && <RoomCard />}
             {!gameOpen && <SitPrompt />}
+            {!gameOpen && <PeerCard />}
           </div>
           <div className="quick-say">
             <EmoteBar />
@@ -61,6 +67,8 @@ export function Headquarters() {
       <Welcome />
       <HelpDialog />
       <Shop />
+      <PongPrompt />
+      <Pong />
     </div>
   );
 }

@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { earn, EARNING } from "../economy";
 import { accountsEnabled, saveToAccount } from "../net/auth";
-import { say, updateMyProfile } from "../net/session";
+import { invitePong, say, updateMyProfile } from "../net/session";
 import { ChibiFull, ChibiPortrait } from "../office/Chibi";
 import { zoneAt } from "../office/engine";
 import { ARCADE, useHq } from "../store";
@@ -20,6 +20,7 @@ export function Arcade() {
   const peers = useHq((s) => s.peers);
   const bubbles = useHq((s) => s.bubbles);
   const openThread = useHq((s) => s.openThread);
+  const pongBusy = useHq((s) => Boolean(s.pong));
   const lines = useHq((s) => s.threads[ARCADE]) ?? [];
   const logRef = useRef<HTMLDivElement>(null);
   useEffect(() => { const el = logRef.current; if (el) el.scrollTop = el.scrollHeight; }, [lines.length]);
@@ -101,10 +102,11 @@ export function Arcade() {
                 <ChibiFull look={p.look} size={78} />
               </button>
               <span className="arcade-name">{p.name}</span>
+              <button type="button" className="arcade-btn arcade-challenge" disabled={pongBusy} onClick={() => invitePong(p.id)}>🏓 Challenge</button>
             </li>
           ))}
         </ul>
-        {inside.length === 0 && <p className="arcade-hint">Nobody else is in here yet. Teammates who walk in appear beside you.</p>}
+        {inside.length === 0 ? <p className="arcade-hint">Nobody else is in here yet. Teammates who walk in appear beside you.</p> : <p className="arcade-hint">Cabinet 02 · Ping-pong for two: press Challenge under a player.</p>}
       </div>
 
       <div className="arcade-body">

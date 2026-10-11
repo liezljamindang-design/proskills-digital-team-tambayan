@@ -417,3 +417,48 @@ button:hover > .emoji-3d, button:hover > .emoji-flat { transform: translateY(-3p
 .halo { filter: drop-shadow(0 0 2px #ffd43b); }
 @media (max-width: 900px) { .coin-streak { display: none; } }
 @media (prefers-reduced-motion: reduce) { .pet, .coin-toast { animation: none; } }
+
+/* Teammate card, mentions */
+.peer-card { position: absolute; left: 50%; top: 8px; transform: translateX(-50%); z-index: 3; display: grid; gap: 8px; width: min(340px, calc(100% - 16px)); padding: 12px; border-radius: 14px; background: var(--surface); border: 1px solid var(--line); box-shadow: 0 12px 32px rgba(16, 20, 28, 0.2); }
+.peer-card header { display: flex; align-items: center; gap: 10px; }
+.peer-card header strong { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.peer-card .btn-secondary { min-height: 40px; padding: 0 14px; }
+.peer-card .btn-secondary:disabled { opacity: 0.5; }
+.chat-line.is-mention .chat-text { box-shadow: 0 0 0 2px var(--gold-soft); background: color-mix(in srgb, var(--gold-soft) 28%, var(--surface)); }
+
+/* Ping-pong */
+.pong-prompt { position: fixed; left: 50%; bottom: 96px; transform: translateX(-50%); z-index: 70; display: grid; gap: 10px; width: min(360px, calc(100% - 24px)); padding: 14px 16px; border-radius: 16px; background: #10141c; color: #fff; box-shadow: 0 16px 40px rgba(0, 0, 0, 0.4), 0 0 0 2px #35e6ff; }
+.pong-prompt p { margin: 0; }
+.pong-prompt .btn-primary, .pong-prompt .btn-secondary { min-height: 44px; padding: 0 20px; }
+.arcade-challenge { min-height: 34px; padding: 0 10px; font-size: 11px; }
+.arcade-challenge:disabled { opacity: 0.45; cursor: not-allowed; }
+.pong { position: fixed; inset: 0; z-index: 80; display: grid; place-items: center; padding: 12px; background: rgba(8, 6, 20, 0.86); }
+.pong-box { --neon-a: #ff4fd8; --neon-b: #35e6ff; --neon-c: #ffe14a; display: grid; gap: 10px; width: min(760px, 100%); padding: 16px; border-radius: 18px; background: #0d0b1e; border: 2px solid var(--neon-a); color: #f4f0ff; box-shadow: 0 0 30px rgba(255, 79, 216, 0.5); }
+.pong-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; }
+.pong-score { margin: 0; display: flex; align-items: baseline; gap: 12px; font-family: var(--font-mono); font-size: 1.05rem; }
+.pong-score strong { font-size: 1.9rem; color: var(--neon-c); }
+.pong-dash { color: var(--neon-b); }
+.pong-table { width: 100%; height: auto; display: block; touch-action: none; cursor: ns-resize; border-radius: 14px; }
+.pong-felt { fill: #12301e; stroke: #3dff7c; stroke-width: 3; }
+.pong-net { stroke: rgba(255, 255, 255, 0.55); stroke-width: 3; stroke-dasharray: 10 8; }
+.pong-paddle { fill: #ff4fd8; }
+.pong-paddle.is-mine { fill: #35e6ff; }
+.pong-ball { fill: #ffe14a; filter: drop-shadow(0 0 6px #ffe14a); }
+.pong-status { margin: 0; min-height: 1.5em; text-align: center; font-weight: 800; }
+.pong-help { margin: 0; text-align: center; font-size: 12.5px; color: #b9b0dd; }
+
+/* Limited edition skins */
+.limited { padding: 1px 8px; border-radius: 999px; background: #10141c; color: #ffe14a; font-size: 10.5px; font-weight: 800; letter-spacing: 0.03em; }
+.chibi.fx-gold { filter: sepia(1) saturate(3.4) hue-rotate(-12deg) brightness(1.12) drop-shadow(0 0 2px #ffd43b); }
+.chibi.fx-ghost { filter: grayscale(1) brightness(1.75) contrast(0.8) drop-shadow(0 0 3px #b197fc); opacity: 0.72; }
+.chibi.fx-rainbow { animation: pg-rainbow 4s linear infinite; }
+.chibi.fx-rainbow[class*="mood-"] { animation: none; filter: hue-rotate(140deg) saturate(1.5); }
+@keyframes pg-rainbow { 0% { filter: hue-rotate(0deg) saturate(1.5); } 100% { filter: hue-rotate(360deg) saturate(1.5); } }
+/* Poking your own chibi */
+.scene .avatar { pointer-events: auto; cursor: pointer; }
+.avatar.is-boing .av-body { animation: pg-boing 0.55s ease-out; }
+@keyframes pg-boing { 0% { transform: translateY(0) scale(1, 1); } 25% { transform: translateY(2px) scale(1.12, 0.84); } 55% { transform: translateY(-14px) scale(0.92, 1.1); } 80% { transform: translateY(0) scale(1.06, 0.94); } 100% { transform: translateY(0) scale(1, 1); } }
+.avatar.is-dizzy .av-body { animation: pg-dizzy 1.6s ease-in-out; transform-box: fill-box; transform-origin: 50% 100%; }
+@keyframes pg-dizzy { 0%, 100% { transform: rotate(0deg); } 20% { transform: rotate(-14deg); } 40% { transform: rotate(13deg); } 60% { transform: rotate(-9deg); } 80% { transform: rotate(6deg); } }
+.avatar .av-body { transform-box: fill-box; transform-origin: 50% 100%; }
+@media (prefers-reduced-motion: reduce) { .chibi.fx-rainbow, .avatar.is-boing .av-body, .avatar.is-dizzy .av-body { animation: none; } }

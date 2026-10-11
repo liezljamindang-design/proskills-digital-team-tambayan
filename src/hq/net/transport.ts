@@ -12,6 +12,10 @@ export interface WireChat { id: string; from: string; name: string; text: string
   pin?: { id: string; on: boolean };
   /** Not a message of its own: someone ended the party for everyone. */
   partyOver?: boolean;
+  /** Not a message of its own: a ping-pong move or invitation between two players. */
+  pong?: PongMsg;
+  /** Not a message of its own: a friendly gesture aimed at one person, seen by everyone. */
+  poke?: { kind: string; to: string; toName: string };
 }
 
 export interface Handlers {
@@ -35,3 +39,8 @@ export interface Transport {
   chat(msg: WireChat): void;
   leave(): void;
 }
+
+export type PongMsg =
+  | { k: "invite" | "accept" | "decline" | "quit" | "miss" }
+  | { k: "paddle"; y: number }
+  | { k: "hit" | "serve"; x: number; y: number; vx: number; vy: number };

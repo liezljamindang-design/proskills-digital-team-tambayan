@@ -46,6 +46,11 @@ interface State {
   setJoined: (joined: boolean) => void;
   editingAvatar: boolean;
   setEditingAvatar: (open: boolean) => void;
+  /** The teammate whose action card is open (wave, high-five, message). */
+  selectedPeer: string | null;
+  selectPeer: (id: string | null) => void;
+  /** Ping-pong: who I am inviting, who invited me, or who I am playing. */
+  pong: { opp: string; name: string; stage: "inviting" | "invited" | "playing"; host: boolean } | null;
   shopOpen: boolean;
   setShopOpen: (open: boolean) => void;
   /** A short "+10 coins" style message beside the coin counter. */
@@ -120,6 +125,9 @@ export const useHq = create<State>((set, get) => ({
   setJoined: (joined) => set({ joined }),
   editingAvatar: false,
   setEditingAvatar: (editingAvatar) => set({ editingAvatar }),
+  selectedPeer: null,
+  selectPeer: (selectedPeer) => set({ selectedPeer }),
+  pong: null,
   shopOpen: false,
   setShopOpen: (shopOpen) => set({ shopOpen }),
   toast: null,

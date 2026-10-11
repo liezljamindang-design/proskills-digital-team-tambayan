@@ -15,6 +15,7 @@ export function HelpDialog() {
         <div><dt>Play</dt><dd>Walk into the Recreation Room and the arcade opens, with everyone who is inside. Chat stays open beside it.</dd></div>
         <div><dt>Your look</dt><dd>My avatar changes your name and chibi any time.</dd></div>
         <div><dt>Rooms do things</dt><dd>Order a drink in the Café, sit and scroll in the Lounge, stop in the Sleeping Quarters to nap, set what you are working on in the Work Room, and walk into the Collaboration Room to open the team Zoom.</dd></div>
+        <div><dt>Say hi</dt><dd>Click a teammate on the floor to wave, high-five, hug, cheer, message them or challenge them to ping-pong. Type @ and their name in chat to get their attention.</dd></div>
         <div><dt>Coins and the shop</dt><dd>You earn coins for coming in each day, chatting and playing. Click the coin counter in the top bar to spend them on hats and pets.</dd></div>
         <div><dt>Music</dt><dd>The Music button in the top bar opens a list of ad-free radio stations. Everyone on the same station hears the same live stream.</dd></div>
         <div><dt>Zoom</dt><dd>Use the + and − buttons at the bottom right of the office, or scroll the mouse wheel over it. "Whole floor" shows everything at once.</dd></div>

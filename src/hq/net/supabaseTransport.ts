@@ -18,6 +18,7 @@ export function createSupabaseTransport(): Transport {
   let me: Peer | null = null;
   const known = new Set<string>();
   const batchRooms = new Map<number, RealtimeChannel>();
+  const outbox = new Map<string, Promise<RealtimeChannel>>();
   let onChat: ((msg: WireChat) => void) | null = null;
   /** Joins the chat room of every batch this person belongs to, and leaves the ones they left. */
   async function syncBatches(batches: number[]) {
@@ -89,19 +90,22 @@ export function createSupabaseTransport(): Transport {
     chat(msg) {
       if (msg.room?.startsWith("batch-")) { void batchRooms.get(Number(msg.room.slice(6)))?.send({ type: "broadcast", event: "chat", payload: msg }); return; }
       if (!msg.to) { void room?.send({ type: "broadcast", event: "chat", payload: msg }); return; }
-      // A private message goes to the recipient's own channel.
-      void getSupabase().then((supabase) => {
-        const dm = supabase.channel(`playground-dm-${msg.to}`);
-        dm.subscribe((status) => {
-          if (status !== "SUBSCRIBED") return;
-          void dm.send({ type: "broadcast", event: "chat", payload: msg }).then(() => supabase.removeChannel(dm));
-        });
-      });
+      // A private message goes to the recipient's own channel. The channel is kept open,
+      // so a quick exchange (a game, a run of messages) does not reconnect every time.
+      const to = msg.to;
+      const ready = outbox.get(to) ?? getSupabase().then((supabase) => new Promise<RealtimeChannel>((resolve) => {
+        const dm = supabase.channel(`playground-dm-${to}`);
+        dm.subscribe((status) => { if (status === "SUBSCRIBED") resolve(dm); });
+      }));
+      outbox.set(to, ready);
+      void ready.then((dm) => dm.send({ type: "broadcast", event: "chat", payload: msg }));
     },
     leave() {
       void room?.unsubscribe();
       void inbox?.unsubscribe();
       for (const channel of batchRooms.values()) void channel.unsubscribe();
+      for (const ready of outbox.values()) void ready.then((dm) => dm.unsubscribe());
+      outbox.clear();
       batchRooms.clear(); onChat = null;
       room = null; inbox = null; me = null; known.clear();
     },

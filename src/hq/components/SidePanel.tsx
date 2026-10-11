@@ -125,7 +125,7 @@ function ChatPane() {
           l.system ? (
             <p key={l.id} className="chat-system">{l.text}</p>
           ) : (
-            <div key={l.id} id={`msg-${l.id}`} className={`chat-line${l.from === me?.id ? " is-mine" : ""}${menuFor === l.id ? " is-open" : ""}`}>
+            <div key={l.id} id={`msg-${l.id}`} className={`chat-line${l.from === me?.id ? " is-mine" : ""}${menuFor === l.id ? " is-open" : ""}${l.mention ? " is-mention" : ""}`}>
               <p className="chat-meta">{l.pinned && <span title="Pinned">📌 </span>}{l.from === me?.id ? "You" : l.name} · {l.time}</p>
               {l.reply && (
                 <button type="button" className="chat-quote" onClick={() => jumpTo(l.reply!.id)} aria-label={`In reply to ${l.reply.name}: ${l.reply.text}`}>

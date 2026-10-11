@@ -48,6 +48,8 @@ export interface Look {
   /** Bought in the shop. */
   hat?: string;
   pet?: string;
+  /** A special all-over skin, such as a limited edition. */
+  fx?: string;
 }
 export type Fit = "basic" | "nerd" | "funk" | "cool" | "sporty" | "formal" | "hoodie" | "punk" | "royal";
 export type HairStyle = "short" | "swept" | "bob" | "long-straight" | "long-wavy" | "bun" | "ponytail" | "pigtails";
@@ -125,6 +127,8 @@ export interface ChatLine {
   /** Who reacted, by emoji. */
   reactions?: Record<string, string[]>;
   pinned?: boolean;
+  /** This message mentions me by name. */
+  mention?: boolean;
 }
 export interface Quote { id: string; name: string; text: string }
 export const REACTIONS = ["👍", "❤️", "😂", "😮", "😢", "🙏"];

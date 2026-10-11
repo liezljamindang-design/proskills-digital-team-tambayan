@@ -1,3 +1,4 @@
+import type { Profile } from "./types";
 import { accountsEnabled, saveToAccount } from "./net/auth";
 import { updateMyProfile } from "./net/session";
 import { useHq } from "./store";
@@ -90,6 +91,15 @@ export function buy(item: ShopItem): boolean {
 }
 
 /** Puts an owned item on, or takes it off if it is already on. */
+/** Saves a whole new look from the wardrobe. Anything not owned yet is left off. */
+export function saveLook(look: Profile["look"]) {
+  const me = useHq.getState().me;
+  if (!me) return;
+  const owned = me.owned ?? [], keep = (id?: string) => (id && owned.includes(id) ? id : undefined);
+  updateMyProfile({ ...me, look: { ...look, hat: keep(look.hat), pet: keep(look.pet), fx: keep(look.fx) } });
+  persist();
+}
+
 export function wear(item: ShopItem) {
   const me = useHq.getState().me;
   if (!me || !(me.owned ?? []).includes(item.id)) return;

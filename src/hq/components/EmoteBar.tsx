@@ -22,6 +22,9 @@ export function EmoteBar() {
           <Emoji char={e.emoji} size={26} />
         </button>
       ))}
+      <button type="button" className="emote" onClick={() => useHq.setState({ wardrobeOpen: true })}>
+        <Emoji char="👗" size={22} /> Wardrobe
+      </button>
       <button type="button" className={`emote ride-btn${riding ? " is-on" : ""}`} aria-pressed={riding} onClick={() => useHq.setState({ garageOpen: true })}>
         <Emoji char="🚲" size={22} /> {riding ? "Riding" : "Ride"}
       </button>

@@ -69,6 +69,7 @@ interface State {
   /** The "who do you want to play?" card for ping-pong is open. */
   pongMenu: boolean;
   garageOpen: boolean;
+  wardrobeOpen: boolean;
   /** Which table game the menu (and the next match) is for. */
   pongGame: "pong" | "pickle";
   pong: { opp: string; name: string; stage: "inviting" | "invited" | "playing"; host: boolean; game?: "pong" | "pickle" } | null;
@@ -182,6 +183,7 @@ export const useHq = create<State>((set, get) => ({
   pong: null,
   pongMenu: false,
   garageOpen: false,
+  wardrobeOpen: false,
   pongGame: "pong",
   voice: { on: false, muted: false, deaf: false, error: "", links: {}, speaking: [] },
   shopOpen: false,

@@ -99,7 +99,17 @@ export function MusicToggle() {
   function stopSong() { setSong(null); setAct({ radio: undefined, dj: undefined }); }
   // DJ mode: one person offers their station to everyone; each listener joins with one tap.
   const iAmDj = useHq((s) => Boolean(s.me?.act?.dj));
-  const dj = useHq((s) => Object.values(s.peers).find((p) => p.act?.dj && (p.act.dj.startsWith(SONG) || STATIONS.some((x) => x.id === p.act?.dj))) ?? null);
+  // One DJ at a time: whoever took the booth most recently.
+  const dj = useHq((s) => Object.values(s.peers).filter((p) => p.act?.dj && (p.act.dj.startsWith(SONG) || STATIONS.some((x) => x.id === p.act?.dj))).reduce<(typeof s.peers)[string] | null>((best, p) => (!best || (p.act?.djAt ?? 0) > (best.act?.djAt ?? 0) ? p : best), null));
+  const myDjAt = useHq((s) => s.me?.act?.djAt ?? 0);
+  // Someone took over after me: I step down, and am told who it is.
+  useEffect(() => {
+    if (iAmDj && dj && (dj.act?.djAt ?? 0) > myDjAt) {
+      setAct({ dj: undefined, djAt: undefined });
+      useHq.setState({ toast: { text: `${displayName(dj)} is now the DJ`, n: Date.now() } });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [iAmDj, dj?.id, dj?.act?.djAt, myDjAt]);
   const [following, setFollowing] = useState<string | null>(null);
   const [declined, setDeclined] = useState("");
   const djSongId = dj?.act?.dj?.startsWith(SONG) ? dj.act.dj.slice(SONG.length) : null;
@@ -193,10 +203,11 @@ export function MusicToggle() {
       {open && (
         <div className="music-menu" role="group" aria-label="Music">
           <p className="eyebrow">Music · no ads</p>
-          {!((current && current !== AMBIENT) || song) && <button type="button" className="dj-btn" disabled>🎧 DJ mode: play a station or song first</button>}
+          {dj && !iAmDj && <p className="dj-now" role="status">🎧 <strong>{displayName(dj)}</strong> is currently the DJ{djStation ? `: ${djStation.name}` : ""}.</p>}
+          {!((current && current !== AMBIENT) || song) && <button type="button" className="dj-btn" disabled>{dj && !iAmDj ? "🎧 Play a station or song to take over as DJ" : "🎧 DJ mode: play a station or song first"}</button>}
           {((current && current !== AMBIENT) || song) && (
-            <button type="button" className={`dj-btn${iAmDj ? " is-on" : ""}`} aria-pressed={iAmDj} onClick={() => setAct({ dj: iAmDj ? undefined : song ? SONG + song.id : current ?? undefined })}>
-              {iAmDj ? "🎧 You are the DJ · tap to stop" : song ? "🎧 DJ mode: invite everyone to this song" : "🎧 DJ mode: invite everyone to this station"}
+            <button type="button" className={`dj-btn${iAmDj ? " is-on" : ""}`} aria-pressed={iAmDj} onClick={() => { if (iAmDj) setAct({ dj: undefined, djAt: undefined }); else { setFollowing(null); setAct({ dj: song ? SONG + song.id : current ?? undefined, djAt: Date.now() }); } }}>
+              {iAmDj ? "🎧 You are the DJ · tap to stop" : dj ? `🎧 Take over as DJ from ${displayName(dj)}` : song ? "🎧 DJ mode: invite everyone to this song" : "🎧 DJ mode: invite everyone to this station"}
             </button>
           )}
           {following && dj && <p className="dj-note">Following DJ {displayName(dj)}. Pick a station yourself to stop following.</p>}

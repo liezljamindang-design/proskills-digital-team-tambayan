@@ -115,6 +115,8 @@ export interface Act {
   radio?: string;
   /** DJ mode: the station (by id) they are inviting everyone to tune in to. */
   dj?: string;
+  /** When they became the DJ. Only the most recent DJ counts, so there is one at a time. */
+  djAt?: number;
   /** They switched party mode on. The party runs while anyone has this set. */
   party?: boolean;
   /** Holding a basketball on the court. */

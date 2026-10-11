@@ -8,6 +8,7 @@ const MAX_DATA_URL = 150_000;
 export function safeImage(src: unknown): src is string {
   if (typeof src !== "string") return false;
   if (/^data:image\/(jpeg|png|webp|gif);base64,[A-Za-z0-9+/=]+$/.test(src)) return src.length <= MAX_DATA_URL * 1.4;
+  if (/^https:\/\/fonts\.gstatic\.com\/s\/e\/notoemoji\/latest\/[0-9a-f_]+\/512\.gif$/.test(src)) return true; // the built-in animated set
   try { const u = new URL(src); return u.protocol === "https:" && GIF_HOSTS.test(u.hostname); } catch { return false; }
 }
 
@@ -48,6 +49,26 @@ export async function shrinkPhoto(file: File): Promise<string> {
   }
   throw new Error("That picture is too large to send, even after shrinking.");
 }
+
+/** Ready-made animated GIFs that need no set-up: Google's Noto animated emoji (free to use, CC BY 4.0). */
+export const READY_GIFS: { code: string; words: string }[] = [
+  { code: "1f602", words: "laugh lol haha joy tears" }, { code: "1f923", words: "rofl laugh rolling haha" }, { code: "1f600", words: "happy smile grin" },
+  { code: "1f60d", words: "love heart eyes" }, { code: "1f970", words: "love hearts adore" }, { code: "1f618", words: "kiss love mwah" },
+  { code: "1f60e", words: "cool sunglasses" }, { code: "1f929", words: "wow star amazing" }, { code: "1f973", words: "party celebrate birthday yay" },
+  { code: "1f914", words: "thinking hmm" }, { code: "1f644", words: "eye roll whatever" }, { code: "1f62c", words: "awkward oops grimace" },
+  { code: "1f62d", words: "cry sad sob" }, { code: "1f622", words: "sad tear cry" }, { code: "1f621", words: "angry mad" },
+  { code: "1f631", words: "scream shock omg" }, { code: "1f62e", words: "wow surprised oh" }, { code: "1f92f", words: "mind blown wow" },
+  { code: "1f634", words: "sleep tired zzz" }, { code: "1f971", words: "yawn tired bored" }, { code: "1f92a", words: "crazy silly goofy" },
+  { code: "1f648", words: "shy monkey hide" }, { code: "1f47b", words: "ghost boo" }, { code: "1f480", words: "dead skull lol" },
+  { code: "1f44d", words: "thumbs up ok yes good" }, { code: "1f44f", words: "clap applause bravo" }, { code: "1f64f", words: "thanks please pray salamat" },
+  { code: "1f4aa", words: "strong muscle kaya" }, { code: "1f44b", words: "wave hi hello bye" }, { code: "1f91d", words: "deal handshake" },
+  { code: "2764_fe0f", words: "heart love red" }, { code: "1f494", words: "broken heart sad" }, { code: "1f525", words: "fire lit hot" },
+  { code: "1f389", words: "party popper congrats celebrate" }, { code: "1f4af", words: "100 perfect" }, { code: "2728", words: "sparkles magic" },
+  { code: "1f680", words: "rocket launch go" }, { code: "1f440", words: "eyes looking" }, { code: "2705", words: "check done yes" },
+  { code: "1f436", words: "dog puppy" }, { code: "1f431", words: "cat kitty" }, { code: "1f984", words: "unicorn" },
+  { code: "2615", words: "coffee kape" }, { code: "1f355", words: "pizza food" }, { code: "1f37f", words: "popcorn movie" },
+];
+export const readyGifUrl = (code: string) => `https://fonts.gstatic.com/s/e/notoemoji/latest/${code}/512.gif`;
 
 export const GIPHY_KEY = (import.meta.env.VITE_GIPHY_KEY as string | undefined) || "";
 export interface GifResult { id: string; preview: string; full: string; title: string }

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
-import { gifFromLink, GIPHY_KEY, searchGifs, shrinkPhoto, type GifResult } from "../media";
+import { gifFromLink, GIPHY_KEY, READY_GIFS, readyGifUrl, searchGifs, shrinkPhoto, type GifResult } from "../media";
 import { EmojiPicker } from "./EmojiPicker";
 
 interface Props {
@@ -73,6 +73,7 @@ function GifPicker({ onPick }: { onPick: (url: string) => void }) {
   const [state, setState] = useState<"idle" | "loading" | "failed">("idle");
   const [link, setLink] = useState("");
   const [linkError, setLinkError] = useState("");
+  const [broken, setBroken] = useState<string[]>([]);
 
   useEffect(() => {
     if (!GIPHY_KEY) return;
@@ -91,6 +92,14 @@ function GifPicker({ onPick }: { onPick: (url: string) => void }) {
 
   return (
     <div className="gif-panel" role="group" aria-label="GIFs">
+      {!GIPHY_KEY && <input type="search" className="gif-search" placeholder="Search: laugh, love, party, thanks…" aria-label="Search ready GIFs" value={query} onChange={(e) => setQuery(e.target.value)} />}
+      <div className="gif-grid ready-gifs">
+        {READY_GIFS.filter((g) => !broken.includes(g.code) && (GIPHY_KEY || query.trim().toLowerCase().split(/\s+/).every((w) => g.words.includes(w)))).map((g) => (
+          <button key={g.code} type="button" className="gif-btn" onClick={() => onPick(readyGifUrl(g.code))} aria-label={`Send GIF: ${g.words.split(" ")[0]}`}>
+            <img src={readyGifUrl(g.code)} alt="" loading="lazy" onError={() => setBroken((list) => [...list, g.code])} />
+          </button>
+        ))}
+      </div>
       {GIPHY_KEY ? (
         <>
           <input type="search" className="gif-search" placeholder="Search GIFs" aria-label="Search GIFs" value={query} onChange={(e) => setQuery(e.target.value)} />
@@ -105,7 +114,7 @@ function GifPicker({ onPick }: { onPick: (url: string) => void }) {
         </>
       ) : (
         <>
-          <p className="muted">Paste a GIF link from Giphy, Tenor or Imgur.</p>
+          <p className="muted">Or paste a GIF link from Giphy, Tenor or Imgur.</p>
           <div className="composer-row">
             <input type="url" aria-label="GIF link" placeholder="https://giphy.com/gifs/…" value={link} onChange={(e) => { setLink(e.target.value); setLinkError(""); }}
               onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); sendLink(); } }} />

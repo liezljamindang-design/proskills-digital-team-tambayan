@@ -612,3 +612,8 @@ button:hover > .emoji-3d, button:hover > .emoji-flat { transform: translateY(-3p
 .assign-batch select { min-height: 34px; max-width: 132px; padding: 0 6px; border-radius: 8px; border: 1px dashed var(--lav); background: var(--surface); color: var(--ink); font: inherit; font-size: 12.5px; font-weight: 700; }
 .assign-batch small { font-size: 11.5px; color: var(--ink-2); max-width: 150px; text-align: right; }
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+.ready-gifs { grid-template-columns: repeat(auto-fill, minmax(56px, 1fr)); max-height: 190px; overflow-y: auto; margin-bottom: 8px; }
+.ready-gifs .gif-btn { background: none; border-color: transparent; aspect-ratio: 1; }
+.ready-gifs .gif-btn:hover { border-color: var(--lav); }
+.ready-gifs img { width: 100%; height: 100%; object-fit: contain; }

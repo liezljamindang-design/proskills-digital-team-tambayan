@@ -368,12 +368,7 @@ export function buildOffice(): Office {
   for (let by = 6; by < D; by += 9) { const b = ball(root, W + 0.9, by, -6, 0.55, COLORS.leaf2, 0.7); b.castShadow = true; }
   ["#ff4fa3", "#ffd43b", "#ffffff", "#ff922b"].forEach((color, i) => { for (let k = 0; k < 5; k++) ball(root, ENTRANCE.from - 1.7 + i * 0.25 + k * 0.05, D + 0.5 + (k % 2) * 0.25 + i * 0.1, -11, 0.07, color); });
 
-  // Inside: hanging lights, a pond on the Garden Deck, a TV, a whiteboard, a clock and a neon arcade sign.
-  for (const [lx, ly, color] of [[2.6, 2.1, "#fff1c2"], [9, 2, "#fff1c2"], [14.6, 2.1, "#ffd9a0"], [3, 7, "#ffd9a0"], [9, 9.5, "#fff1c2"], [15, 12, "#d6c9ff"], [22, 3, "#fff1c2"], [30, 3, "#ffd9a0"], [17, 17.5, "#fff1c2"], [24.6, 18, "#ffd9a0"], [31, 18, "#ffb3d9"]] as const) {
-    box(root, lx - 0.01, ly - 0.01, 0.02, 0.02, 62, 86, "dark").castShadow = false;
-    const bulb = ball(root, lx, ly, 60, 0.16, color); bulb.castShadow = false;
-    bulb.material = material(color, { emissive: color, emissiveIntensity: 1.1 });
-  }
+  // Inside: a pond on the Garden Deck, a TV, a whiteboard, a clock and a neon arcade sign.
   const pond = new THREE.Mesh(new THREE.CylinderGeometry(0.75, 0.75, 0.04, 40), material("#74c0fc", { roughness: 0.15, metalness: 0.3 }));
   pond.position.set(16.3, 0.03, 8.3); root.add(pond);
   for (let i = 0; i < 9; i++) { const a = (i / 9) * Math.PI * 2; ball(root, 16.3 + Math.cos(a) * 0.82, 8.3 + Math.sin(a) * 0.82, 2, 0.11, "#adb5bd", 0.6); }

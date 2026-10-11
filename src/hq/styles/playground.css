@@ -693,3 +693,16 @@ select option, select optgroup { background-color: var(--surface); color: var(--
 .class-off { color: #c0392b; font-weight: 800; }
 .plaque-text { font-size: 16px; }
 .plaque-sub { font-size: 7.5px; }
+
+/* Message box: grows up to three lines. In the side panel the buttons sit on their own row underneath. */
+.composer-tools { display: contents; }
+.composer-row { align-items: flex-end; }
+.composer-row textarea { flex: 1; min-width: 0; min-height: 44px; max-height: 86px; padding: 10px 14px; border-radius: 22px; background: var(--surface); color: var(--ink); border: 1px solid var(--line); font: inherit; font-size: 16px; line-height: 1.35; resize: none; overflow-y: auto; display: block; }
+.composer-row textarea:focus-visible { outline: 2px solid var(--lav); outline-offset: 1px; }
+.composer-row.is-stacked { display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "text send" "tools tools"; gap: 6px 8px; }
+.composer-row.is-stacked textarea { grid-area: text; width: 100%; }
+.composer-row.is-stacked > .btn-primary { grid-area: send; align-self: end; }
+.composer-row.is-stacked .composer-tools { grid-area: tools; display: flex; gap: 6px; align-items: center; }
+.composer-row.is-stacked .emoji-toggle { min-height: 36px; width: 40px; }
+.arcade-chat .composer-row textarea { background: #1c1640; color: #fff; border-color: rgba(53, 230, 255, 0.5); }
+.arcade-chat .composer-row textarea::placeholder { color: var(--arc-ink-2); }

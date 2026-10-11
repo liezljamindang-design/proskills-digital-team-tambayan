@@ -18,6 +18,9 @@ export function Composer({ id, placeholder, onSend, attachments }: Props) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const fileRef = useRef<HTMLInputElement>(null);
+  // The message box grows with what you type, up to three lines, then scrolls.
+  const boxRef = useRef<HTMLTextAreaElement>(null);
+  useEffect(() => { const el = boxRef.current; if (!el) return; el.style.height = "auto"; el.style.height = `${Math.min(el.scrollHeight, 86)}px`; }, [text]);
   const cameraRef = useRef<HTMLInputElement>(null);
   const [camOpen, setCamOpen] = useState(false);
   // Phones open their own camera app; computers get a small webcam window.
@@ -50,7 +53,8 @@ export function Composer({ id, placeholder, onSend, attachments }: Props) {
         </div>
       )}
       {error && <p className="field-error" role="alert">{error}</p>}
-      <div className="composer-row">
+      <div className={`composer-row${attachments ? " is-stacked" : ""}`}>
+        <div className="composer-tools">
         <button type="button" className="icon-btn emoji-toggle" aria-expanded={panel === "emoji"} aria-label="Emoji" onClick={() => setPanel((p) => (p === "emoji" ? null : "emoji"))}>
           <span aria-hidden="true">😊</span>
         </button>
@@ -67,8 +71,10 @@ export function Composer({ id, placeholder, onSend, attachments }: Props) {
             <button type="button" className="icon-btn emoji-toggle gif-toggle" aria-expanded={panel === "gif"} aria-label="Send a GIF" onClick={() => setPanel((p) => (p === "gif" ? null : "gif"))}>GIF</button>
           </>
         )}
+        </div>
         <label className="sr-only" htmlFor={id}>{placeholder}</label>
-        <input id={id} type="text" value={text} maxLength={280} autoComplete="off" placeholder={placeholder} onChange={(e) => setText(e.target.value)} />
+        <textarea id={id} ref={boxRef} rows={1} value={text} maxLength={280} autoComplete="off" placeholder={placeholder} onChange={(e) => setText(e.target.value)}
+          onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) { e.preventDefault(); e.currentTarget.form?.requestSubmit(); } }} />
         <button type="submit" className="btn-primary" disabled={!text.trim() && !photo}>Send</button>
       </div>
     </form>

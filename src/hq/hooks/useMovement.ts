@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { HQ } from "../config";
 import { earnForMeeting } from "../economy";
-import { ARCADE_SPOT, BALL_SPOT, BED_FEET, FLOOR, FURNITURE, SEATS, START, type Seat } from "../data/office";
+import { ARCADE_SPOT, BALL_SPOT, BED_FEET, FURNITURE, SEATS, START, WORLD, type Seat } from "../data/office";
 import { myPosition, openMeeting, pickUpBall, react, reportMove, setAct, shoot } from "../net/session";
 import { canStand, findPath, SPEED, zoneAt, zoneEntry, type Point } from "../office/engine";
 import { rideInfo } from "../rides";
@@ -221,7 +221,7 @@ export function useMovement(makeView: () => WalkView | null) {
         return;
       }
       const f = hit.point;
-      if (f.x < -0.6 || f.y < -0.6 || f.x > FLOOR.width + 0.6 || f.y > FLOOR.depth + 0.6) return;
+      if (f.x < -0.6 || f.y < -0.6 || f.x > WORLD.width + 0.6 || f.y > WORLD.depth + 0.6) return;
       walkTo(f);
     }
 

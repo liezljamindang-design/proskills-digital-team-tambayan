@@ -352,6 +352,9 @@ export function Floor3D() {
         const bar = prop(a, "barbell", gym === "lift");
         const liftK = Math.sin(t * 2.6) * 0.5 + 0.5;
         if (bar && gym === "lift") bar.position.set(0, 0.52 + liftK * 0.42, 0.12);
+        // Out on the lawn the ground is a step lower than the office floor.
+        const out = Math.max(a.y - FLOOR.depth, a.x - FLOOR.width);
+        if (out > 0) oy -= 0.39 * Math.min(1, out / 0.5);
         a.holder.position.set(a.x + ox, oy, a.y + oz);
         a.holder.rotation.order = "YXZ"; a.holder.rotation.y = facing; a.holder.rotation.x = pitch;
         a.holder.visible = !(a.self && mode === "first");

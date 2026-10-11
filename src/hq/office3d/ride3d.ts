@@ -30,9 +30,12 @@ export function buildRide(ride: Ride): { group: THREE.Group; seat: number; wheel
     };
     const hub = r + thick;
     bar(0, hub, -span, 0, top, -0.08, paint); bar(0, top, -0.08, 0, top + 0.02, span * 0.62, paint); bar(0, hub + 0.02, 0, 0, top, -0.08, paint); bar(0, hub + 0.02, 0, 0, top + 0.02, span * 0.62, paint); bar(0, hub, -span, 0, hub + 0.02, 0, paint, 0.02);
-    bar(0, hub, span, 0, top + 0.14, span * 0.6, metal, 0.02);
+    // The handlebar sits at the rider's hands (their arms reach forward at about shoulder height), on a tall stem from the front wheel.
+    const grip = top + 0.07 - 0.2 + 0.43, reach = 0.25;
+    bar(0, hub, span, 0, top + 0.06, span * 0.62, metal, 0.02); bar(0, top + 0.06, span * 0.62, 0, grip, reach, metal, 0.02);
     const drop = ride.kind === "road";
-    add(g, new THREE.CylinderGeometry(0.018, 0.018, drop ? 0.3 : 0.42, 8), dark, 0, top + 0.14, span * 0.6).rotation.z = Math.PI / 2;
+    add(g, new THREE.CylinderGeometry(0.02, 0.02, drop ? 0.34 : 0.46, 8), dark, 0, grip, reach).rotation.z = Math.PI / 2;
+    for (const x of [-1, 1]) add(g, new THREE.CylinderGeometry(0.028, 0.028, 0.08, 8), mat(ride.color), x * (drop ? 0.15 : 0.21), grip, reach).rotation.z = Math.PI / 2;
     add(g, new THREE.BoxGeometry(0.12, 0.035, 0.2), dark, 0, top + 0.07, -0.1);
     if (label) for (const side of [1, -1]) { const tag = new THREE.Mesh(new THREE.PlaneGeometry(0.3, 0.075), plate(label, "#ffffff")); tag.position.set(side * 0.032, top + 0.01, 0.1); tag.rotation.y = side * Math.PI / 2; g.add(tag); }
     return { group: g, seat: top + 0.07 - 0.2, wheels };
@@ -43,11 +46,14 @@ export function buildRide(ride: Ride): { group: THREE.Group; seat: number; wheel
   for (const [x, z] of [[-1, -1], [1, -1], [-1, 1], [1, 1]]) { const w = add(g, new THREE.CylinderGeometry(0.13, 0.13, 0.1, 16), dark, x * (wide / 2 + 0.01), 0.13, z * (long / 2 - 0.2)); w.rotation.z = Math.PI / 2; wheels.push(w); }
   add(g, new THREE.BoxGeometry(wide * 0.8, 0.04, 0.06), metal, 0, base + 0.06, long / 2 + 0.02);
   for (const x of [-1, 1]) add(g, new THREE.SphereGeometry(0.05, 10, 8), mat("#fff3bf", { emissive: "#ffe066", emissiveIntensity: 0.9 }), x * wide * 0.3, base + tall * 0.6, long / 2);
-  if (kart) { add(g, new THREE.BoxGeometry(wide * 0.7, 0.3, 0.06), dark, 0, base + tall + 0.1, -long / 2 + 0.12); add(g, new THREE.TorusGeometry(0.09, 0.018, 6, 16), dark, 0, base + tall + 0.16, 0.22).rotation.x = -0.9; }
+  if (kart) { add(g, new THREE.BoxGeometry(wide * 0.7, 0.3, 0.06), dark, 0, base + tall + 0.1, -long / 2 + 0.12); add(g, new THREE.TorusGeometry(0.1, 0.02, 6, 16), dark, 0, 0.06 + 0.43, 0.22).rotation.x = -0.6; add(g, new THREE.CylinderGeometry(0.015, 0.015, 0.24, 6), dark, 0, 0.06 + 0.34, 0.28).rotation.x = -0.9; }
   else {
     // An open-top cabin, so the driver stays in view: a windscreen in front, a seat back behind.
     add(g, new THREE.BoxGeometry(wide * 0.92, 0.2, 0.03), mat("#bfe3ff", { transparent: true, opacity: 0.55 }), 0, base + tall + 0.1, 0.24).rotation.x = -0.25;
     add(g, new THREE.BoxGeometry(wide * 0.9, 0.22, 0.06), dark, 0, base + tall + 0.1, -0.2);
+    // A steering wheel at the driver's hands.
+    add(g, new THREE.TorusGeometry(0.1, 0.02, 6, 18), dark, 0, 0.12 + 0.43, 0.2).rotation.x = -0.5;
+    add(g, new THREE.CylinderGeometry(0.015, 0.015, 0.2, 6), dark, 0, 0.12 + 0.36, 0.26).rotation.x = -0.9;
     if (jeep) {
       for (const [x, z] of [[-1, -0.55], [1, -0.55], [-1, 0.26], [1, 0.26]]) add(g, new THREE.BoxGeometry(0.03, 0.5, 0.03), metal, x * (wide / 2 - 0.03), base + tall + 0.25, z);
       add(g, new THREE.BoxGeometry(wide + 0.04, 0.05, 1.0), paint, 0, base + tall + 0.52, -0.15);

@@ -1,6 +1,6 @@
 import { useCallback, useMemo, useRef, useState, type ReactNode } from "react";
 import { classOngoing, HQ } from "../config";
-import { BALL_SPOT, COURT, DANCE_FLOOR, ENTRANCE, FLOOR, FURNITURE, PICKLE, RUGS, WALL_HEIGHT, WALLS, ZONES } from "../data/office";
+import { BALL_SPOT, COURT, DANCE_FLOOR, ENTRANCE, FLOOR, FURNITURE, PICKLE, RUGS, WORLD, WALL_HEIGHT, WALLS, ZONES } from "../data/office";
 import { useMovement, type WalkView } from "../hooks/useMovement";
 import { useHq } from "../store";
 import { Figure } from "./Actors";
@@ -182,6 +182,7 @@ export function FloorMap() {
         <g ref={cameraRef}>
           <polygon className="slab-side slab-side-left" points={leftFace} />
           <polygon className="slab-side slab-side-right" points={rightFace} />
+          <polygon className="lawn" points={`${pt(0, D, -SLAB)} ${pt(W, D, -SLAB)} ${pt(W, 0, -SLAB)} ${pt(WORLD.width, 0, -SLAB)} ${pt(WORLD.width, WORLD.depth, -SLAB)} ${pt(0, WORLD.depth, -SLAB)}`} />
           <polygon className="slab-top" points={rectPoints(0, 0, W, D)} />
           <g className="marble">
             {Array.from({ length: W / 2 - 1 }, (_, i) => (i + 1) * 2).map((x) => <polyline key={`x${x}`} className="tile-line" points={`${pt(x, 0)} ${pt(x, D)}`} />)}

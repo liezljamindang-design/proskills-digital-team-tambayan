@@ -1,4 +1,4 @@
-import { FLOOR, FURNITURE, WALLS, ZONES } from "../data/office";
+import { ENTRANCE, FLOOR, FURNITURE, WALLS, WORLD, ZONES } from "../data/office";
 import type { WallSegment, ZoneId } from "../types";
 
 /** Movement rules: collisions against furniture and glass, and A* pathfinding for tap-to-move. */
@@ -12,11 +12,17 @@ export const SPEED = 2.4; // floor units per second: a relaxed walk
 export const wallRect = (w: WallSegment): Rect =>
   w.axis === "x" ? { x: w.at - 0.04, y: w.from, w: 0.08, h: w.to - w.from } : { x: w.from, y: w.at - 0.04, w: w.to - w.from, h: 0.08 };
 
-const OBSTACLES: Rect[] = [...FURNITURE, ...WALLS.map(wallRect)];
+// The building's front and right-hand edges have no walls you can see, but you can only step out
+// onto the lawn through the front door.
+const EDGES: Rect[] = [
+  { x: 0, y: FLOOR.depth - 0.04, w: ENTRANCE.from, h: 0.08 }, { x: ENTRANCE.to, y: FLOOR.depth - 0.04, w: FLOOR.width - ENTRANCE.to, h: 0.08 },
+  { x: FLOOR.width - 0.04, y: 0, w: 0.08, h: FLOOR.depth },
+];
+const OBSTACLES: Rect[] = [...FURNITURE, ...WALLS.map(wallRect), ...EDGES];
 
 export function canStand(x: number, y: number): boolean {
   const r = PLAYER_RADIUS;
-  if (x < r || y < r || x > FLOOR.width - r || y > FLOOR.depth - r) return false;
+  if (x < r || y < r || x > WORLD.width - r || y > WORLD.depth - r) return false;
   for (const o of OBSTACLES) if (x > o.x - r && x < o.x + o.w + r && y > o.y - r && y < o.y + o.h + r) return false;
   return true;
 }
@@ -64,8 +70,8 @@ export function slotFor(pos: Point, boxes: Box[]): number {
 
 /* ---------- Pathfinding grid ---------- */
 const CELL = 0.25;
-const COLS = Math.round(FLOOR.width / CELL);
-const ROWS = Math.round(FLOOR.depth / CELL);
+const COLS = Math.round(WORLD.width / CELL);
+const ROWS = Math.round(WORLD.depth / CELL);
 const centre = (i: number): Point => ({ x: ((i % COLS) + 0.5) * CELL, y: (Math.floor(i / COLS) + 0.5) * CELL });
 const BLOCKED = new Uint8Array(COLS * ROWS);
 for (let i = 0; i < BLOCKED.length; i++) { const c = centre(i); BLOCKED[i] = canStand(c.x, c.y) ? 0 : 1; }

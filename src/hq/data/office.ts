@@ -3,6 +3,8 @@ import type { FurnitureItem, WallSegment, Zone } from "../types";
 
 /** Floor is 34 units wide and 22 deep: room for 100+ people. The entrance is on the front edge (y = 22). */
 export const FLOOR = { width: 34, depth: 22 };
+/** The lawn you can walk and ride on: it wraps the front and the right-hand side of the building. */
+export const WORLD = { width: FLOOR.width + 6, depth: FLOOR.depth + 9 };
 export const START = { x: 17, y: 21.3 };
 export const ENTRANCE = { from: 16.1, to: 17.9 };
 /** The pickleball court: painted on the floor, so you can walk across it. Tap it to play. */

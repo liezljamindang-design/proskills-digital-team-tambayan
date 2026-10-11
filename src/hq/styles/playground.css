@@ -786,3 +786,4 @@ select option, select optgroup { background-color: var(--surface); color: var(--
 .wd-ghost { position: fixed; z-index: 200; pointer-events: none; transform: translate(-50%, -60%) rotate(-8deg) scale(1.25); filter: drop-shadow(0 8px 10px rgba(16, 20, 28, 0.35)); }
 .wd-try { margin: 0; padding: 8px 12px; border-radius: 10px; background: color-mix(in srgb, var(--gold-soft) 25%, var(--surface)); font-size: 13.5px; }
 @media (max-width: 760px) { .wd-body { grid-template-columns: 1fr; } .wd-stage { padding: 6px; } .wd-shelves { max-height: 250px; } .wd-item { min-width: 60px; } }
+.lawn { fill: #bfe3a8; }

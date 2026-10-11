@@ -22,8 +22,8 @@ function savedAway(): Record<string, Away> {
   try { const a = JSON.parse(read("playground.away") ?? "{}"); return a && typeof a === "object" ? a : {}; } catch { return {}; }
 }
 const keepAway = (away: Record<string, Away>) => {
-  // Remember the fifty most recent, so the list cannot grow without end.
-  const kept = Object.fromEntries(Object.values(away).sort((a, b) => b.leftAt - a.leftAt).slice(0, 50).map((a) => [a.id, a]));
+  // Remember the 300 most recent, so the list cannot grow without end.
+  const kept = Object.fromEntries(Object.values(away).sort((a, b) => b.leftAt - a.leftAt).slice(0, 300).map((a) => [a.id, a]));
   write("playground.away", JSON.stringify(kept));
   return kept;
 };

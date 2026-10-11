@@ -61,6 +61,15 @@ function ChatPane() {
   const active = rawActive.startsWith("batch-") && !batchIds.includes(rawActive) ? PUBLIC : rawActive;
   const isBatch = batchIds.includes(active);
   const batchNo = isBatch ? active.slice(6) : "";
+  // Everyone in this batch: who is here now, and who has signed up but is away.
+  const away = useHq((s) => s.away);
+  const [membersOpen, setMembersOpen] = useState(false);
+  const inBatch = (b?: number[]) => Boolean(b?.includes(Number(batchNo)));
+  const membersOn = isBatch ? Object.values(peers).filter((p) => inBatch(batchesOf(p)) && p.status !== "offline") : [];
+  const membersOff = isBatch ? [
+    ...Object.values(peers).filter((p) => inBatch(batchesOf(p)) && p.status === "offline"),
+    ...Object.values(away).filter((a) => a.id !== me?.id && !peers[a.id] && inBatch(a.batches)),
+  ] : [];
   const lines = threads[active] ?? [];
   const isPublic = active === PUBLIC;
   const other = peers[active];
@@ -104,6 +113,19 @@ function ChatPane() {
             ? `Private chat with ${otherName}. Only the two of you see it.${["dnd", "sleeping", "meeting"].includes(statusOf(other, zoneAt(other.x, other.y)).id) ? ` They are ${statusOf(other, zoneAt(other.x, other.y)).label.toLowerCase()}, so they may reply later.` : ""}`
             : `${otherName} has left. They won't see new messages.`}
       </p>
+
+      {isBatch && (
+        <div className="pins batch-members">
+          <button type="button" className="pins-head" aria-expanded={membersOpen} onClick={() => setMembersOpen((o) => !o)}>👥 {membersOn.length + membersOff.length + 1} {membersOn.length + membersOff.length === 0 ? "member" : "members"} · {membersOn.length + (me?.status === "offline" ? 0 : 1)} online <span aria-hidden="true">{membersOpen ? "▴" : "▾"}</span></button>
+          {membersOpen && (
+            <ul>
+              {me && <li><i className={`pip pip-${presenceOf(me).tone}`} aria-hidden="true" /><span>{displayName(me)} (you)</span></li>}
+              {membersOn.map((p) => <li key={p.id}><i className={`pip pip-${presenceOf(p).tone}`} aria-hidden="true" /><span>{displayName(p)}</span><button type="button" className="text-btn" onClick={() => openThread(p.id)}>Message</button></li>)}
+              {membersOff.map((p) => <li key={p.id} className="is-away"><i className="pip pip-off" aria-hidden="true" /><span>{displayName(p)}</span><span className="muted">offline</span></li>)}
+            </ul>
+          )}
+        </div>
+      )}
 
       {pinned.length > 0 && (
         <div className="pins">

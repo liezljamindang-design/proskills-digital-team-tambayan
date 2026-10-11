@@ -255,3 +255,16 @@ h1, h2 { font-weight: 800; letter-spacing: -0.01em; }
 .pw-wrap input { flex: 1; min-width: 0; padding-right: 48px; }
 .pw-eye { position: absolute; right: 2px; top: 50%; transform: translateY(-50%); width: 44px; height: 44px; display: grid; place-items: center; border: 0; background: none; color: var(--ink-2); cursor: pointer; border-radius: 8px; }
 .pw-eye:hover, .pw-eye[aria-pressed="true"] { color: var(--lav); }
+
+/* More reactions */
+.emote { min-width: 40px; padding: 0 8px; font-size: 19px; }
+.chibi .pulse, .chibi .float-up, .chibi .tears, .chibi .dots, .chibi.mood-laugh { transform-box: fill-box; transform-origin: center; }
+.chibi .pulse { animation: pg-anger 0.7s ease-in-out infinite; }
+.chibi .float-up { animation: pg-rise 1.6s ease-out infinite; }
+@keyframes pg-rise { 0% { opacity: 0; transform: translateY(2px); } 30% { opacity: 1; } 100% { opacity: 0; transform: translateY(-6px); } }
+.chibi .tears { animation: pg-tears 0.9s ease-in infinite; }
+@keyframes pg-tears { 0% { opacity: 1; transform: translateY(0); } 100% { opacity: 0; transform: translateY(5px); } }
+.chibi .dots { animation: pg-steam 1.4s ease-in-out infinite; }
+.chibi.mood-laugh { transform-origin: 50% 100%; animation: pg-laugh 0.3s ease-in-out infinite; }
+@keyframes pg-laugh { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-1.4px); } }
+@media (prefers-reduced-motion: reduce) { .chibi .pulse, .chibi .float-up, .chibi .tears, .chibi .dots, .chibi.mood-laugh { animation: none; } }

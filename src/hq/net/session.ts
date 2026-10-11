@@ -24,7 +24,10 @@ function note(id: string, name: string, text: string) {
   useHq.getState().addLine(PUBLIC, { id: nextId(), from: id, name, text: `${name} ${text}`, time: clock(), system: true });
 }
 const DRINK = { coffee: "a hot coffee ☕", iced: "an iced coffee 🧊", tea: "a milk tea 🧋" } as const;
-const MOOD = { happy: "is happy 😊", angry: "is angry 😠", dance: "is dancing 💃", blink: "blinked 😉" } as const;
+const MOOD = {
+  happy: "is happy 😊", laugh: "is laughing 😆", love: "is in love 😍", wow: "is amazed 😮", cool: "is feeling cool 😎", shy: "is feeling shy ☺️",
+  think: "is thinking 🤔", sleepy: "is sleepy 🥱", cry: "is crying 😢", angry: "is angry 😠", dance: "is dancing 💃", blink: "blinked 😉",
+} as const;
 /** Everything that changed between two versions of a person, as short activity lines. */
 function changes(old: Profile, next: Profile): string[] {
   const a = old.act ?? {}, b = next.act ?? {}, out: string[] = [];

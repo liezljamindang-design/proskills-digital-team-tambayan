@@ -3,10 +3,10 @@ import { useHq } from "../store";
 import type { Mood } from "../types";
 
 const EMOTES: { mood: Mood; emoji: string; label: string }[] = [
-  { mood: "happy", emoji: "😊", label: "Happy" },
-  { mood: "angry", emoji: "😠", label: "Angry" },
-  { mood: "dance", emoji: "💃", label: "Dance" },
-  { mood: "blink", emoji: "😉", label: "Blink" },
+  { mood: "happy", emoji: "😊", label: "Happy" }, { mood: "laugh", emoji: "😆", label: "Laugh" }, { mood: "love", emoji: "😍", label: "Love" },
+  { mood: "wow", emoji: "😮", label: "Wow" }, { mood: "cool", emoji: "😎", label: "Cool" }, { mood: "shy", emoji: "☺️", label: "Shy" },
+  { mood: "think", emoji: "🤔", label: "Thinking" }, { mood: "sleepy", emoji: "🥱", label: "Sleepy" }, { mood: "cry", emoji: "😢", label: "Cry" },
+  { mood: "angry", emoji: "😠", label: "Angry" }, { mood: "dance", emoji: "💃", label: "Dance" }, { mood: "blink", emoji: "😉", label: "Blink" },
 ];
 
 /** Quick reactions. Each one shows on your chibi for a few seconds, for everyone. */
@@ -15,8 +15,8 @@ export function EmoteBar() {
   return (
     <div className="emotes" role="group" aria-label="Reactions">
       {EMOTES.map((e) => (
-        <button key={e.mood} type="button" className="emote" aria-pressed={mood === e.mood} onClick={() => react(e.mood)}>
-          <span aria-hidden="true">{e.emoji}</span> {e.label}
+        <button key={e.mood} type="button" className="emote" aria-pressed={mood === e.mood} aria-label={e.label} title={e.label} onClick={() => react(e.mood)}>
+          <span aria-hidden="true">{e.emoji}</span>
         </button>
       ))}
     </div>

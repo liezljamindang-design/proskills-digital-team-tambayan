@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from "react";
 import { birthdayKey, MONTHS } from "../birthday";
-import { ACCESSORIES, ChibiFull, DEFAULT_LOOK, HAIRS, OUTFITS, randomLook, SKINS, STYLES } from "../office/Chibi";
+import { ACCESSORIES, FITS, ChibiFull, DEFAULT_LOOK, HAIRS, OUTFITS, randomLook, SKINS, STYLES } from "../office/Chibi";
 import type { Look, Profile } from "../types";
 
 interface Props {
@@ -85,7 +85,13 @@ export function AvatarBuilder({ initial, submitLabel, onSubmit, onCancel }: Prop
           </div>
         </fieldset>
         {swatches("Hair", "hair", HAIRS)}
-        {swatches("Outfit", "outfit", OUTFITS)}
+        <fieldset className="field">
+          <legend>Clothing style</legend>
+          <div className="chips">
+            {FITS.map((f) => <button key={f.id} type="button" className="service-chip" aria-pressed={(look.fit ?? "basic") === f.id} onClick={() => set("fit", f.id)}>{f.label}</button>)}
+          </div>
+        </fieldset>
+        {swatches("Outfit colour", "outfit", OUTFITS)}
         <div className="field-row">
           <fieldset className="field">
             <legend>Bottoms</legend>

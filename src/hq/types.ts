@@ -43,7 +43,10 @@ export interface Look {
   accessory: Accessory;
   /** "pants" covers the legs in a dark colour; "skirt" leaves them showing. */
   bottoms: "pants" | "skirt";
+  /** The clothing style worn on top. */
+  fit: Fit;
 }
+export type Fit = "basic" | "nerd" | "funk" | "cool" | "sporty" | "formal" | "hoodie" | "punk" | "royal";
 export type HairStyle = "short" | "swept" | "bob" | "long-straight" | "long-wavy" | "bun" | "ponytail" | "pigtails";
 export type Accessory = "none" | "glasses" | "headset" | "headphones" | "bow" | "clip";
 
@@ -63,7 +66,7 @@ export interface Profile {
   birthYear?: number;
 }
 export type ManualStatus = "dnd" | "brb" | "meeting" | "working" | "client" | "interview" | "call";
-export type Mood = "happy" | "angry" | "dance" | "blink";
+export type Mood = "happy" | "laugh" | "love" | "wow" | "cool" | "shy" | "think" | "sleepy" | "cry" | "angry" | "dance" | "blink";
 export type Drink = "coffee" | "iced" | "tea";
 /** What a person is doing right now. Shared live with everyone, never saved. */
 export interface Act {

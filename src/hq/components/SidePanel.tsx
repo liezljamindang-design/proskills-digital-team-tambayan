@@ -77,6 +77,8 @@ function ChatPane() {
 
   useEffect(() => { const el = logRef.current; if (el) el.scrollTop = el.scrollHeight; }, [lines.length, active]);
   const [menuFor, setMenuFor] = useState<string | null>(null);
+  const [whoFor, setWhoFor] = useState<string | null>(null);
+  const nameOf = (id: string) => (id === me?.id ? "You" : peers[id] ? displayName(peers[id]) : away[id] ? displayName(away[id]) : "Someone");
   const [replyTo, setReplyTo] = useState<Quote | null>(null);
   const [pinsOpen, setPinsOpen] = useState(false);
   useEffect(() => { setReplyTo(null); setMenuFor(null); }, [active]);
@@ -165,11 +167,17 @@ function ChatPane() {
                 <div className="chat-reacts">
                   {Object.entries(l.reactions).map(([emoji, who]) => (
                     <button key={emoji} type="button" className="react-chip" aria-pressed={who.includes(me?.id ?? "")} onClick={() => toggleReaction(active, l.id, emoji)}
-                      title={who.map((id) => (id === me?.id ? "You" : peers[id] ? displayName(peers[id]) : "Someone")).join(", ")}>
+                      title={who.map(nameOf).join(", ")}>
                       <Emoji char={emoji} size={16} /> {who.length}
                     </button>
                   ))}
+                  <button type="button" className="react-who" aria-expanded={whoFor === l.id} onClick={() => setWhoFor((w) => (w === l.id ? null : l.id))}>{whoFor === l.id ? "Hide" : "Who?"}</button>
                 </div>
+              )}
+              {whoFor === l.id && l.reactions && Object.keys(l.reactions).length > 0 && (
+                <ul className="react-names">
+                  {Object.entries(l.reactions).map(([emoji, who]) => <li key={emoji}><Emoji char={emoji} size={15} /> {who.map(nameOf).join(", ")}</li>)}
+                </ul>
               )}
               <div className="chat-actions" role="group" aria-label="Message actions">
                 {REACTIONS.map((emoji) => (

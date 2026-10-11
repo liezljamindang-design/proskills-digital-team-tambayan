@@ -641,3 +641,7 @@ button:hover > .emoji-3d, button:hover > .emoji-flat { transform: translateY(-3p
 .thread-close { min-width: 34px; border: 1px solid var(--line); border-left: 0; border-radius: 0 999px 999px 0; background: none; color: var(--ink-2); font-size: 17px; line-height: 1; cursor: pointer; }
 .thread-close:hover { background: var(--surface-2); color: var(--ink); }
 .thread-wrap:has(.thread-chip[aria-pressed="true"]) .thread-close { background: var(--lav); border-color: var(--lav); color: var(--on-accent); }
+
+.react-who { min-height: 26px; padding: 0 8px; border: 0; background: none; color: var(--lav); font: inherit; font-size: 12px; font-weight: 800; cursor: pointer; }
+.react-names { margin: 2px 0 0; padding: 6px 10px; list-style: none; display: grid; gap: 3px; border-radius: 10px; background: var(--surface-2); font-size: 12.5px; max-width: 100%; }
+.react-names li { display: flex; align-items: center; gap: 6px; overflow-wrap: anywhere; }

@@ -677,3 +677,11 @@ button:hover > .emoji-3d, button:hover > .emoji-flat { transform: translateY(-3p
 .class-info { display: grid; gap: 2px; margin: 0; padding: 8px 12px; border-radius: 10px; background: var(--lav-soft); }
 .class-info strong { font-size: 16px; }
 .class-info span { font-size: 13.5px; }
+
+/* Drop-down lists follow the theme, so dark mode never shows white text on a white list */
+select { color-scheme: light; }
+:root[data-theme="dark"] select { color-scheme: dark; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) select { color-scheme: dark; } }
+select option, select optgroup { background-color: var(--surface); color: var(--ink); }
+.view-pick { background: var(--surface); color: var(--ink-2); }
+.view-pick select { color: var(--ink); background-color: var(--surface); }

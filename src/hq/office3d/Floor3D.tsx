@@ -16,7 +16,7 @@ import { buildOffice, UNIT } from "./scene";
 interface Actor {
   holder: THREE.Group; chibi: THREE.Group; sig: string;
   x: number; y: number; tx: number; ty: number; facing: number; moving: boolean;
-  act?: Act; boing?: number; dizzy?: number; self: boolean;
+  act?: Act; boing?: number; dizzy?: number; self: boolean; trickSeen?: number; trickFrom?: number; trickSeen0?: boolean;
 }
 const VIEWS: { id: CamMode; label: string }[] = [
   { id: "iso", label: "Overhead" }, { id: "free", label: "Free look" }, { id: "third", label: "3rd person" },
@@ -324,6 +324,20 @@ export function Floor3D() {
           oy += Number(vehicle.userData.seat) - (isCar(ride.kind) ? 0 : 0);
           vehicle.position.y = -Number(vehicle.userData.seat);
         }
+        // Tricks: a wheelie, a bunny hop or a full spin, played once each time the rider asks for one.
+        let pitch = 0;
+        const trick = ride ? a.act?.trick : undefined;
+        if (trick && trick.n !== a.trickSeen) { a.trickSeen = trick.n; a.trickFrom = a.trickSeen0 ? t : -10; }
+        a.trickSeen0 = true;
+        if (trick && a.trickFrom !== undefined) {
+          const k = (t - a.trickFrom) / 1.25;
+          if (k >= 0 && k < 1) {
+            const arc = Math.sin(k * Math.PI);
+            if (trick.kind === "wheelie") { pitch = -arc * 0.75; oy += arc * 0.12; }
+            else if (trick.kind === "hop") oy += arc * 0.7;
+            else { facing += k * Math.PI * 2; oy += arc * 0.35; }
+          }
+        }
         if (band === "drums") { facing = 0; oy = 0.1; }
         if (band === "mic" || band === "guitar" || band === "bass") facing = 0;
         // The instrument in your hands is rebuilt when you swap guitar for bass.
@@ -339,9 +353,9 @@ export function Floor3D() {
         const liftK = Math.sin(t * 2.6) * 0.5 + 0.5;
         if (bar && gym === "lift") bar.position.set(0, 0.52 + liftK * 0.42, 0.12);
         a.holder.position.set(a.x + ox, oy, a.y + oz);
-        a.holder.rotation.y = facing;
+        a.holder.rotation.order = "YXZ"; a.holder.rotation.y = facing; a.holder.rotation.x = pitch;
         a.holder.visible = !(a.self && mode === "first");
-        animateChibi(a.chibi, t, { moving: (a.moving && !ride) || gym === "run" || swimming, eat: a.act?.food && !pose ? Math.max(0, Math.sin(t * 1.8)) ** 4 : undefined, lift: gym === "lift" ? liftK : undefined, play: piano || band === "drums", strum: band === "guitar" || band === "bass", sing: band === "mic", dance: partyOn || a.act?.mood === "dance" || (!pose && !gym && !band && zoneAt(a.x, a.y) === "dance"), boing: a.boing, dizzy: a.dizzy });
+        animateChibi(a.chibi, t, { moving: (a.moving && !ride) || gym === "run" || swimming, grip: ride ? (isCar(ride.kind) ? 0.75 : 1) : undefined, eat: a.act?.food && !pose ? Math.max(0, Math.sin(t * 1.8)) ** 4 : undefined, lift: gym === "lift" ? liftK : undefined, play: piano || band === "drums", strum: band === "guitar" || band === "bass", sing: band === "mic", dance: partyOn || a.act?.mood === "dance" || (!pose && !gym && !band && zoneAt(a.x, a.y) === "dance"), boing: a.boing, dizzy: a.dizzy });
       }
 
       // Camera

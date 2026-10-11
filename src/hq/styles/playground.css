@@ -749,3 +749,8 @@ select option, select optgroup { background-color: var(--surface); color: var(--
 .ride-chip small { font-size: 11.5px; font-weight: 600; opacity: 0.8; }
 .garage input[type="text"] { min-height: 44px; padding: 0 12px; border-radius: 10px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); font: inherit; font-size: 16px; width: 100%; }
 .ride-btn.is-on { background: var(--lav); color: var(--on-accent); border-color: var(--lav); }
+
+/* On a short computer screen the heading gives way, so the reactions and message box are never pushed off the bottom */
+@media (min-width: 901px) and (max-height: 860px) { .hq-lede, .hq-intro .eyebrow { display: none; } .hq-intro h1 { font-size: 1.25rem; } .stage-body { min-height: 200px; } .hq-stage { gap: 8px; } }
+@media (min-width: 901px) and (max-height: 700px) { .hq-intro:not(:has(.birthday-ribbon)) { display: none; } }
+@media (min-width: 901px) { .quick-say .emotes { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: thin; padding-bottom: 3px; } .quick-say .emotes > * { flex: none; } }

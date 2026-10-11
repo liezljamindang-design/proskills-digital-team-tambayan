@@ -1,4 +1,4 @@
-import { react, toggleParty } from "../net/session";
+import { react, setAct, toggleParty } from "../net/session";
 import { Emoji } from "./Emoji";
 import { useHq } from "../store";
 import type { Mood } from "../types";
@@ -25,6 +25,11 @@ export function EmoteBar() {
       <button type="button" className={`emote ride-btn${riding ? " is-on" : ""}`} aria-pressed={riding} onClick={() => useHq.setState({ garageOpen: true })}>
         <Emoji char="🚲" size={22} /> {riding ? "Riding" : "Ride"}
       </button>
+      {riding && (
+        <button type="button" className="emote trick-btn" onClick={() => { const kinds = ["wheelie", "hop", "spin"] as const; setAct({ trick: { kind: kinds[Math.floor(Math.random() * kinds.length)], n: Date.now() } }); }}>
+          <Emoji char="🤸" size={22} /> Trick
+        </button>
+      )}
       <button type="button" className={`emote party-btn${partyOn ? " is-on" : ""}`} aria-pressed={partyOn} onClick={toggleParty}>
         <Emoji char="🎉" size={22} /> {partyOn ? "Stop the party" : "Party mode"}
       </button>

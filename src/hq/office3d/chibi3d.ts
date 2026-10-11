@@ -230,7 +230,7 @@ export function disposeChibi(root: THREE.Object3D) {
 }
 
 /** Moves the limbs for this moment: walking, dancing, a bounce after a poke, or gentle breathing. */
-export function animateChibi(root: THREE.Object3D, t: number, o: { moving: boolean; dance: boolean; boing?: number; dizzy?: number; lift?: number; play?: boolean; strum?: boolean; sing?: boolean; eat?: number }) {
+export function animateChibi(root: THREE.Object3D, t: number, o: { moving: boolean; dance: boolean; boing?: number; dizzy?: number; lift?: number; play?: boolean; strum?: boolean; sing?: boolean; eat?: number; grip?: number }) {
   const p = root.userData.parts as ChibiParts | undefined;
   if (!p || p.pose === "sleep") return;
   const baseY = p.pose === "sit" ? 0.08 : 0;
@@ -246,6 +246,8 @@ export function animateChibi(root: THREE.Object3D, t: number, o: { moving: boole
     p.armL.rotation.z = -0.28 - 1.6 - Math.sin(t * 8) * 0.4; p.armR.rotation.z = 0.28 + 1.6 - Math.sin(t * 8) * 0.4;
   } else { p.armL.rotation.z = -0.28; p.armR.rotation.z = 0.28; if (!o.moving) y += Math.sin(t * 2.2) * 0.008; }
   if (o.play) { p.armL.rotation.x = -1.25 + Math.sin(t * 9) * 0.22; p.armR.rotation.x = -1.25 + Math.sin(t * 9 + 2) * 0.22; tilt = Math.sin(t * 2) * 0.06; }
+  // Riding: both hands reach forward to the handlebar or the steering wheel, with a slight lean.
+  if (o.grip !== undefined) { p.armL.rotation.x = -1.15 * o.grip; p.armR.rotation.x = -1.15 * o.grip; p.armL.rotation.z = -0.12; p.armR.rotation.z = 0.12; p.legL.rotation.x = -0.5 * o.grip; p.legR.rotation.x = -0.5 * o.grip; p.inner.rotation.x = 0.12 * o.grip; } else p.inner.rotation.x = 0;
   if (o.eat !== undefined) { p.armR.rotation.x = -0.5 - o.eat * 1.9; p.armR.rotation.z = 0.28 - o.eat * 0.35; tilt = o.eat * 0.05; }
   if (o.strum) { p.armR.rotation.x = -0.75 + Math.sin(t * 11) * 0.3; p.armL.rotation.x = -1.0; p.armL.rotation.z = -0.75; tilt = Math.sin(t * 2.5) * 0.07; }
   if (o.sing) { p.armR.rotation.x = -1.9; tilt = Math.sin(t * 3) * 0.12; y += Math.abs(Math.sin(t * 3)) * 0.03; }

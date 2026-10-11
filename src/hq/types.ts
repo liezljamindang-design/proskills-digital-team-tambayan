@@ -121,6 +121,8 @@ export interface Act {
   party?: boolean;
   /** The bike or car they are riding. */
   ride?: { kind: string; color: string; name?: string };
+  /** The latest trick done on a bike or in a car. `n` changes each time, so everyone plays it once. */
+  trick?: { kind: "wheelie" | "hop" | "spin"; n: number };
   /** Holding a basketball on the court. */
   ball?: boolean;
   /** Using gym equipment: running on a treadmill or lifting weights. */

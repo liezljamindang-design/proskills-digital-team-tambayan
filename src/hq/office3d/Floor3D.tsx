@@ -33,6 +33,7 @@ export function Floor3D() {
   const zoom = useHq((s) => s.zoom);
   const zoomBy = useHq((s) => s.zoomBy);
   const camMode = useHq((s) => s.camMode);
+  const lite = useHq((s) => s.lite);
   const hostRef = useRef<HTMLDivElement>(null);
   const labels = useRef(new Map<string, HTMLDivElement>());
   const viewRef = useRef<WalkView | null>(null);
@@ -253,6 +254,7 @@ export function Floor3D() {
       sp.visible = true; sp.position.set(0.2 - bite * 0.14, 0.4 + bite * 0.2, 0.26);
     }
     let raf = 0, last = performance.now(), lastMode: CamMode | null = null;
+    let liteNow: boolean | null = null, frames = 0, fpsFrom = performance.now(), windows = 0, autoTried = false;
     const head = new THREE.Vector3();
     function frame(now: number) {
       raf = requestAnimationFrame(frame);
@@ -262,7 +264,7 @@ export function Floor3D() {
       if (mode !== lastMode) { cam.tilt = 0; if (mine && (mode === "third" || mode === "first")) cam.heading = mine.facing; if (mine && mode === "front") cam.heading = mine.facing; lastMode = mode; }
       const partyOn = Boolean(s.me?.act?.party) || Object.values(s.peers).some((p) => p.act?.party);
 
-      office.animate(t);
+      if (!s.lite) office.animate(t); // the cinema cartoon and clock rest in Lite mode
       // Start any new shot, and move the ones already in the air.
       for (const shot of s.shots) {
         if (flying.has(shot.id) || Date.now() - shot.at > 600) continue;
@@ -359,11 +361,34 @@ export function Floor3D() {
       sun.intensity = partyOn ? 0.9 : 2.1;
       renderer.render(scene, camera);
 
+      // Lite mode follows the setting, and switches itself on once if this device cannot keep up.
+      if (s.lite !== liteNow) {
+        liteNow = s.lite;
+        sun.castShadow = !liteNow;
+        renderer.setPixelRatio(liteNow ? 1 : Math.min(window.devicePixelRatio, 1.75)); resize();
+      }
+      frames++;
+      if (now - fpsFrom > 4000) {
+        const fps = (frames * 1000) / (now - fpsFrom);
+        frames = 0; fpsFrom = now;
+        if (document.visibilityState === "visible" && ++windows > 1 && fps < 22 && !liteNow && !autoTried) {
+          autoTried = true;
+          try { if (localStorage.getItem("playground.lite") === null) { s.setLite(true); useHq.setState({ toast: { text: "Switched to Lite mode for smoother movement", n: Date.now() } }); } } catch { /* private mode */ }
+        }
+      }
+
       // Name tags and speech bubbles are ordinary HTML, pinned above each head.
       const w = host!.clientWidth, h = host!.clientHeight;
+      // In a crowd only the nearest people keep their name tags, so the screen stays readable and quick.
+      const limit = liteNow ? 25 : 60;
+      let near: Set<string> | null = null;
+      if (actors.size > limit && mine) {
+        near = new Set([...actors].sort((p, q) => Math.hypot(p[1].x - mine.x, p[1].y - mine.y) - Math.hypot(q[1].x - mine.x, q[1].y - mine.y)).slice(0, limit).map(([id]) => id));
+      }
       for (const [id, a] of actors) {
         const el = labels.current.get(id);
         if (!el) continue;
+        if (near && !near.has(id)) { el.style.display = "none"; continue; }
         head.set(a.holder.position.x, a.holder.position.y + (a.act?.pose === "sleep" ? 1.0 : 1.62), a.holder.position.z + (a.act?.pose === "sleep" ? -0.6 : 0)).project(camera);
         const hidden = head.z > 1 || (a.self && mode === "first");
         el.style.display = hidden ? "none" : "";
@@ -406,6 +431,7 @@ export function Floor3D() {
       </div>
 
       <div className="view-controls">
+        <button type="button" className={`floor-btn view-3d-btn lite-btn${lite ? " is-on" : ""}`} aria-pressed={lite} title="Lite mode: smoother on slower phones and when the office is full" onClick={() => useHq.getState().setLite(!lite)}>⚡ Lite</button>
         <label className="view-pick">
           <span>View</span>
           <select value={camMode} onChange={(e) => { if (e.target.value === "2d") useHq.getState().setView3d(false); else useHq.getState().setCamMode(e.target.value as CamMode); }}>

@@ -157,6 +157,9 @@ export async function joinOffice(joining: Profile): Promise<void> {
   });
   useHq.getState().setJoined(true);
   void refreshPush();
+  // Preview only: ?crowd=100 fills the office with pretend members, to see how it copes.
+  const crowd = !supabaseConfigured ? Number(new URLSearchParams(window.location.search).get("crowd")) : 0;
+  if (crowd > 0) void import("./crowd").then((c) => c.startCrowd(Math.min(300, crowd)));
   void import("./voice").then((v) => v.startListening()).catch(() => undefined); // hear whoever is talking, without joining
   announceTakeover();
   window.setTimeout(() => { const mine = useHq.getState().me; if (mine) transport?.updateProfile(mine, myPos); }, 1500); // in case an older device of yours just left

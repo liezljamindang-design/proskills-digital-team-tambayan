@@ -133,6 +133,9 @@ interface State {
   zoom: number;
   zoomBy: (factor: number) => void;
   /** True for the 3D office, false for the flat drawing. */
+  /** Lite mode: no shadows, fewer pixels and fewer name tags, for slower phones and a crowded office. */
+  lite: boolean;
+  setLite: (on: boolean) => void;
   view3d: boolean;
   setView3d: (on: boolean) => void;
   camMode: CamMode;
@@ -140,6 +143,9 @@ interface State {
   overview: boolean;
   setOverview: (overview: boolean) => void;
 }
+
+const pendingMoves = new Map<string, { x: number; y: number }>();
+let moveTimer = 0;
 
 export const useHq = create<State>((set, get) => ({
   theme: initialTheme(),
@@ -191,7 +197,21 @@ export const useHq = create<State>((set, get) => ({
     if (away[peer.id]) { away = { ...away }; delete away[peer.id]; away = keepAway(away); }
     return { away, peers: { ...s.peers, [peer.id]: { ...peer, x, y } } };
   }),
-  movePeer: (id, x, y) => set((s) => (s.peers[id] ? { peers: { ...s.peers, [id]: { ...s.peers[id], x, y } } } : s)),
+  // Movement arrives many times a second from everyone who is walking. The steps are gathered and
+  // applied together about ten times a second, so a full office does not redraw the page for every step.
+  movePeer: (id, x, y) => {
+    pendingMoves.set(id, { x, y });
+    if (moveTimer) return;
+    moveTimer = window.setTimeout(() => {
+      moveTimer = 0;
+      const moves = [...pendingMoves]; pendingMoves.clear();
+      set((s) => {
+        let peers = s.peers;
+        for (const [pid, at] of moves) if (peers[pid]) { if (peers === s.peers) peers = { ...peers }; peers[pid] = { ...peers[pid], ...at }; }
+        return peers === s.peers ? s : { peers };
+      });
+    }, 90);
+  },
   removePeer: (id) => set((s) => {
     const gone = s.peers[id];
     const peers = { ...s.peers };
@@ -267,6 +287,8 @@ export const useHq = create<State>((set, get) => ({
     write("playground.zoom", String(zoom));
     set({ zoom, overview: false });
   },
+  lite: read("playground.lite") === "1",
+  setLite: (lite) => { write("playground.lite", lite ? "1" : "0"); set({ lite }); },
   view3d: read("playground.view") !== "2d" && canDo3d(),
   setView3d: (view3d) => { write("playground.view", view3d ? "3d" : "2d"); set({ view3d, overview: false }); },
   camMode: (["iso", "free", "third", "front", "first"].includes(read("playground.cam") ?? "") ? read("playground.cam") : "iso") as CamMode,

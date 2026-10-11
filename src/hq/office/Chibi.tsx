@@ -1,3 +1,4 @@
+import { memo } from "react";
 import type { Act, Accessory, Fit, HairStyle, Look, Mood } from "../types";
 
 /**
@@ -286,7 +287,7 @@ export function PetArt({ id }: { id?: string }) {
 const DRINKS = { coffee: ["#ffffff", "#6b4226"], iced: ["#cfeaff", "#8a5a3a"], tea: ["#f1d9b5", "#c79a63"] } as const;
 
 /** One character, full body. `act` changes the face, what is in the hands, and the pose. */
-export function ChibiArt({ look, act }: { look: Look; act?: Act }) {
+export const ChibiArt = memo(function ChibiArt({ look, act }: { look: Look; act?: Act }) {
   const legs = look.bottoms === "pants" ? "#2a2f45" : look.skin;
   const mood = act?.mood, asleep = act?.pose === "sleep", sitting = act?.pose === "sit";
   const fit = look.fit ?? "basic";
@@ -334,7 +335,7 @@ export function ChibiArt({ look, act }: { look: Look; act?: Act }) {
       )}
     </g>
   );
-}
+});
 
 /** Head-and-shoulders portrait, for lists and the avatar builder. */
 export function ChibiPortrait({ look, size = 40 }: { look: Look; size?: number }) {

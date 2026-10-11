@@ -729,3 +729,5 @@ select option, select optgroup { background-color: var(--surface); color: var(--
 .chat-actions.is-shown { display: flex; }
 .chat-dots { font-size: 16px; font-weight: 800; line-height: 1; color: var(--ink-2); }
 .dj-now { margin: 4px 0 6px; padding: 8px 10px; border-radius: 10px; background: var(--lav-soft); font-size: 13.5px; }
+.lite-btn { order: 3; font-weight: 800; }
+.lite-btn.is-on { background: var(--lav); border-color: var(--lav); color: var(--on-accent); }

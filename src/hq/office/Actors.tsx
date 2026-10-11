@@ -1,3 +1,4 @@
+import { memo } from "react";
 import type { Bubble } from "../store";
 import type { Status } from "../status";
 import type { Act, Look } from "../types";
@@ -48,7 +49,8 @@ interface FigureProps {
 }
 
 /** A person in the office: chibi, name tag and, when they are talking, a speech bubble. */
-export function Figure({ look, name, bubble, self, status, act, party }: FigureProps) {
+// Remembered between redraws: when one person moves, the other hundred are not drawn again.
+export const Figure = memo(function Figure({ look, name, bubble, self, status, act, party }: FigureProps) {
   const pose = act?.pose;
   // Asleep: laid along the bed, head on the pillow. Sitting: raised onto the sofa seat.
   const body = pose === "sleep" ? "translate(-3 -12) rotate(63) scale(1.02)" : pose === "sit" ? `translate(${act?.at?.dx ?? 0} ${act?.at?.dy ?? -8}) scale(1.3)` : "scale(1.3)";
@@ -80,4 +82,4 @@ export function Figure({ look, name, bubble, self, status, act, party }: FigureP
       {bubble && <SpeechBubble bubble={bubble} />}
     </>
   );
-}
+});

@@ -108,7 +108,7 @@ function SignIn({ onSignedIn, onGuest }: { onSignedIn: (account: Account) => voi
         ? /not confirmed/i.test(message) ? "This email hasn't been confirmed yet. Click the link in the confirmation email, or ask the admin to confirm you."
           : "That email and password didn't match. Check them, or create an account if you are new."
         : /already/i.test(message) ? "That email already has an account. Sign in instead."
-          : /rate limit|sending|confirmation email/i.test(message) ? "The confirmation email couldn't be sent (the free email limit was reached). Ask the admin to turn off \"Confirm email\" in Supabase, then try again."
+          : /rate limit|sending|confirmation email/i.test(message) ? `Supabase said: "${message}". It tried to send a confirmation email and hit the free limit. The \"Confirm email\" switch in Supabase is still on: turn it off and save, then try again.`
           : /signups? (not allowed|disabled)/i.test(message) ? "New sign-ups are turned off in Supabase. Ask the admin to allow them."
           : /fetch|network/i.test(message) ? "Couldn't reach the sign-in service. Check your connection and try again."
           : `Couldn't create the account: ${message || "unknown error"}`);

@@ -34,7 +34,7 @@ function canDo3d(): boolean {
   try { const c = document.createElement("canvas"); return Boolean(c.getContext("webgl2") ?? c.getContext("webgl")); } catch { return false; }
 }
 
-export type SideTab = "chat" | "people" | "rooms";
+export type SideTab = "chat" | "people" | "rooms" | "app";
 /** "all" is the public room; any other thread id is the other person's id. */
 export const PUBLIC = "all";
 /** The chat that only people inside the arcade see. */

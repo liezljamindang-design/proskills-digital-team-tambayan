@@ -70,3 +70,45 @@ export function InstallBanner() {
     </aside>
   );
 }
+
+/** The "Get app" tab: one card for computers, one for phones. */
+export function AppPane() {
+  const { mode, install } = useInstall();
+  const here = window.matchMedia("(max-width: 900px)").matches || isApple() ? "phone" : "pc";
+  const [copied, setCopied] = useState(false);
+  const link = window.location.origin;
+  const copy = () => { void navigator.clipboard?.writeText(link).then(() => { setCopied(true); setTimeout(() => setCopied(false), 2000); }); };
+  const button = (kind: "pc" | "phone") => {
+    if (!mode) return <p className="app-done">✅ Already installed on this device.</p>;
+    if (kind !== here) return <p className="muted">Open this page on your {kind === "pc" ? "computer" : "phone"} to install it there.</p>;
+    if (mode === "prompt") return <button type="button" className="btn-primary" onClick={install}>⬇ Download for {kind === "pc" ? "PC" : "mobile"}</button>;
+    return <p className="muted">Follow the steps above on this device.</p>;
+  };
+  return (
+    <div className="app-pane">
+      <p className="muted">Free, no app store needed. It opens in its own window with the owl icon.</p>
+      <section className="app-card">
+        <h3>💻 Download on PC</h3>
+        <ol>
+          <li>Open this page in Chrome or Edge.</li>
+          <li>Click the install icon at the right of the address bar, or the browser menu → “Install app”.</li>
+          <li>On a Mac with Safari: File → “Add to Dock”.</li>
+        </ol>
+        {button("pc")}
+      </section>
+      <section className="app-card">
+        <h3>📱 Download on mobile</h3>
+        <p><strong>Android</strong></p>
+        <ol><li>Open this page in Chrome.</li><li>Tap the three dots → “Install app” or “Add to Home screen”.</li></ol>
+        <p><strong>iPhone or iPad</strong></p>
+        <AppleSteps />
+        {button("phone")}
+      </section>
+      <section className="app-card">
+        <h3>🔗 Send the link to your phone</h3>
+        <p className="app-link">{link}</p>
+        <button type="button" className="btn-secondary" onClick={copy}>{copied ? "Copied!" : "Copy link"}</button>
+      </section>
+    </div>
+  );
+}

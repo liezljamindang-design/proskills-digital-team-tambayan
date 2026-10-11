@@ -5,6 +5,7 @@ const ICONS: Record<string, string> = {
   chat: "M5 6h14v9H10l-4 4v-4H5z",
   people: "M9 11a3 3 0 1 0 0-6 3 3 0 0 0 0 6ZM3.5 19c.8-3 3-4.5 5.5-4.5s4.7 1.5 5.5 4.5M16 11a2.5 2.5 0 1 0 0-5M17 14.6c1.8.4 3 1.8 3.5 4.4",
   rooms: "M5 7h14M5 12h14M5 17h9",
+  app: "M12 4v10M8 10.5l4 4 4-4M5 19h14",
   game: "M7 9h10a4 4 0 0 1 4 4v1a3 3 0 0 1-5.5 1.6L15 15H9l-.5.6A3 3 0 0 1 3 14v-1a4 4 0 0 1 4-4ZM8 11.5v3M6.5 13h3",
 };
 
@@ -21,6 +22,7 @@ export function BottomNav() {
     { id: "chat", label: "Chat", current: sheet && tab === "chat", onClick: () => show("chat") },
     { id: "people", label: "People", current: sheet && tab === "people", onClick: () => show("people") },
     { id: "rooms", label: "Rooms", current: sheet && tab === "rooms", onClick: () => show("rooms") },
+    { id: "app", label: "Get app", current: sheet && tab === "app", onClick: () => show("app") },
     { id: "game", label: "Arcade", current: gameOpen && !sheet, onClick: () => { useHq.setState({ sheetOpen: false }); useHq.getState().walkToZone("game"); window.scrollTo({ top: 0 }); } },
   ];
 

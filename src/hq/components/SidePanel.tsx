@@ -7,12 +7,13 @@ import { ChibiPortrait } from "../office/Chibi";
 import { zoneAt } from "../office/engine";
 import { presenceOf, statusOf } from "../status";
 import { StatusPicker } from "./StatusPicker";
+import { AppPane } from "./InstallButton";
 import { ARCADE, PUBLIC, useHq, type SideTab } from "../store";
 import { batchesOf, displayName, REACTIONS, type Quote } from "../types";
 import { Composer } from "./Composer";
 import { Emoji } from "./Emoji";
 
-const TABS: { id: SideTab; label: string }[] = [{ id: "chat", label: "Chat" }, { id: "people", label: "People" }, { id: "rooms", label: "Rooms" }];
+const TABS: { id: SideTab; label: string }[] = [{ id: "chat", label: "Chat" }, { id: "people", label: "People" }, { id: "rooms", label: "Rooms" }, { id: "app", label: "Get app" }];
 const roomName = (x: number, y: number) => ZONES.find((z) => z.id === zoneAt(x, y))?.name ?? "Walking around";
 function StatusTag({ status }: { status: ReturnType<typeof statusOf> }) {
   return <span className={`status-tag tone-${status.tone}`}><span aria-hidden="true">{status.emoji}</span> {status.label}</span>;
@@ -40,6 +41,7 @@ export function SidePanel() {
         {tab === "chat" && <ChatPane />}
         {tab === "people" && <PeoplePane />}
         {tab === "rooms" && <RoomsPane />}
+        {tab === "app" && <AppPane />}
       </div>
     </aside>
   );

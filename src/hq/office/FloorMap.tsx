@@ -227,6 +227,12 @@ export function FloorMap() {
           <g className="rugs">
             {Array.from({ length: 30 }, (_, k) => { const i = k % 6, j = Math.floor(k / 6), d = DANCE_FLOOR; return <polygon key={k} className="dance-tile" fill={["#ff4fa3", "#35c9ff", "#ffd43b", "#7ee08f"][(i * 3 + j * 5) % 4]} points={rectPoints(d.x + (d.w / 6) * i, d.y + (d.h / 5) * j, d.w / 6, d.h / 5, 0, 0.03)} />; })}
             <polygon className="screen" points={panelY(7.08, 27.4, 33.1, 18, 70)} />
+            {(() => { const [wx, wy] = project((ENTRANCE.from + ENTRANCE.to) / 2 - 0.2, D - 2.4); return (
+              <g className="welcome-mat" transform={`matrix(0.894 0.447 -0.894 0.447 ${wx} ${wy})`} textAnchor="middle">
+                <text className="welcome-small" y={-13}>Welcome to</text>
+                <text className="welcome-big">{HQ.name}</text>
+              </g>
+            ); })()}
             <polygon className="court" points={rectPoints(COURT.x, COURT.y, COURT.w, COURT.h, 0, 0)} />
             <polyline className="court-line" points={`${pt(COURT.x + COURT.w / 2, COURT.y)} ${pt(COURT.x + COURT.w / 2, COURT.y + COURT.h)}`} />
             <polygon className="court-line" points={rectPoints(COURT.x + COURT.w / 2 - 0.8, COURT.y + COURT.h / 2 - 0.8, 1.6, 1.6, 0, 0)} />
@@ -250,7 +256,10 @@ export function FloorMap() {
                 <text className="plaque-text plaque-name" y={9}>{partyNames.length > 20 ? `${partyNames.slice(0, 19)}…` : partyNames}!</text>
               </g>
             ) : (
-              <text className="plaque-text" transform={`matrix(0.894 0.447 0 1 ${signX} ${signY})`} textAnchor="middle">{HQ.name.length > 30 ? "Tambayan" : HQ.name}</text>
+              <g transform={`matrix(0.894 0.447 0 1 ${signX} ${signY})`} textAnchor="middle">
+                <text className="plaque-text" y={-5}>{HQ.classTitle}</text>
+                <text className="plaque-text plaque-sub" y={9}>Schedule: {HQ.classSchedule}</text>
+              </g>
             )}
             {party.length > 0 && (
               <g className="party">

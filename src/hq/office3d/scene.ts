@@ -292,8 +292,11 @@ export function buildOffice(): Office {
   [0, 1, 2, 3, 4].forEach((i) => box(wallX, 0.04, 12.8 - i * 0.5, 0.01, 0.35, 35, 41 + [20, 12, 24, 9, 16][i], i % 2 ? "#33c447" : "#f4c21f", { emissive: i % 2 ? "#33c447" : "#f4c21f", emissiveIntensity: 0.7 }).castShadow = false);
   [["#17b02a", 5.6], ["#f4c21f", 6.5], ["#1565c0", 7.4]].forEach(([color, y]) => box(wallX, 0, Number(y) + 3.3, 0.03, 0.55, 20, 50, String(color)).castShadow = false);
   box(wallZ, 0.4, 0, 5.7, 0.03, 36, 68, "#ffffff").castShadow = false;
-  const sign = new THREE.Mesh(new THREE.PlaneGeometry(5.4, 0.8), new THREE.MeshBasicMaterial({ map: label(HQ.name, "#10141c", 38), transparent: true }));
-  sign.position.set(3.25 + 0.2, 52 / UNIT, 0.05); wallZ.add(sign);
+  // The big wall sign in the Classroom names the class and its schedule.
+  [[HQ.classTitle, 58, "#10141c", 0.5], [`Schedule: ${HQ.classSchedule}`, 44, "#15803d", 0.36]].forEach(([text, z, color, tall]) => {
+    const line = new THREE.Mesh(new THREE.PlaneGeometry(Number(tall) * 5.33, Number(tall)), new THREE.MeshBasicMaterial({ map: label(String(text).slice(0, 34), String(color), 44), transparent: true }));
+    line.position.set(0.7 + (Number(tall) * 5.33) / 2, Number(z) / UNIT, 0.05); wallZ.add(line);
+  });
 
   // Inner walls: low solid ones with a gold cap, and glass round the Collaboration Room.
   for (const wall of WALLS) {
@@ -305,6 +308,18 @@ export function buildOffice(): Office {
 
   for (const item of FURNITURE) furniture(root, item);
 
+  // A welcome arch over the front door carries the Tambayan's name, facing everyone who arrives.
+  { const mid = (ENTRANCE.from + ENTRANCE.to) / 2, half = 3.1, ay = D - 0.45;
+    for (const px of [mid - half, mid + half - 0.22]) { box(root, px, ay, 0.22, 0.22, 0, 74, "#15803d"); box(root, px - 0.06, ay - 0.06, 0.34, 0.34, 0, 4, "gold"); const cap = ball(root, px + 0.11, ay + 0.11, 78, 0.16, "#f4c21f"); cap.castShadow = false; }
+    box(root, mid - half, ay + 0.02, half * 2, 0.18, 74, 112, "#15803d"); box(root, mid - half - 0.05, ay, half * 2 + 0.1, 0.22, 112, 115, "gold"); box(root, mid - half - 0.05, ay, half * 2 + 0.1, 0.22, 71, 74, "gold");
+    for (const side of [1, -1]) {
+      const small = new THREE.Mesh(new THREE.PlaneGeometry(0.24 * 5.33, 0.24), new THREE.MeshBasicMaterial({ map: label("            Welcome to", "#fff6cf", 40), transparent: true }));
+      const big = new THREE.Mesh(new THREE.PlaneGeometry(1.0 * 5.33, 1.0), new THREE.MeshBasicMaterial({ map: label(HQ.name.slice(0, 30), "#ffffff", 34), transparent: true }));
+      small.position.set(mid, 105 / UNIT, ay + 0.11 + side * 0.105); big.position.set(mid + side * 0.25, 89 / UNIT, ay + 0.11 + side * 0.105);
+      if (side < 0) { small.rotation.y = Math.PI; big.rotation.y = Math.PI; }
+      root.add(small, big);
+    }
+  }
   // Outside: a lawn, a path to the door, trees and bushes, so the office sits in a place.
   const lawn = new THREE.Mesh(new THREE.CylinderGeometry(44, 44, 0.2, 72), material("#bfe3a8"));
   lawn.position.set(W / 2, -0.5, D / 2); lawn.receiveShadow = true; root.add(lawn);
@@ -335,11 +350,7 @@ export function buildOffice(): Office {
   box(wallX, 0.02, 5.5, 0.05, 1.9, 22, 52, "screen").castShadow = false;
   box(wallX, 0.07, 5.6, 0.01, 1.7, 25, 49, "#16324f", { emissive: "#3f8fe6", emissiveIntensity: 0.6 }).castShadow = false;
   box(wallZ, 3.0, 0.02, 2.4, 0.04, 14, 34, "#ffffff").castShadow = false; box(wallZ, 2.95, 0.0, 2.5, 0.03, 13, 35, "dark").castShadow = false;
-  // The class and its schedule, written on the whiteboard.
-  [[HQ.classTitle, 27.5, "#10141c", 0.4], [`Schedule: ${HQ.classSchedule}`, 19.5, "#15803d", 0.3]].forEach(([text, z, color, tall]) => {
-    const line = new THREE.Mesh(new THREE.PlaneGeometry(Number(tall) * 5.2, Number(tall)), new THREE.MeshBasicMaterial({ map: label(String(text).slice(0, 34), String(color), 44), transparent: true }));
-    line.position.set(4.2, Number(z) / UNIT, 0.075); wallZ.add(line);
-  });
+  { const note = new THREE.Mesh(new THREE.PlaneGeometry(0.3 * 5.33, 0.3), new THREE.MeshBasicMaterial({ map: label("Live training on Zoom", "#1565c0", 40), transparent: true })); note.position.set(4.25, 24 / UNIT, 0.075); wallZ.add(note); }
   const clock = new THREE.Mesh(new THREE.CylinderGeometry(0.32, 0.32, 0.05, 32), material("#ffffff")); clock.rotation.x = Math.PI / 2; clock.position.set(11.7, 58 / UNIT, 0.05); wallZ.add(clock);
   const rim = new THREE.Mesh(new THREE.TorusGeometry(0.32, 0.03, 8, 32), material(COLORS.dark)); rim.position.copy(clock.position); wallZ.add(rim);
   box(wallZ, 11.69, 0.08, 0.02, 0.01, 58, 67, "dark").castShadow = false; box(wallZ, 11.7, 0.08, 0.18, 0.01, 57.5, 58.5, "dark").castShadow = false;

@@ -309,7 +309,15 @@ export function buildOffice(): Office {
   box(wallX, -0.16, 0, 0.18, D, wallH, wallH + 2, "gold"); box(wallZ, -0.16, -0.16, W + 0.16, 0.18, wallH, wallH + 2, "gold");
   // Windows, screens and the name sign.
   const glow = { emissive: "#bfe3ff", emissiveIntensity: 0.55 };
-  box(wallZ, 7.5, 0.0, 3.0, 0.03, 50, 74, "#bfe3ff", glow).castShadow = false;
+  // The Collaboration Room's wall sign, in the same style as the Classroom's.
+  { box(wallZ, 7.3, 0, 3.4, 0.03, 42, 72, "#ffffff").castShadow = false;
+    const cv = document.createElement("canvas"); cv.width = 768; cv.height = 176;
+    const c = cv.getContext("2d")!; c.textAlign = "center"; c.textBaseline = "middle";
+    c.fillStyle = "#10141c"; c.font = "800 76px Nunito, system-ui, sans-serif"; c.fillText("Tara Collab!", 384, 58, 740);
+    c.fillStyle = "#15803d"; c.font = "700 44px Nunito, system-ui, sans-serif"; c.fillText("Open sa lahat", 384, 132, 740);
+    const tex = new THREE.CanvasTexture(cv); tex.colorSpace = THREE.SRGBColorSpace; tex.anisotropy = 4;
+    const face = new THREE.Mesh(new THREE.PlaneGeometry(3.2, 3.2 * (176 / 768)), new THREE.MeshBasicMaterial({ map: tex, transparent: true })); face.position.set(9, 57 / UNIT, 0.05); wallZ.add(face);
+  }
   for (const [a, b] of [[0.8, 3.4], [5.4, 8.6]]) box(wallX, 0, a, 0.03, b - a, 32, 70, "#bfe3ff", glow).castShadow = false;
   box(wallZ, 12.4, 0, 3.6, 0.04, 30, 70, "screen").castShadow = false;
   [60, 53, 46, 39].forEach((z, i) => box(wallZ, 12.8, 0.04, [2.2, 2.6, 1.8, 2.3][i], 0.01, z, z + 2.8, i === 0 ? "#f4c21f" : "#6fb4ff", { emissive: i === 0 ? "#f4c21f" : "#6fb4ff", emissiveIntensity: 0.7 }).castShadow = false);

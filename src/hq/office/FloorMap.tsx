@@ -282,12 +282,13 @@ export function FloorMap() {
               </g>
             )}
             {/* Windows with a sky view, the café menu, lounge art and the arcade scoreboard */}
-            {[[7.5, 10.5]].map(([a, b]) => (
-              <g key={a}>
-                <polygon className="window" points={panelY(0, a, b, 50, 74)} />
-                <polyline className="window-bar" points={`${pt((a + b) / 2, 0, 50)} ${pt((a + b) / 2, 0, 74)}`} />
+            <polygon className="plaque" points={panelY(0, 7.3, 10.7, 42, 72)} />
+            {(() => { const [cx, cy] = project(9, 0, 57); return (
+              <g transform={`matrix(0.894 0.447 0 1 ${cx} ${cy})`} textAnchor="middle">
+                <text className="plaque-text" y={-3}>Tara Collab!</text>
+                <text className="plaque-text plaque-sub" y={9}>Open sa lahat</text>
               </g>
-            ))}
+            ); })()}
             {[[0.8, 3.4], [5.4, 8.6]].map(([a, b]) => (
               <g key={a}>
                 <polygon className="window" points={panelX(0, a, b, 32, 70)} />

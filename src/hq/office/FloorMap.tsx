@@ -1,5 +1,5 @@
 import { useCallback, useMemo, useRef, useState, type ReactNode } from "react";
-import { HQ } from "../config";
+import { classOngoing, HQ } from "../config";
 import { BALL_SPOT, COURT, DANCE_FLOOR, ENTRANCE, FLOOR, FURNITURE, POOL, RUGS, WALL_HEIGHT, WALLS, ZONES } from "../data/office";
 import { useMovement, type WalkView } from "../hooks/useMovement";
 import { useHq } from "../store";
@@ -257,8 +257,8 @@ export function FloorMap() {
               </g>
             ) : (
               <g transform={`matrix(0.894 0.447 0 1 ${signX} ${signY})`} textAnchor="middle">
-                <text className="plaque-text" y={-5}>{HQ.classTitle}</text>
-                <text className="plaque-text plaque-sub" y={9}>Schedule: {HQ.classSchedule}</text>
+                <text className="plaque-text" y={-6}>{HQ.classTitle}</text>
+                <text className="plaque-text plaque-sub" y={7}>Schedule: {HQ.classSchedule} · {classOngoing() ? "Class ongoing" : "No Class Ongoing"}</text>
               </g>
             )}
             {party.length > 0 && (

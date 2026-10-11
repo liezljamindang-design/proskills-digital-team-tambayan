@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import { HQ } from "../config";
+import { classOngoing, HQ } from "../config";
 import { BALL_SPOT, COURT, DANCE_FLOOR, ENTRANCE, FLOOR, FURNITURE, POOL, RUGS, SEAT_IDS, WALL_HEIGHT, WALLS, ZONES } from "../data/office";
 import type { FurnitureItem } from "../types";
 
@@ -185,6 +185,32 @@ function label(text: string, color: string, size = 46): THREE.CanvasTexture {
 
 export interface Office { root: THREE.Group; wallX: THREE.Object3D; wallZ: THREE.Object3D; /** Draws the next frame of the cinema's cartoon. */ animate: (t: number) => void }
 
+/** The Classroom sign, drawn centred. The last line follows the clock in the Philippines. */
+function classSign() {
+  const canvas = document.createElement("canvas"); canvas.width = 1024; canvas.height = 176;
+  const c = canvas.getContext("2d")!, texture = new THREE.CanvasTexture(canvas);
+  texture.colorSpace = THREE.SRGBColorSpace; texture.anisotropy = 4;
+  let last = -100, shown: boolean | null = null;
+  function refresh(t: number) {
+    if (t - last < 15) return; // the clock only needs a look now and then
+    last = t;
+    const on = classOngoing();
+    if (on === shown) return;
+    shown = on;
+    c.clearRect(0, 0, 1024, 176); c.textAlign = "center"; c.textBaseline = "middle";
+    c.fillStyle = "#10141c"; c.font = "800 78px Nunito, system-ui, sans-serif"; c.fillText(HQ.classTitle.slice(0, 26), 512, 50, 1000);
+    const left = `Schedule: ${HQ.classSchedule}`.slice(0, 40), right = on ? "Class ongoing" : "No Class Ongoing";
+    c.font = "700 40px Nunito, system-ui, sans-serif";
+    const lw = c.measureText(left).width, rw = c.measureText(right).width, gap = 70, start = 512 - (lw + gap + rw) / 2;
+    c.textAlign = "left"; c.fillStyle = "#15803d"; c.fillText(left, start, 132);
+    c.fillStyle = on ? "#17b02a" : "#9aa3b2"; c.beginPath(); c.arc(start + lw + gap / 2, 132, 9, 0, 7); c.fill();
+    c.fillStyle = on ? "#0f7a22" : "#c0392b"; c.fillText(right, start + lw + gap, 132);
+    texture.needsUpdate = true;
+  }
+  refresh(0);
+  return { texture, refresh };
+}
+
 /** An original little cartoon for the cinema screen: an owl chases a bouncing ball past hills and clouds, on a loop. */
 function cartoon() {
   const canvas = document.createElement("canvas"); canvas.width = 336; canvas.height = 80;
@@ -292,11 +318,9 @@ export function buildOffice(): Office {
   [0, 1, 2, 3, 4].forEach((i) => box(wallX, 0.04, 12.8 - i * 0.5, 0.01, 0.35, 35, 41 + [20, 12, 24, 9, 16][i], i % 2 ? "#33c447" : "#f4c21f", { emissive: i % 2 ? "#33c447" : "#f4c21f", emissiveIntensity: 0.7 }).castShadow = false);
   [["#17b02a", 5.6], ["#f4c21f", 6.5], ["#1565c0", 7.4]].forEach(([color, y]) => box(wallX, 0, Number(y) + 3.3, 0.03, 0.55, 20, 50, String(color)).castShadow = false);
   box(wallZ, 0.4, 0, 5.7, 0.03, 36, 68, "#ffffff").castShadow = false;
-  // The big wall sign in the Classroom names the class and its schedule.
-  [[HQ.classTitle, 58, "#10141c", 0.5], [`Schedule: ${HQ.classSchedule}`, 44, "#15803d", 0.36]].forEach(([text, z, color, tall]) => {
-    const line = new THREE.Mesh(new THREE.PlaneGeometry(Number(tall) * 5.33, Number(tall)), new THREE.MeshBasicMaterial({ map: label(String(text).slice(0, 34), String(color), 44), transparent: true }));
-    line.position.set(0.7 + (Number(tall) * 5.33) / 2, Number(z) / UNIT, 0.05); wallZ.add(line);
-  });
+  // The big wall sign in the Classroom: the class, its schedule, and whether class is on right now.
+  const board = classSign();
+  { const face = new THREE.Mesh(new THREE.PlaneGeometry(5.5, 5.5 * (176 / 1024)), new THREE.MeshBasicMaterial({ map: board.texture, transparent: true })); face.position.set(3.25, 52 / UNIT, 0.05); wallZ.add(face); }
 
   // Inner walls: low solid ones with a gold cap, and glass round the Collaboration Room.
   for (const wall of WALLS) {
@@ -356,5 +380,5 @@ export function buildOffice(): Office {
   box(wallZ, 11.69, 0.08, 0.02, 0.01, 58, 67, "dark").castShadow = false; box(wallZ, 11.7, 0.08, 0.18, 0.01, 57.5, 58.5, "dark").castShadow = false;
   const neon = new THREE.Mesh(new THREE.PlaneGeometry(2.4, 0.6), new THREE.MeshBasicMaterial({ map: label("★ ARCADE ★", "#ff4fd8", 60), transparent: true }));
   neon.rotation.y = Math.PI / 2; neon.position.set(0.06, 78 / UNIT - 0.1, 11.9); wallX.add(neon);
-  return { root, wallX, wallZ, animate: film.draw };
+  return { root, wallX, wallZ, animate: (t) => { film.draw(t); board.refresh(t); } };
 }

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { HQ } from "../config";
+import { classOngoing, HQ } from "../config";
 import { ZONES } from "../data/office";
 import { openMeeting, setAct, shoot } from "../net/session";
 import { ChibiPortrait } from "../office/Chibi";
@@ -123,7 +123,7 @@ export function RoomCard() {
         );
       })()}
 
-      {zone === "focus" && <p className="class-info"><strong>{HQ.classTitle}</strong><span>Schedule: {HQ.classSchedule}</span></p>}
+      {zone === "focus" && <p className="class-info"><strong>{HQ.classTitle}</strong><span>Schedule: {HQ.classSchedule}</span><span className={classOngoing() ? "class-on" : "class-off"}>● {classOngoing() ? "Class ongoing" : "No Class Ongoing"}</span></p>}
       {zone === "focus" && (
         HQ.classroomUrl ? (
           <>

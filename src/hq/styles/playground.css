@@ -689,3 +689,7 @@ select option, select optgroup { background-color: var(--surface); color: var(--
 .plaque-sub { font-size: 9px; fill: var(--lav); }
 .welcome-small { font-size: 9px; font-weight: 700; fill: var(--ink-2); }
 .welcome-big { font-size: 15px; font-weight: 800; fill: var(--lav); letter-spacing: 0.02em; }
+.class-on { color: #0f7a22; font-weight: 800; }
+.class-off { color: #c0392b; font-weight: 800; }
+.plaque-text { font-size: 16px; }
+.plaque-sub { font-size: 7.5px; }

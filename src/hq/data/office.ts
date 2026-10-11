@@ -5,8 +5,8 @@ import type { FurnitureItem, WallSegment, Zone } from "../types";
 export const FLOOR = { width: 34, depth: 22 };
 export const START = { x: 17, y: 21.3 };
 export const ENTRANCE = { from: 16.1, to: 17.9 };
-/** The swimming pool: flat, so you can walk (swim) through it. */
-export const POOL = { x: 8.0, y: 15.6, w: 3.8, h: 4.6 };
+/** The pickleball court: painted on the floor, so you can walk across it. Tap it to play. */
+export const PICKLE = { x: 8.0, y: 15.6, w: 3.8, h: 4.6 };
 /** Where the basketballs sit on the court, and where each hoop's ring is. */
 export const BALL_SPOT = { x: 2.7, y: 19.9 };
 export const HOOPS = [{ id: "hoop-1", x: 0.93, y: 18.3 }, { id: "hoop-2", x: 6.27, y: 18.3 }];
@@ -31,7 +31,7 @@ export const ZONES: Zone[] = [
   { id: "dance", key: 11, name: "Dance Studio", summary: "Step onto the light-up floor and your chibi starts dancing.", rect: { x: 18.5, y: 7, w: 7.7, h: 7 } },
   { id: "cinema", key: 17, name: "Cinema", summary: "Grab a seat in front of the big screen. Popcorn at the back.", rect: { x: 26.4, y: 7, w: 7.6, h: 7 } },
   { id: "court", key: 12, name: "Basketball Court", summary: "Shoot some hoops outside.", rect: { x: 0, y: 14.6, w: 7, h: 7.4 } },
-  { id: "pool", key: 13, name: "Swimming Pool", summary: "Walk into the water for a swim, or take a lounger.", rect: { x: 7.4, y: 14.6, w: 5, h: 7.4 } },
+  { id: "pool", key: 13, name: "Pickleball Court", summary: "Tap the court to play pickleball against a teammate or the robot.", rect: { x: 7.4, y: 14.6, w: 5, h: 7.4 } },
   { id: "plaza", key: 14, name: "Main Entrance", summary: "The front door. Everyone arrives here.", rect: { x: 12.8, y: 14.6, w: 8.4, h: 7.4 } },
   { id: "canteen", key: 15, name: "Canteen", summary: "Tables for lunch and merienda together.", rect: { x: 21.6, y: 14.6, w: 6, h: 7.4 } },
   { id: "music", key: 16, name: "Music Room", summary: "A full band set: drums, guitar, bass, a mic and a piano.", rect: { x: 28, y: 14.6, w: 6, h: 7.4 } },
@@ -134,7 +134,7 @@ export const FURNITURE: FurnitureItem[] = [
   { id: "hoop-1", kind: "hoop", x: 0.5, y: 17.9, w: 0.3, h: 0.8 }, { id: "hoop-2", kind: "hoop", x: 6.4, y: 17.9, w: 0.3, h: 0.8 },
   { id: "court-bench", kind: "sofa", x: 2.4, y: 14.5, w: 2.2, h: 0.5 }, 
 
-  // Swimming Pool
+  // Pickleball Court
   bean("pool-bean-1", 7.7, 20.8), bean("pool-bean-2", 8.7, 20.9), bean("pool-bean-3", 11.4, 20.8),
   { id: "pool-bench", kind: "sofa", x: 8.8, y: 14.7, w: 2.2, h: 0.5 }, lamp("pool-lamp", 7.6, 14.9),
 

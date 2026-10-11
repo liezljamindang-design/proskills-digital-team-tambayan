@@ -375,7 +375,7 @@ export function onPong(listener: PongListener | null) { pongListener = listener;
 /** The practice opponent. It lives in your own browser, so nothing is sent anywhere. */
 export const BOT = "robot";
 export function playRobot() {
-  if (!useHq.getState().pong) useHq.setState({ pongMenu: false, pong: { opp: BOT, name: "Robot", stage: "playing", host: true } });
+  if (!useHq.getState().pong) useHq.setState({ pongMenu: false, pong: { opp: BOT, name: "Robot", stage: "playing", host: true, game: useHq.getState().pongGame } });
 }
 export function sendPong(to: string, msg: PongMsg) {
   if (to === BOT) return;
@@ -386,7 +386,7 @@ function receivePong(from: string, name: string, msg: PongMsg) {
   const state = useHq.getState(), current = state.pong;
   if (msg.k === "invite") {
     if (current) { sendPong(from, { k: "decline" }); return; } // already busy with another game
-    useHq.setState({ pong: { opp: from, name: String(name).slice(0, 40), stage: "invited", host: false } });
+    useHq.setState({ pong: { opp: from, name: String(name).slice(0, 40), stage: "invited", host: false, game: msg.g === "pickle" ? "pickle" : "pong" } });
     ping();
     return;
   }
@@ -399,8 +399,9 @@ function receivePong(from: string, name: string, msg: PongMsg) {
 export function invitePong(to: string) {
   const target = useHq.getState().peers[to];
   if (!target || useHq.getState().pong) return;
-  useHq.setState({ pongMenu: false, pong: { opp: to, name: displayName(target), stage: "inviting", host: true } });
-  sendPong(to, { k: "invite" });
+  const game = useHq.getState().pongGame;
+  useHq.setState({ pongMenu: false, pong: { opp: to, name: displayName(target), stage: "inviting", host: true, game } });
+  sendPong(to, game === "pickle" ? { k: "invite", g: "pickle" } : { k: "invite" });
 }
 export function answerPong(accept: boolean) {
   const current = useHq.getState().pong;

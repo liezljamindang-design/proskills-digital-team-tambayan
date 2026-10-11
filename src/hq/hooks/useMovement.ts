@@ -12,7 +12,7 @@ const KEY_DIRS: Record<string, [number, number]> = {
 };
 
 /** What a click landed on. */
-export type Hit = { kind: "self" } | { kind: "peer"; id: string } | { kind: "seat"; id: string } | { kind: "arcade" } | { kind: "pingpong" } | { kind: "ball" } | { kind: "hoop" } | { kind: "gym"; id: string } | { kind: "floor"; point: Point } | null;
+export type Hit = { kind: "self" } | { kind: "peer"; id: string } | { kind: "seat"; id: string } | { kind: "arcade" } | { kind: "pingpong" } | { kind: "pickle" } | { kind: "ball" } | { kind: "hoop" } | { kind: "gym"; id: string } | { kind: "floor"; point: Point } | null;
 
 /** How the office is drawn. The walking rules are the same whether it is the flat drawing or the 3D scene. */
 export interface WalkView {
@@ -207,7 +207,8 @@ export function useMovement(makeView: () => WalkView | null) {
       if (useHq.getState().selectedPeer) useHq.getState().selectPeer(null);
       // Clicking an arcade cabinet walks you into the Recreation Room, which opens the arcade.
       if (hit.kind === "arcade") { walkTo(ARCADE_SPOT); return; }
-      if (hit.kind === "pingpong") { useHq.setState({ pongMenu: true }); return; }
+      if (hit.kind === "pingpong") { useHq.setState({ pongGame: "pong", pongMenu: true }); return; }
+      if (hit.kind === "pickle") { useHq.setState({ pongGame: "pickle", pongMenu: true }); return; }
       if (hit.kind === "seat") { goSit(hit.id); return; }
       if (hit.kind === "gym") { workout(hit.id); return; }
       // Basketball: take a ball first, then tap a hoop to shoot from where you stand.

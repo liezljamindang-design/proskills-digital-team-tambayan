@@ -1,6 +1,6 @@
 import * as THREE from "three";
 import { classOngoing, HQ } from "../config";
-import { BALL_SPOT, COURT, DANCE_FLOOR, ENTRANCE, FLOOR, FURNITURE, POOL, RUGS, SEAT_IDS, WALL_HEIGHT, WALLS, ZONES } from "../data/office";
+import { BALL_SPOT, COURT, DANCE_FLOOR, ENTRANCE, FLOOR, FURNITURE, PICKLE, RUGS, SEAT_IDS, WALL_HEIGHT, WALLS, ZONES } from "../data/office";
 import type { FurnitureItem } from "../types";
 
 /** The office as a 3D model: floor, rooms, walls and every piece of furniture. Floor (x, y) maps to 3D (x, z). */
@@ -170,7 +170,7 @@ function furniture(parent: THREE.Object3D, f: FurnitureItem) {
   parent.add(g);
 }
 
-const ZONE_TINT: Record<string, string> = { focus: "#dbe8ff", huddle: "#e2ebf8", cafe: "#ffeccf", lounge: "#ecd3b4", deck: "#c6e9c2", nap: "#e4defb", game: "#22203f", lobby: "#ffffff", gym: "#d9dee8", library: "#f0e2c8", dance: "#2b1f4a", cinema: "#3a3552", court: "#d98a4e", pool: "#f3ead2", plaza: "#f6f1e4", canteen: "#ffe3c2", music: "#f7d6e6" };
+const ZONE_TINT: Record<string, string> = { focus: "#dbe8ff", huddle: "#e2ebf8", cafe: "#ffeccf", lounge: "#ecd3b4", deck: "#c6e9c2", nap: "#e4defb", game: "#22203f", lobby: "#ffffff", gym: "#d9dee8", library: "#f0e2c8", dance: "#2b1f4a", cinema: "#3a3552", court: "#d98a4e", pool: "#d9ecd6", plaza: "#f6f1e4", canteen: "#ffe3c2", music: "#f7d6e6" };
 
 function label(text: string, color: string, size = 46): THREE.CanvasTexture {
   const canvas = document.createElement("canvas");
@@ -272,18 +272,23 @@ export function buildOffice(): Office {
   for (let i = 0; i < 9; i++) for (let j = 0; j < 6; j++) if ((i + j) % 2 === 0) { const t = box(root, 11.6 + i * 0.7, 0.08 + j * 0.68, 0.7, 0.68, 0.5, 0.7, "#f6d9ab"); t.castShadow = false; }
   for (const gy of [10.4, 11.4, 12.4, 13.4]) { const l = box(root, 0.1, gy - 0.01, 5.8, 0.02, 0.5, 0.75, "#35e6ff", { emissive: "#35e6ff", emissiveIntensity: 0.8 }); l.castShadow = false; }
   for (const gx of [1, 2, 3, 4, 5]) { const l = box(root, gx - 0.01, 9.9, 0.02, 4.0, 0.5, 0.75, "#35e6ff", { emissive: "#35e6ff", emissiveIntensity: 0.8 }); l.castShadow = false; }
-  // Basketball court paint and the swimming pool.
+  // Basketball court paint and the pickleball court.
   { const c = COURT, line = (x: number, y: number, w: number, h: number) => { box(root, x, y, w, h, 0.5, 0.9, "#ffffff").castShadow = false; };
     box(root, c.x, c.y, c.w, c.h, 0.5, 0.7, "#c8743a").castShadow = false;
     line(c.x, c.y, c.w, 0.05); line(c.x, c.y + c.h - 0.05, c.w, 0.05); line(c.x, c.y, 0.05, c.h); line(c.x + c.w - 0.05, c.y, 0.05, c.h); line(c.x + c.w / 2 - 0.025, c.y, 0.05, c.h);
     const ring = new THREE.Mesh(new THREE.TorusGeometry(0.8, 0.025, 6, 40), material("#ffffff")); ring.rotation.x = Math.PI / 2; ring.position.set(c.x + c.w / 2, 0.025, c.y + c.h / 2); root.add(ring);
     for (const kx of [c.x, c.x + c.w - 1.4]) box(root, kx, c.y + c.h / 2 - 0.9, 1.4, 1.8, 0.7, 0.85, "#e8a36b").castShadow = false;
     for (const [bx, by] of [[0, 0], [0.32, 0.1], [0.12, 0.32]]) { const b = ball(root, BALL_SPOT.x + bx, BALL_SPOT.y + by, 5.6, 0.14, "#ff922b"); b.userData.ball = true; }
-    const p = POOL;
-    box(root, p.x - 0.25, p.y - 0.25, p.w + 0.5, p.h + 0.5, 0.5, 1.4, "#f1f3f5").castShadow = false;
-    box(root, p.x, p.y, p.w, p.h, 1.4, 1.7, "#4dabf7", { roughness: 0.1, metalness: 0.35, emissive: "#1c7ed6", emissiveIntensity: 0.25 }).castShadow = false;
-    for (let i = 1; i < 4; i++) box(root, p.x + (p.w / 4) * i - 0.02, p.y + 0.1, 0.04, p.h - 0.2, 1.7, 1.85, i % 2 ? "#ffffff" : "#e03131").castShadow = false;
-    box(root, p.x + p.w - 0.1, p.y + 1.0, 0.5, 0.05, 0, 22, "#c9d1dc"); box(root, p.x + p.w - 0.1, p.y + 1.5, 0.5, 0.05, 0, 22, "#c9d1dc");
+    // Pickleball court: blue playing area, green kitchen either side of the net. Tap it to play.
+    const p = PICKLE, mid = p.y + p.h / 2;
+    box(root, p.x - 0.3, p.y - 0.3, p.w + 0.6, p.h + 0.6, 0.5, 0.7, "#2b8a3e").castShadow = false;
+    const surface = box(root, p.x, p.y, p.w, p.h, 0.7, 0.9, "#1c7ed6"); surface.castShadow = false; surface.userData.pickle = true;
+    const kitchen = box(root, p.x, mid - 0.7, p.w, 1.4, 0.9, 1.0, "#37b24d"); kitchen.castShadow = false; kitchen.userData.pickle = true;
+    for (const [lx, ly, lw, lh] of [[p.x, p.y, p.w, 0.05], [p.x, p.y + p.h - 0.05, p.w, 0.05], [p.x, p.y, 0.05, p.h], [p.x + p.w - 0.05, p.y, 0.05, p.h], [p.x, mid - 0.72, p.w, 0.04], [p.x, mid + 0.68, p.w, 0.04], [p.x + p.w / 2 - 0.02, p.y, 0.04, p.h / 2 - 0.7], [p.x + p.w / 2 - 0.02, mid + 0.7, 0.04, p.h / 2 - 0.7]]) line(lx, ly, lw, lh);
+    box(root, p.x - 0.12, mid - 0.03, 0.06, 0.06, 0, 20, "dark"); box(root, p.x + p.w + 0.06, mid - 0.03, 0.06, 0.06, 0, 20, "dark");
+    const net = box(root, p.x - 0.1, mid - 0.01, p.w + 0.2, 0.02, 4, 19, "#f8f9fa", { transparent: true, opacity: 0.55 }); net.castShadow = false; net.userData.pickle = true;
+    box(root, p.x - 0.1, mid - 0.015, p.w + 0.2, 0.03, 19, 20.5, "#ffffff").castShadow = false;
+    const pb = ball(root, p.x + 0.9, p.y + 3.5, 4.4, 0.08, "#ffe14a"); pb.userData.pickle = true;
   }
   // Cinema screen on the back wall, and the light-up dance floor with a disco ball.
   box(root, 27.3, 7.06, 5.9, 0.06, 16, 72, "screen").castShadow = false;

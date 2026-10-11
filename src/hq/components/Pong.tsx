@@ -5,7 +5,9 @@ import { displayName } from "../types";
 import type { PongMsg } from "../net/transport";
 import { useHq } from "../store";
 
-const W = 640, H = 380, PX = 0.06, PADDLE = 0.24, R = 0.02, WIN = 5;
+const W = 640, H = 380, PX = 0.06, PADDLE = 0.24, R = 0.02;
+/** Ping-pong is first to 5. Pickleball is to 11, and you must win by 2. */
+const rules = (game?: "pong" | "pickle") => (game === "pickle" ? { win: 11, lead: 2, name: "Pickleball", icon: "🥒", goal: "first to 11, win by 2" } : { win: 5, lead: 1, name: "Ping-pong", icon: "🏓", goal: "first to 5 wins" });
 type Ball = { x: number; y: number; vx: number; vy: number };
 /** The other player sees the table from the opposite end, so positions are flipped left to right on the way out and in. */
 const flip = (b: Ball): Ball => ({ x: 1 - b.x, y: b.y, vx: -b.vx, vy: b.vy });
@@ -15,11 +17,12 @@ export function PongMenu() {
   const open = useHq((s) => s.pongMenu);
   const peers = useHq((s) => s.peers);
   const busy = useHq((s) => Boolean(s.pong));
+  const game = useHq((s) => s.pongGame);
   if (!open || busy) return null;
   const list = Object.values(peers).filter((p) => p.status !== "offline" && p.status !== "dnd");
   return (
-    <div className="pong-prompt pong-menu" role="dialog" aria-label="Play ping-pong">
-      <p>🏓 <strong>Ping-pong</strong> · first to {WIN} wins</p>
+    <div className="pong-prompt pong-menu" role="dialog" aria-label={`Play ${rules(game).name}`}>
+      <p>{rules(game).icon} <strong>{rules(game).name}</strong> · {rules(game).goal}</p>
       <button type="button" className="btn-primary" onClick={playRobot}>🤖 Practise against the robot</button>
       {list.length > 0 ? (
         <ul className="pong-list">
@@ -39,7 +42,7 @@ export function PongPrompt() {
     <div className="pong-prompt" role="alertdialog" aria-label="Ping-pong challenge">
       {pong.stage === "invited" ? (
         <>
-          <p>🏓 <strong>{pong.name}</strong> challenges you to ping-pong!</p>
+          <p>{rules(pong.game).icon} <strong>{pong.name}</strong> challenges you to {rules(pong.game).name.toLowerCase()}!</p>
           <div className="room-actions">
             <button type="button" className="btn-primary" onClick={() => answerPong(true)}>Play</button>
             <button type="button" className="btn-secondary" onClick={() => answerPong(false)}>Not now</button>
@@ -47,7 +50,7 @@ export function PongPrompt() {
         </>
       ) : (
         <>
-          <p>🏓 Waiting for <strong>{pong.name}</strong> to accept…</p>
+          <p>{rules(pong.game).icon} Waiting for <strong>{pong.name}</strong> to accept…</p>
           <div className="room-actions"><button type="button" className="btn-secondary" onClick={leavePong}>Cancel</button></div>
         </>
       )}
@@ -86,9 +89,9 @@ export function Pong() {
       if (coins) earn(coins, why);
     }
     function checkOver() {
-      const bot = opp === BOT;
-      if (g.score[0] >= WIN) finish("You win! 🏆", bot ? 3 : 15, bot ? "beating the robot" : "winning at ping-pong");
-      else if (g.score[1] >= WIN) finish(`${pong!.name} wins. Good game!`, bot ? 0 : 5, "playing ping-pong");
+      const bot = opp === BOT, r = rules(pong!.game), sport = r.name.toLowerCase();
+      if (g.score[0] >= r.win && g.score[0] - g.score[1] >= r.lead) finish("You win! 🏆", bot ? 3 : 15, bot ? "beating the robot" : `winning at ${sport}`);
+      else if (g.score[1] >= r.win && g.score[1] - g.score[0] >= r.lead) finish(`${pong!.name} wins. Good game!`, bot ? 0 : 5, `playing ${sport}`);
       return g.over;
     }
     function serve() {
@@ -174,20 +177,25 @@ export function Pong() {
   const left = !stillHere && !result ? `${pong.name} went offline.` : result;
 
   return (
-    <div className="pong" role="dialog" aria-modal="true" aria-label={`Ping-pong against ${pong.name}`}>
-      <div className="pong-box">
+    <div className="pong" role="dialog" aria-modal="true" aria-label={`${rules(pong.game).name} against ${pong.name}`}>
+      <div className={`pong-box${pong.game === "pickle" ? " is-pickle" : ""}`}>
         <header className="pong-head">
           <p className="pong-score"><span>You <strong>{score[0]}</strong></span><span className="pong-dash">:</span><span><strong>{score[1]}</strong> {pong.name}</span></p>
           <button type="button" className="arcade-btn" onClick={leavePong}>{left ? "Close" : "Leave game"}</button>
         </header>
         <svg ref={svgRef} className="pong-table" viewBox={`0 0 ${W} ${H}`} aria-hidden="true">
           <rect className="pong-felt" x={0} y={0} width={W} height={H} rx={14} />
+          {pong.game === "pickle" && <>
+            <rect className="pickle-kitchen" x={W / 2 - 90} y={0} width={180} height={H} />
+            <line className="pickle-line" x1={W / 2 - 90} y1={0} x2={W / 2 - 90} y2={H} /><line className="pickle-line" x1={W / 2 + 90} y1={0} x2={W / 2 + 90} y2={H} />
+            <line className="pickle-line" x1={0} y1={H / 2} x2={W / 2 - 90} y2={H / 2} /><line className="pickle-line" x1={W / 2 + 90} y1={H / 2} x2={W} y2={H / 2} />
+          </>}
           <line className="pong-net" x1={W / 2} y1={8} x2={W / 2} y2={H - 8} />
           <rect ref={mineRef} className="pong-paddle is-mine" x={PX * W - 10} y={(0.5 - PADDLE / 2) * H} width={10} height={PADDLE * H} rx={5} />
           <rect ref={theirsRef} className="pong-paddle" x={(1 - PX) * W} y={(0.5 - PADDLE / 2) * H} width={10} height={PADDLE * H} rx={5} />
           <circle ref={ballRef} className="pong-ball" cx={W / 2} cy={H / 2} r={R * H} />
         </svg>
-        <p className="pong-status" role="status">{left || status || `First to ${WIN} wins`}</p>
+        <p className="pong-status" role="status">{left || status || rules(pong.game).goal}</p>
         <p className="pong-help">You are on the left. Move your mouse or finger over the table, or use the arrow keys or W and S.</p>
       </div>
     </div>

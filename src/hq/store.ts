@@ -68,7 +68,9 @@ interface State {
   /** Ping-pong: who I am inviting, who invited me, or who I am playing. */
   /** The "who do you want to play?" card for ping-pong is open. */
   pongMenu: boolean;
-  pong: { opp: string; name: string; stage: "inviting" | "invited" | "playing"; host: boolean } | null;
+  /** Which table game the menu (and the next match) is for. */
+  pongGame: "pong" | "pickle";
+  pong: { opp: string; name: string; stage: "inviting" | "invited" | "playing"; host: boolean; game?: "pong" | "pickle" } | null;
   /** Voice chat: whether I am in, muted, who I am connected to and who is talking. */
   voice: { on: boolean; muted: boolean; /** Other people's voices are silenced on this device. */ deaf: boolean; error: string; links: Record<string, "connecting" | "connected" | "failed">; speaking: string[] };
   shopOpen: boolean;
@@ -178,6 +180,7 @@ export const useHq = create<State>((set, get) => ({
   selectPeer: (selectedPeer) => set({ selectedPeer }),
   pong: null,
   pongMenu: false,
+  pongGame: "pong",
   voice: { on: false, muted: false, deaf: false, error: "", links: {}, speaking: [] },
   shopOpen: false,
   setShopOpen: (shopOpen) => set({ shopOpen }),

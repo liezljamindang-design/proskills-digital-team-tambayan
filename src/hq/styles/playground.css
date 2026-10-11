@@ -731,3 +731,13 @@ select option, select optgroup { background-color: var(--surface); color: var(--
 .dj-now { margin: 4px 0 6px; padding: 8px 10px; border-radius: 10px; background: var(--lav-soft); font-size: 13.5px; }
 .lite-btn { order: 3; font-weight: 800; }
 .lite-btn.is-on { background: var(--lav); border-color: var(--lav); color: var(--on-accent); }
+
+/* Pickleball */
+.pickle-out { fill: #2b8a3e; } .pickle-court { fill: #1c7ed6; stroke: #fff; stroke-width: 1; } .floor-svg .pickle-kitchen { fill: #37b24d; stroke: #fff; stroke-width: 0.8; }
+.pong-box.is-pickle { background: #0b2a16; border-color: #ffe14a; }
+.pong-box.is-pickle .pong-felt { fill: #1c7ed6; stroke: #ffffff; }
+.pong-box.is-pickle .pickle-kitchen { fill: #37b24d; }
+.pickle-line { stroke: #ffffff; stroke-width: 3; }
+.pong-box.is-pickle .pong-net { stroke: #ffffff; stroke-dasharray: none; stroke-width: 4; }
+.pong-box.is-pickle .pong-paddle { fill: #ff922b; } .pong-box.is-pickle .pong-paddle.is-mine { fill: #ffe14a; }
+.pong-box.is-pickle .pong-ball { fill: #d8f25a; filter: drop-shadow(0 0 5px #d8f25a); }

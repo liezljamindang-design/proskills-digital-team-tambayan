@@ -49,6 +49,7 @@ export interface Transport {
 }
 
 export type PongMsg =
-  | { k: "invite" | "accept" | "decline" | "quit" | "miss" }
+  | { k: "accept" | "decline" | "quit" | "miss" }
+  | { k: "invite"; g?: "pickle" }
   | { k: "paddle"; y: number }
   | { k: "hit" | "serve"; x: number; y: number; vx: number; vy: number };

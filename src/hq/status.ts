@@ -23,7 +23,7 @@ const BY_ZONE: Record<ZoneId, Status> = {
   dance: { id: "dancing", label: "Dancing", emoji: "💃", tone: "fun" },
   cinema: { id: "movie", label: "Watching a movie", emoji: "🍿", tone: "rest" },
   court: { id: "ball", label: "Playing basketball", emoji: "🏀", tone: "fun" },
-  pool: { id: "swimming", label: "Swimming", emoji: "🏊", tone: "fun" },
+  pool: { id: "pickleball", label: "At the pickleball court", emoji: "🥒", tone: "fun" },
   plaza: { id: "available", label: "Available", emoji: "🟢", tone: "ok" },
   canteen: { id: "eating", label: "Eating", emoji: "🍜", tone: "rest" },
   music: { id: "jamming", label: "Jamming", emoji: "🎵", tone: "fun" },

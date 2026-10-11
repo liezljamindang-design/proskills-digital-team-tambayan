@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef } from "react";
 import * as THREE from "three";
 import { isBirthday } from "../birthday";
-import { FLOOR, FURNITURE, HOOPS, POOL, SEATS, START } from "../data/office";
+import { FLOOR, FURNITURE, HOOPS, SEATS, START } from "../data/office";
 import { useMovement, type Hit, type WalkView } from "../hooks/useMovement";
 import { zoneAt } from "../office/engine";
 import { myPosition } from "../net/session";
@@ -157,6 +157,7 @@ export function Floor3D() {
             if (d.seat) return { kind: "seat", id: d.seat };
             if (d.arcade) return { kind: "arcade" };
             if (d.pingpong) return { kind: "pingpong" };
+            if (d.pickle) return { kind: "pickle" };
             if (d.ball) return { kind: "ball" };
             if (d.hoop) return { kind: "hoop" };
             if (d.gym) return { kind: "gym", id: d.gym };
@@ -308,13 +309,7 @@ export function Floor3D() {
           }
         }
         if (pose === "sleep") facing = 0;
-        // In the pool you sink to your shoulders, bob, and leave a ripple on the surface.
-        const swimming = !pose && a.x > POOL.x && a.x < POOL.x + POOL.w && a.y > POOL.y && a.y < POOL.y + POOL.h;
-        const ripple = prop(a, "ripple", swimming);
-        if (swimming) {
-          oy = -0.46 + Math.sin(t * 2.4 + a.x) * 0.035;
-          if (ripple) { const k = (t * 0.9 + a.x) % 1; ripple.position.y = 0.055 - oy; ripple.scale.setScalar(0.8 + k * 0.9); (ripple as THREE.Mesh<THREE.TorusGeometry, THREE.MeshBasicMaterial>).material.opacity = 0.85 * (1 - k); }
-        }
+        const swimming = false;
         const gym = a.act?.gym, band = a.act?.band;
         if (band === "drums") { facing = 0; oy = 0.1; }
         if (band === "mic" || band === "guitar" || band === "bass") facing = 0;

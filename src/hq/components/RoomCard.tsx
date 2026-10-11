@@ -23,7 +23,7 @@ export function RoomCard() {
   const hoopScore = useHq((s) => s.hoopScore);
   const [menuOpen, setMenuOpen] = useState(false);
   const bandMuted = useHq((s) => s.bandMuted);
-  if (!me || !zone || !["cafe", "lounge", "nap", "huddle", "focus", "court", "gym", "canteen", "music"].includes(zone)) return null;
+  if (!me || !zone || !["cafe", "lounge", "nap", "huddle", "focus", "court", "gym", "canteen", "music", "pool"].includes(zone)) return null;
   const act = me.act ?? {};
   const name = ZONES.find((z) => z.id === zone)!.name;
 
@@ -68,6 +68,13 @@ export function RoomCard() {
                   <button key={id} type="button" className="service-chip" onClick={() => requestPose("sit", id)}>{label}</button>
                 ))}
               </div>}
+        </>
+      )}
+
+      {zone === "pool" && (
+        <>
+          <p>Pickleball: first to 11, win by 2. Play a teammate, or practise against the robot.</p>
+          <button type="button" className="btn-primary" onClick={() => useHq.setState({ pongGame: "pickle", pongMenu: true })}>🥒 Play pickleball</button>
         </>
       )}
 

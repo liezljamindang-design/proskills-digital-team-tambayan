@@ -1,6 +1,6 @@
 import { useCallback, useMemo, useRef, useState, type ReactNode } from "react";
 import { classOngoing, HQ } from "../config";
-import { BALL_SPOT, COURT, DANCE_FLOOR, ENTRANCE, FLOOR, FURNITURE, POOL, RUGS, WALL_HEIGHT, WALLS, ZONES } from "../data/office";
+import { BALL_SPOT, COURT, DANCE_FLOOR, ENTRANCE, FLOOR, FURNITURE, PICKLE, RUGS, WALL_HEIGHT, WALLS, ZONES } from "../data/office";
 import { useMovement, type WalkView } from "../hooks/useMovement";
 import { useHq } from "../store";
 import { Figure } from "./Actors";
@@ -110,6 +110,7 @@ export function FloorMap() {
         if (person?.dataset.peer) return { kind: "peer", id: person.dataset.peer };
         if (target.closest("[data-open='game']")) return { kind: "arcade" };
         if (target.closest("[data-pingpong]")) return { kind: "pingpong" };
+        if (target.closest("[data-pickle]")) return { kind: "pickle" };
         if (target.closest("[data-ball]")) return { kind: "ball" };
         if (target.closest("[data-hoop]")) return { kind: "hoop" };
         const gym = target.closest<SVGGElement>("[data-gym]");
@@ -236,8 +237,12 @@ export function FloorMap() {
             <polygon className="court" points={rectPoints(COURT.x, COURT.y, COURT.w, COURT.h, 0, 0)} />
             <polyline className="court-line" points={`${pt(COURT.x + COURT.w / 2, COURT.y)} ${pt(COURT.x + COURT.w / 2, COURT.y + COURT.h)}`} />
             <polygon className="court-line" points={rectPoints(COURT.x + COURT.w / 2 - 0.8, COURT.y + COURT.h / 2 - 0.8, 1.6, 1.6, 0, 0)} />
-            <polygon className="pool-edge" points={rectPoints(POOL.x - 0.2, POOL.y - 0.2, POOL.w + 0.4, POOL.h + 0.4, 0, 0)} />
-            <polygon className="pool-water" points={rectPoints(POOL.x, POOL.y, POOL.w, POOL.h, 0, 0)} />
+            <g className="seat" data-pickle="">
+              <polygon className="pickle-out" points={rectPoints(PICKLE.x - 0.3, PICKLE.y - 0.3, PICKLE.w + 0.6, PICKLE.h + 0.6, 0, 0)} />
+              <polygon className="pickle-court" points={rectPoints(PICKLE.x, PICKLE.y, PICKLE.w, PICKLE.h, 0, 0)} />
+              <polygon className="pickle-kitchen" points={rectPoints(PICKLE.x, PICKLE.y + PICKLE.h / 2 - 0.7, PICKLE.w, 1.4, 0, 0)} />
+              <polyline className="court-line" points={`${pt(PICKLE.x - 0.1, PICKLE.y + PICKLE.h / 2, 14)} ${pt(PICKLE.x + PICKLE.w + 0.1, PICKLE.y + PICKLE.h / 2, 14)}`} />
+            </g>
             <g className="seat" data-ball="">{[[0, 0], [0.32, 0.1], [0.12, 0.32]].map(([bx, by]) => { const [cx, cy] = project(BALL_SPOT.x + bx, BALL_SPOT.y + by, 4); return <circle key={bx} cx={cx} cy={cy} r={4.2} fill="#ff922b" stroke="#b85c00" strokeWidth={0.8} />; })}</g>
             {RUGS.map((r) => (
               <g key={r.id}>

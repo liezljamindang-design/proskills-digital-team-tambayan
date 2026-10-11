@@ -147,6 +147,13 @@ interface State {
 const pendingMoves = new Map<string, { x: number; y: number }>();
 let moveTimer = 0;
 
+// Private conversations the person has closed, with when. Kept on this device.
+const closedAt: Record<string, number> = (() => { try { const v = JSON.parse(read("playground.closed") ?? "{}"); return v && typeof v === "object" ? v : {}; } catch { return {}; } })();
+const saveClosed = () => write("playground.closed", JSON.stringify(closedAt));
+const reopen = (id: string) => { if (closedAt[id]) { delete closedAt[id]; saveClosed(); } };
+/** Messages of closed conversations, held back until the conversation is opened again. */
+const stash = new Map<string, ChatLine[]>();
+
 export const useHq = create<State>((set, get) => ({
   theme: initialTheme(),
   toggleTheme: () => {
@@ -229,18 +236,27 @@ export const useHq = create<State>((set, get) => ({
   threads: { [PUBLIC]: [] },
   unread: {},
   activeThread: PUBLIC,
-  openThread: (id) => set((s) => ({
-    activeThread: id, tab: "chat", sheetOpen: true,
-    threads: s.threads[id] ? s.threads : { ...s.threads, [id]: [] },
-    unread: { ...s.unread, [id]: 0 },
-  })),
+  openThread: (id) => set((s) => {
+    // Opening a conversation you had closed brings its earlier messages back.
+    const kept = stash.get(id) ?? [];
+    stash.delete(id); reopen(id);
+    return {
+      activeThread: id, tab: "chat", sheetOpen: true,
+      threads: s.threads[id] ? s.threads : { ...s.threads, [id]: kept },
+      unread: { ...s.unread, [id]: 0 },
+    };
+  }),
   closeThread: (id) => set((s) => {
     if (id === PUBLIC || id === ARCADE || id.startsWith("batch-")) return s;
     const threads = { ...s.threads }, unread = { ...s.unread };
+    if (threads[id]?.length) stash.set(id, threads[id]);
     delete threads[id]; delete unread[id];
+    // Remembered on this device, so the conversation stays closed after a refresh or a new sign-in.
+    closedAt[id] = Date.now(); saveClosed();
     return { threads, unread, activeThread: s.activeThread === id ? PUBLIC : s.activeThread };
   }),
   addLine: (thread, line) => set((s) => {
+    if (closedAt[thread] && !line.system) { reopen(thread); const kept = stash.get(thread); stash.delete(thread); if (kept && !s.threads[thread]) s = { ...s, threads: { ...s.threads, [thread]: kept } }; }
     const watching = thread === ARCADE || (s.activeThread === thread && s.tab === "chat");
     return {
       threads: { ...s.threads, [thread]: [...(s.threads[thread] ?? []), line].slice(-200) },
@@ -249,6 +265,12 @@ export const useHq = create<State>((set, get) => ({
   }),
 
   mergeHistory: (thread, lines) => set((s) => {
+    // A conversation you closed stays closed unless something was said in it after you closed it.
+    if (closedAt[thread]) {
+      const newest = Math.max(0, ...lines.map((l) => parseInt(l.id.split("-")[0], 36) || 0));
+      if (newest <= closedAt[thread]) { stash.set(thread, lines); return s; }
+      reopen(thread);
+    }
     const live = s.threads[thread] ?? [];
     const have = new Set(live.map((l) => l.id));
     return { threads: { ...s.threads, [thread]: [...lines.filter((l) => !have.has(l.id)), ...live].slice(-300) } };

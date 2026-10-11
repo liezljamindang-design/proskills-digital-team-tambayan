@@ -45,7 +45,7 @@ export function Floor3D() {
     let renderer: THREE.WebGLRenderer;
     try { renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true }); }
     catch { useHq.getState().setView3d(false); return; } // no 3D on this device: fall back to the flat view
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.75));
+    renderer.setPixelRatio(useHq.getState().lite ? 1 : Math.min(window.devicePixelRatio, 1.75));
     renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     renderer.domElement.className = "floor-3d";
     host.appendChild(renderer.domElement);
@@ -56,7 +56,7 @@ export function Floor3D() {
     scene.add(new THREE.HemisphereLight("#ffffff", "#b9c6da", 1.25));
     const sun = new THREE.DirectionalLight("#fff6e5", 2.1);
     sun.position.set(FLOOR.width / 2 - 12, 24, FLOOR.depth / 2 + 11); sun.target.position.set(FLOOR.width / 2, 0, FLOOR.depth / 2);
-    sun.castShadow = true; sun.shadow.mapSize.set(2048, 2048);
+    sun.castShadow = !useHq.getState().lite; sun.shadow.mapSize.set(2048, 2048);
     Object.assign(sun.shadow.camera, { left: -24, right: 24, top: 20, bottom: -20, near: 1, far: 90 });
     sun.shadow.bias = -0.0006; sun.shadow.normalBias = 0.03;
     scene.add(sun, sun.target);
@@ -254,7 +254,7 @@ export function Floor3D() {
       sp.visible = true; sp.position.set(0.2 - bite * 0.14, 0.4 + bite * 0.2, 0.26);
     }
     let raf = 0, last = performance.now(), lastMode: CamMode | null = null;
-    let liteNow: boolean | null = null, frames = 0, fpsFrom = performance.now(), windows = 0, autoTried = false;
+    let liteNow: boolean | null = useHq.getState().lite, frames = 0, fpsFrom = performance.now(), windows = 0, autoTried = false;
     const head = new THREE.Vector3();
     function frame(now: number) {
       raf = requestAnimationFrame(frame);

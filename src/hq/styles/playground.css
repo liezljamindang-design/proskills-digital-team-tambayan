@@ -332,7 +332,7 @@ h1, h2 { font-weight: 800; letter-spacing: -0.01em; }
 .chat-line { position: relative; }
 .chat-text { cursor: pointer; }
 .chat-actions { display: none; flex-wrap: wrap; gap: 2px; padding: 3px; border-radius: 999px; background: var(--surface); border: 1px solid var(--line); box-shadow: 0 6px 16px rgba(16, 20, 28, 0.14); }
-.chat-line:hover .chat-actions, .chat-line:focus-within .chat-actions, .chat-line.is-open .chat-actions { display: flex; }
+.chat-line.is-open .chat-actions { display: flex; }
 .chat-actions button { min-width: 32px; min-height: 32px; padding: 0 6px; border: 0; border-radius: 999px; background: none; cursor: pointer; font-size: 16px; line-height: 1; color: var(--ink); }
 .chat-actions button:hover { background: var(--surface-2); }
 .chat-actions .act-text { font-size: 12.5px; font-weight: 700; color: var(--lav); padding: 0 10px; }
@@ -706,3 +706,16 @@ select option, select optgroup { background-color: var(--surface); color: var(--
 .composer-row.is-stacked .emoji-toggle { min-height: 36px; width: 40px; }
 .arcade-chat .composer-row textarea { background: #1c1640; color: #fff; border-color: rgba(53, 230, 255, 0.5); }
 .arcade-chat .composer-row textarea::placeholder { color: var(--arc-ink-2); }
+
+/* Each message has a small face button that opens reactions, reply and pin. Tapping the message shows who has seen it. */
+.chat-bubble-row { display: flex; align-items: center; gap: 4px; max-width: 100%; }
+.chat-line.is-mine .chat-bubble-row { flex-direction: row-reverse; }
+.chat-bubble-row .chat-text { cursor: pointer; min-width: 0; }
+.chat-more { flex: none; width: 28px; height: 28px; display: grid; place-items: center; padding: 0; border-radius: 999px; border: 1px solid var(--line); background: var(--surface); cursor: pointer; opacity: 0.75; }
+.chat-more:hover, .chat-more[aria-expanded="true"] { opacity: 1; border-color: var(--lav); background: var(--lav-soft); }
+.chat-seen { margin: 1px 0 0; font-size: 12px; color: var(--ink-2); overflow-wrap: anywhere; }
+.chat-line.is-mine .chat-seen { text-align: right; }
+
+.update-banner { flex: none; display: flex; align-items: center; justify-content: center; gap: 12px; padding: 6px 12px; background: #f4c21f; color: #10141c; font-size: 14px; font-weight: 800; }
+.update-banner p { margin: 0; }
+.update-banner button { min-height: 34px; padding: 0 16px; border-radius: 999px; border: 0; background: #10141c; color: #fff; font: inherit; font-weight: 800; cursor: pointer; }

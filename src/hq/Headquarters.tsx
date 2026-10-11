@@ -13,6 +13,7 @@ import { PeerCard } from "./components/PeerCard";
 import { Pong, PongMenu, PongPrompt } from "./components/Pong";
 import { RoomCard } from "./components/RoomCard";
 import { HelpDialog } from "./components/HelpDialog";
+import { UpdateBanner } from "./components/UpdateBanner";
 import { BandSound } from "./components/BandSound";
 import { myPosition } from "./net/session";
 import { Hud } from "./components/Hud";
@@ -41,6 +42,7 @@ export function Headquarters() {
   return (
     <div className={`hq${sheetOpen ? " sheet-open" : ""}${gameOpen ? " in-arcade" : ""}${partyOn ? " party" : ""}`}>
       <Hud />
+      <UpdateBanner />
       <InstallBanner />
       <main className="hq-main">
         <section className="hq-stage" aria-labelledby="hq-title">

@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { HQ } from "../config";
 import { earnForChat } from "../economy";
 import { ZONES } from "../data/office";
-import { myPosition, say, toggleReaction, togglePin } from "../net/session";
+import { markSeen, myPosition, say, toggleReaction, togglePin } from "../net/session";
 import { ChibiPortrait } from "../office/Chibi";
 import { zoneAt } from "../office/engine";
 import { presenceOf, statusOf } from "../status";
@@ -78,11 +78,18 @@ function ChatPane() {
   useEffect(() => { const el = logRef.current; if (el) el.scrollTop = el.scrollHeight; }, [lines.length, active]);
   const [menuFor, setMenuFor] = useState<string | null>(null);
   const [whoFor, setWhoFor] = useState<string | null>(null);
+  // Read receipts: tap a message to see who has seen it.
+  const [seenFor, setSeenFor] = useState<string | null>(null);
+  const seen = useHq((s) => s.seen[active]);
+  const watching = useHq((s) => s.tab === "chat" && (s.sheetOpen || !window.matchMedia("(max-width: 900px)").matches));
+  const lastId = [...lines].reverse().find((l) => !l.system)?.id;
+  useEffect(() => { if (watching && lastId && document.visibilityState === "visible") markSeen(active, lastId); }, [watching, lastId, active]);
+  const seenBy = (l: { id: string; from: string }) => Object.entries(seen ?? {}).filter(([who, upTo]) => who !== l.from && who !== me?.id && upTo >= l.id).map(([who]) => nameOf(who));
   const names = useHq((s) => s.names);
   const nameOf = (id: string) => (id === me?.id ? "You" : peers[id] ? displayName(peers[id]) : away[id] ? displayName(away[id]) : names[id] ?? Object.values(threads).flat().find((l) => l.from === id && l.name)?.name ?? "A teammate who is offline");
   const [replyTo, setReplyTo] = useState<Quote | null>(null);
   const [pinsOpen, setPinsOpen] = useState(false);
-  useEffect(() => { setReplyTo(null); setMenuFor(null); }, [active]);
+  useEffect(() => { setReplyTo(null); setMenuFor(null); setSeenFor(null); }, [active]);
   const pinned = lines.filter((l) => l.pinned);
   function jumpTo(id: string) {
     const el = document.getElementById(`msg-${id}`);
@@ -162,8 +169,12 @@ function ChatPane() {
                   <strong>{l.reply.name}</strong> {l.reply.text}
                 </button>
               )}
-              {l.image && <a className="chat-image" href={l.image.startsWith("data:") ? undefined : l.image} target="_blank" rel="noopener noreferrer"><img src={l.image} alt={l.image.startsWith("data:") ? "Photo" : "GIF"} loading="lazy" /></a>}
-              {l.text && <p className="chat-text" onClick={() => setMenuFor((m) => (m === l.id ? null : l.id))}>{l.text}</p>}
+              {l.image && <a className="chat-image" onClick={() => setSeenFor((m) => (m === l.id ? null : l.id))} href={l.image.startsWith("data:") ? undefined : l.image} target="_blank" rel="noopener noreferrer"><img src={l.image} alt={l.image.startsWith("data:") ? "Photo" : "GIF"} loading="lazy" /></a>}
+              <div className="chat-bubble-row">
+                {l.text && <p className="chat-text" onClick={() => setSeenFor((m) => (m === l.id ? null : l.id))}>{l.text}</p>}
+                <button type="button" className="chat-more" aria-expanded={menuFor === l.id} aria-label="React, reply or pin" title="React, reply or pin" onClick={() => setMenuFor((m) => (m === l.id ? null : l.id))}><Emoji char="🙂" size={16} /></button>
+              </div>
+              {seenFor === l.id && (() => { const who = seenBy(l); return <p className="chat-seen">👁 {who.length ? `Seen by ${who.join(", ")}` : "Not seen by anyone else yet"}</p>; })()}
               {l.reactions && Object.keys(l.reactions).length > 0 && (
                 <div className="chat-reacts">
                   {Object.entries(l.reactions).map(([emoji, who]) => (

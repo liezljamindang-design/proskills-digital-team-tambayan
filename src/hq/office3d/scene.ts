@@ -343,12 +343,17 @@ export function buildOffice(): Office {
   { const mid = (ENTRANCE.from + ENTRANCE.to) / 2, half = 3.1, ay = D - 0.45;
     for (const px of [mid - half, mid + half - 0.22]) { box(root, px, ay, 0.22, 0.22, 0, 74, "#15803d"); box(root, px - 0.06, ay - 0.06, 0.34, 0.34, 0, 4, "gold"); const cap = ball(root, px + 0.11, ay + 0.11, 78, 0.16, "#f4c21f"); cap.castShadow = false; }
     box(root, mid - half, ay + 0.02, half * 2, 0.18, 74, 112, "#15803d"); box(root, mid - half - 0.05, ay, half * 2 + 0.1, 0.22, 112, 115, "gold"); box(root, mid - half - 0.05, ay, half * 2 + 0.1, 0.22, 71, 74, "gold");
+    // Both lines are drawn centred on one banner, so the name sits exactly in the middle of the arch.
+    const cv = document.createElement("canvas"); cv.width = 1024; cv.height = 176;
+    const c = cv.getContext("2d")!; c.textAlign = "center"; c.textBaseline = "middle";
+    c.fillStyle = "#fff6cf"; c.font = "700 36px Nunito, system-ui, sans-serif"; c.fillText("Welcome to", 512, 36, 980);
+    c.fillStyle = "#ffffff"; c.font = "800 84px Nunito, system-ui, sans-serif"; c.fillText(HQ.name.slice(0, 30), 512, 112, 980);
+    const tex = new THREE.CanvasTexture(cv); tex.colorSpace = THREE.SRGBColorSpace; tex.anisotropy = 4;
     for (const side of [1, -1]) {
-      const small = new THREE.Mesh(new THREE.PlaneGeometry(0.24 * 5.33, 0.24), new THREE.MeshBasicMaterial({ map: label("            Welcome to", "#fff6cf", 40), transparent: true }));
-      const big = new THREE.Mesh(new THREE.PlaneGeometry(1.0 * 5.33, 1.0), new THREE.MeshBasicMaterial({ map: label(HQ.name.slice(0, 30), "#ffffff", 34), transparent: true }));
-      small.position.set(mid, 105 / UNIT, ay + 0.11 + side * 0.105); big.position.set(mid + side * 0.25, 89 / UNIT, ay + 0.11 + side * 0.105);
-      if (side < 0) { small.rotation.y = Math.PI; big.rotation.y = Math.PI; }
-      root.add(small, big);
+      const banner = new THREE.Mesh(new THREE.PlaneGeometry(5.8, 5.8 * (176 / 1024)), new THREE.MeshBasicMaterial({ map: tex, transparent: true }));
+      banner.position.set(mid, 93 / UNIT, ay + 0.11 + side * 0.105);
+      if (side < 0) banner.rotation.y = Math.PI;
+      root.add(banner);
     }
   }
   // Outside: a lawn, a path to the door, trees and bushes, so the office sits in a place.

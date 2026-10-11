@@ -52,6 +52,9 @@ interface State {
   joined: boolean;
   /** This account was opened on another device, so this one stepped out. */
   kicked: boolean;
+  /** Read receipts: for each conversation, the newest message each person has seen. */
+  seen: Record<string, Record<string, string>>;
+  setSeen: (thread: string, who: string, upTo: string) => void;
   /** Names learned from messages, so a reaction can be credited after its author has gone offline. */
   names: Record<string, string>;
   /** Instrument sounds in the Music Room are switched off on this device. */
@@ -151,6 +154,8 @@ export const useHq = create<State>((set, get) => ({
   setMe: (me) => { write("playground.profile", JSON.stringify(me)); set({ me }); },
   joined: false,
   kicked: false,
+  seen: {},
+  setSeen: (thread, who, upTo) => set((s) => ((s.seen[thread]?.[who] ?? "") >= upTo ? s : { seen: { ...s.seen, [thread]: { ...s.seen[thread], [who]: upTo } } })),
   names: {},
   bandMuted: false,
   setJoined: (joined) => set({ joined }),

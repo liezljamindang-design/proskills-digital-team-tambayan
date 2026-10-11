@@ -123,6 +123,7 @@ export async function joinOffice(joining: Profile): Promise<void> {
         else { announceTakeover(); window.setTimeout(() => { const mine = s().me; if (mine) transport?.updateProfile(mine, myPos); }, 1500); } // the other one is older: tell it again, then show up again once it has left
         return;
       }
+      if (msg.seen) { if (typeof msg.seen.upTo === "string") s().setSeen(thread, msg.from, msg.seen.upTo.slice(0, 60)); return; }
       if (msg.rtc) { rtcListener?.(msg.from, msg.rtc); return; }
       if (msg.pong) { receivePong(msg.from, msg.name, msg.pong); return; }
       if (msg.hoop) {
@@ -283,6 +284,25 @@ export const POKES: Record<string, { label: string; verb: string; emoji: string 
   hug: { label: "Hug", verb: "hugged", emoji: "🤗" },
   cheer: { label: "Cheer", verb: "cheered for", emoji: "🎉" },
 };
+const seenSent = new Map<string, string>();
+let seenTimer = 0;
+/** Tells the others in a conversation that I have read it up to this message. Sent a moment later, so a burst counts once. */
+export function markSeen(thread: string, upTo: string) {
+  if (thread === ARCADE || seenSent.get(thread) === upTo) return;
+  seenSent.set(thread, upTo);
+  window.clearTimeout(seenTimer);
+  seenTimer = window.setTimeout(() => {
+    const me = useHq.getState().me;
+    if (!me || !transport) return;
+    for (const [t, id] of seenSent) {
+      if (sentOut.get(t) === id) continue;
+      sentOut.set(t, id);
+      transport.chat({ id: nextId(), from: me.id, name: displayName(me), text: "", room: t.startsWith("batch-") ? t : undefined, to: t === PUBLIC || t.startsWith("batch-") ? undefined : t, seen: { upTo: id } });
+    }
+  }, 1200);
+}
+const sentOut = new Map<string, string>();
+
 /** Picks up a basketball. Only on the court. */
 export function pickUpBall() {
   if (useHq.getState().myZone === "court") setAct({ ball: true });

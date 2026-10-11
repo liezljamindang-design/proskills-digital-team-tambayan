@@ -282,3 +282,5 @@ h1, h2 { font-weight: 800; letter-spacing: -0.01em; }
 .pip-off { background: var(--off); }
 .is-offline .chibi-portrait { filter: grayscale(1); opacity: 0.6; }
 .is-offline .presence { color: var(--ink-2) !important; }
+
+.plain-select { min-height: 44px; padding: 0 10px; border-radius: 10px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); font: inherit; font-size: 16px; width: 100%; }

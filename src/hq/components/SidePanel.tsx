@@ -7,6 +7,7 @@ import { zoneAt } from "../office/engine";
 import { statusOf } from "../status";
 import { StatusPicker } from "./StatusPicker";
 import { PUBLIC, useHq, type SideTab } from "../store";
+import { displayName } from "../types";
 import { Composer } from "./Composer";
 
 const TABS: { id: SideTab; label: string }[] = [{ id: "chat", label: "Chat" }, { id: "people", label: "People" }, { id: "rooms", label: "Rooms" }];
@@ -47,21 +48,26 @@ function ChatPane() {
   const peers = useHq((s) => s.peers);
   const threads = useHq((s) => s.threads);
   const unread = useHq((s) => s.unread);
-  const active = useHq((s) => s.activeThread);
+  const rawActive = useHq((s) => s.activeThread);
   const openThread = useHq((s) => s.openThread);
   const logRef = useRef<HTMLDivElement>(null);
+  // Rooms first (everyone, then your batch), then private chats. Other batches' rooms are never listed.
+  const batchId = me?.batch ? `batch-${me.batch}` : null;
+  const ids = [PUBLIC, ...(batchId ? [batchId] : []), ...Object.keys(threads).filter((id) => id !== PUBLIC && !id.startsWith("batch-"))];
+  const active = rawActive.startsWith("batch-") && rawActive !== batchId ? PUBLIC : rawActive;
+  const isBatch = active === batchId;
   const lines = threads[active] ?? [];
   const isPublic = active === PUBLIC;
   const other = peers[active];
-  const otherName = other?.name ?? lines.find((l) => l.from === active)?.name ?? "Someone";
+  const otherName = (other ? displayName(other) : undefined) ?? lines.find((l) => l.from === active)?.name ?? "Someone";
 
   useEffect(() => { const el = logRef.current; if (el) el.scrollTop = el.scrollHeight; }, [lines.length, active]);
 
   return (
     <div className="chatpane">
       <div className="thread-row" role="group" aria-label="Conversations">
-        {Object.keys(threads).map((id) => {
-          const name = id === PUBLIC ? "Everyone" : peers[id]?.name ?? threads[id].find((l) => l.from === id)?.name ?? "Someone";
+        {ids.map((id) => {
+          const name = id === PUBLIC ? "Everyone" : id === batchId ? `Batch ${me?.batch}` : peers[id] ? displayName(peers[id]) : threads[id]?.find((l) => l.from === id)?.name ?? "Someone";
           return (
             <button key={id} type="button" className="thread-chip" aria-pressed={active === id} onClick={() => openThread(id)}>
               {id !== PUBLIC && <span className="lock" aria-hidden="true">●</span>}
@@ -75,13 +81,15 @@ function ChatPane() {
       <p className="chat-note">
         {isPublic
           ? "The public room. Everyone in the office sees this."
+          : isBatch
+          ? `Batch ${me?.batch} room. Only members of Batch ${me?.batch} who are online see this.`
           : other
             ? `Private chat with ${otherName}. Only the two of you see it.${["dnd", "sleeping", "meeting"].includes(statusOf(other, zoneAt(other.x, other.y)).id) ? ` They are ${statusOf(other, zoneAt(other.x, other.y)).label.toLowerCase()}, so they may reply later.` : ""}`
             : `${otherName} has left. They won't see new messages.`}
       </p>
 
-      <div className="chat-log" ref={logRef} role="log" aria-live="polite" aria-label={isPublic ? "Public room" : `Private chat with ${otherName}`}>
-        {lines.length === 0 && <p className="muted">{isPublic ? "No messages yet. Say hi!" : `Say hi to ${otherName}.`}</p>}
+      <div className="chat-log" ref={logRef} role="log" aria-live="polite" aria-label={isPublic ? "Public room" : isBatch ? "Batch room" : `Private chat with ${otherName}`}>
+        {lines.length === 0 && <p className="muted">{isPublic ? "No messages yet. Say hi!" : isBatch ? "No messages yet. Say hi to your batch!" : `Say hi to ${otherName}.`}</p>}
         {lines.map((l) =>
           l.system ? (
             <p key={l.id} className="chat-system">{l.text}</p>
@@ -96,7 +104,7 @@ function ChatPane() {
 
       <Composer
         id="side-composer"
-        placeholder={isPublic ? "Message everyone" : `Message ${otherName}`}
+        placeholder={isPublic ? "Message everyone" : isBatch ? `Message Batch ${me?.batch}` : `Message ${otherName}`}
         onSend={(text) => say(text, isPublic ? undefined : active)}
       />
     </div>
@@ -121,14 +129,14 @@ function PeoplePane() {
       {me && (
         <li>
           <ChibiPortrait look={me.look} size={44} />
-          <div className="person-id"><strong><i className="pip pip-ok" aria-hidden="true" />{me.name} (you) <span className="presence">Online</span></strong><span>{me.role || "Team member"} · {roomName(mine.x, mine.y)}</span><StatusTag status={statusOf(me, myZone)} /></div>
+          <div className="person-id"><strong><i className="pip pip-ok" aria-hidden="true" />{displayName(me)} (you) <span className="presence">Online</span></strong><span>{me.role || "Team member"}{me.batch ? ` · Batch ${me.batch}` : ""} · {roomName(mine.x, mine.y)}</span><StatusTag status={statusOf(me, myZone)} /></div>
           <button type="button" className="btn-secondary" onClick={() => setEditing(true)}>Edit</button>
         </li>
       )}
       {list.map((p) => (
         <li key={p.id}>
           <ChibiPortrait look={p.look} size={44} />
-          <div className="person-id"><strong><i className="pip pip-ok" aria-hidden="true" />{p.name} <span className="presence">Online</span></strong><span>{p.role || "Team member"} · {roomName(p.x, p.y)}</span><StatusTag status={statusOf(p, zoneAt(p.x, p.y))} /></div>
+          <div className="person-id"><strong><i className="pip pip-ok" aria-hidden="true" />{displayName(p)} <span className="presence">Online</span></strong><span>{p.role || "Team member"}{p.batch ? ` · Batch ${p.batch}` : ""} · {roomName(p.x, p.y)}</span><StatusTag status={statusOf(p, zoneAt(p.x, p.y))} /></div>
           <button type="button" className="btn-secondary" onClick={() => openThread(p.id)}>Message</button>
         </li>
       ))}

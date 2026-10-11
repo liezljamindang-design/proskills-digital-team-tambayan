@@ -3,7 +3,7 @@ import { ZONES } from "../data/office";
 import { zoneAt } from "../office/engine";
 import { MANUAL } from "../status";
 import { PUBLIC, useHq } from "../store";
-import type { Profile } from "../types";
+import { displayName, type Profile } from "../types";
 import { createLocalTransport } from "./localTransport";
 import { createSupabaseTransport } from "./supabaseTransport";
 import { supabaseConfigured } from "./supabase";
@@ -36,6 +36,7 @@ function changes(old: Profile, next: Profile): string[] {
   if (a.drink !== b.drink) out.push(b.drink ? `ordered ${DRINK[b.drink]}` : "finished their drink");
   if (Boolean(a.phone) !== Boolean(b.phone)) out.push(b.phone ? "is on their phone 📱" : "put their phone away");
   if (b.mood && a.mood !== b.mood) out.push(MOOD[b.mood]);
+  if (old.batch !== next.batch && next.batch) out.push(`joined Batch ${next.batch}`);
   if (old.status !== next.status) out.push(next.status ? `is now: ${MANUAL[next.status].emoji} ${MANUAL[next.status].label}` : "cleared their status");
   return out;
 }
@@ -56,44 +57,46 @@ export async function joinOffice(me: Profile): Promise<void> {
       const old = s().peers[peer.id];
       const isNew = !old;
       s().upsertPeer(peer);
-      if (old) changes(old, peer).forEach((text) => note(peer.id, peer.name, text));
-      if (isNew) s().addLine(PUBLIC, { id: nextId(), from: peer.id, name: peer.name, text: `${peer.name} is online and walked in.`, time: clock(), system: true });
+      if (old) changes(old, peer).forEach((text) => note(peer.id, displayName(peer), text));
+      if (isNew) s().addLine(PUBLIC, { id: nextId(), from: peer.id, name: peer.name, text: `${displayName(peer)} is online and walked in.`, time: clock(), system: true });
     },
     onPeerLeft: (id) => {
       const peer = s().peers[id];
       if (!peer) return;
       s().removePeer(id);
-      s().addLine(PUBLIC, { id: nextId(), from: id, name: peer.name, text: `${peer.name} went offline.`, time: clock(), system: true });
+      s().addLine(PUBLIC, { id: nextId(), from: id, name: peer.name, text: `${displayName(peer)} went offline.`, time: clock(), system: true });
     },
     onMove: (id, pos) => {
       const peer = s().peers[id];
       s().movePeer(id, pos.x, pos.y);
-      if (peer) noteZone(id, peer.name, zoneAt(peer.x, peer.y), zoneAt(pos.x, pos.y));
+      if (peer) noteZone(id, displayName(peer), zoneAt(peer.x, peer.y), zoneAt(pos.x, pos.y));
     },
     onChat: (msg) => {
-      const thread = msg.to ? msg.from : PUBLIC; // a private message files under its sender
+      const thread = msg.room ?? (msg.to ? msg.from : PUBLIC); // a private message files under its sender
       s().addLine(thread, { id: msg.id, from: msg.from, name: msg.name, text: msg.text, time: clock() });
-      s().showBubble(msg.from, msg.text, Boolean(msg.to));
+      s().showBubble(msg.from, msg.text, Boolean(msg.to || msg.room));
     },
   });
   useHq.getState().setJoined(true);
 }
 
-/** Sends a message to the public room, or privately when `to` is a person's id. */
+/** Sends a message to the public room, to a batch room ("batch-7"), or privately when `to` is a person's id. */
 export function say(text: string, to?: string) {
   const me = useHq.getState().me;
   const clean = text.trim().slice(0, 280);
   if (!me || !clean || !transport) return;
   const id = nextId();
-  transport.chat({ id, from: me.id, name: me.name, text: clean, to });
-  useHq.getState().addLine(to ?? PUBLIC, { id, from: me.id, name: me.name, text: clean, time: clock() });
+  const name = displayName(me);
+  const room = to?.startsWith("batch-") ? to : undefined;
+  transport.chat({ id, from: me.id, name, text: clean, to: room ? undefined : to, room });
+  useHq.getState().addLine(to ?? PUBLIC, { id, from: me.id, name, text: clean, time: clock() });
   useHq.getState().showBubble(me.id, clean, Boolean(to));
 }
 
 /** Called by the movement loop every frame it moves; sends at most about eight updates a second. */
 export function reportMove(pos: Point) {
   const me = useHq.getState().me;
-  if (me && transport) noteZone(me.id, me.name, zoneAt(myPos.x, myPos.y), zoneAt(pos.x, pos.y));
+  if (me && transport) noteZone(me.id, displayName(me), zoneAt(myPos.x, myPos.y), zoneAt(pos.x, pos.y));
   myPos = pos;
   if (!transport) return;
   const now = performance.now();
@@ -104,7 +107,7 @@ export function reportMove(pos: Point) {
 
 export function updateMyProfile(me: Profile) {
   const old = useHq.getState().me;
-  if (old && transport) changes(old, me).forEach((text) => note(me.id, me.name, text));
+  if (old && transport) changes(old, me).forEach((text) => note(me.id, displayName(me), text));
   useHq.getState().setMe(me);
   transport?.updateProfile({ ...me, birthYear: undefined }, myPos);
 }

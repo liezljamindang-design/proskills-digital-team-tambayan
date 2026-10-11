@@ -40,7 +40,7 @@ export function createLocalTransport(): Transport {
           seen.set(m.id, Date.now());
           handlers.onMove(m.id, { x: m.x, y: m.y });
         } else if (m.t === "chat") {
-          if (!m.msg.to || m.msg.to === me.id) handlers.onChat(m.msg);
+          if (m.msg.room ? m.msg.room === `batch-${me.batch}` : !m.msg.to || m.msg.to === me.id) handlers.onChat(m.msg);
         } else if (m.t === "bye") {
           seen.delete(m.id);
           handlers.onPeerLeft(m.id);

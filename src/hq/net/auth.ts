@@ -2,7 +2,7 @@ import type { Look } from "../types";
 import { getSupabase, supabaseConfigured } from "./supabase";
 
 /** What is stored on a person's account, so their name and chibi follow them between devices. */
-export interface SavedProfile { name?: string; role?: string; look?: Look; best?: number; birthday?: string; birthYear?: number | null }
+export interface SavedProfile { name?: string; role?: string; look?: Look; best?: number; birthday?: string; birthYear?: number | null; firstName?: string; batch?: number | null }
 export interface Account { id: string; email: string; saved: SavedProfile }
 
 /**

@@ -64,7 +64,14 @@ export interface Profile {
   birthday?: string;
   /** Kept on your own account and device only. It is never sent to other people. */
   birthYear?: number;
+  /** Shown in brackets beside the username. */
+  firstName?: string;
+  /** Batch 1 to 13, if they picked one. It adds them to that batch's own chat room. */
+  batch?: number;
 }
+export const BATCHES = 13;
+/** "username (First name)" when a first name was given. */
+export const displayName = (p: Pick<Profile, "name" | "firstName">) => (p.firstName ? `${p.name} (${p.firstName})` : p.name);
 export type ManualStatus = "dnd" | "brb" | "meeting" | "working" | "client" | "interview" | "call";
 export type Mood = "happy" | "laugh" | "love" | "wow" | "cool" | "shy" | "think" | "sleepy" | "cry" | "angry" | "dance" | "blink";
 export type Drink = "coffee" | "iced" | "tea";

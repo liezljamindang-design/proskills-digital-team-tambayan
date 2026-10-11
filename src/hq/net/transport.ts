@@ -2,8 +2,8 @@ import type { Peer, Profile } from "../types";
 
 export interface Point { x: number; y: number }
 
-/** A chat message on the wire. `to` is set for a private message. */
-export interface WireChat { id: string; from: string; name: string; text: string; to?: string }
+/** A chat message on the wire. `to` is set for a private message, `room` for a batch room such as "batch-7". */
+export interface WireChat { id: string; from: string; name: string; text: string; to?: string; room?: string }
 
 export interface Handlers {
   /** Someone joined, or changed their name or look. */

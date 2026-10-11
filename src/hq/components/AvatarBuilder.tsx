@@ -1,12 +1,12 @@
 import { useState, type FormEvent } from "react";
 import { birthdayKey, MONTHS } from "../birthday";
 import { ACCESSORIES, FITS, ChibiFull, DEFAULT_LOOK, HAIRS, OUTFITS, randomLook, SKINS, STYLES } from "../office/Chibi";
-import type { Look, Profile } from "../types";
+import { BATCHES, type Look, type Profile } from "../types";
 
 interface Props {
   initial: Profile | null;
   submitLabel: string;
-  onSubmit: (name: string, role: string, look: Look, birthday?: string, birthYear?: number) => void;
+  onSubmit: (name: string, role: string, look: Look, birthday?: string, birthYear?: number, firstName?: string, batch?: number) => void;
   onCancel?: () => void;
 }
 
@@ -17,15 +17,17 @@ export function AvatarBuilder({ initial, submitLabel, onSubmit, onCancel }: Prop
   const [look, setLook] = useState<Look>(initial?.look ?? DEFAULT_LOOK);
   const [month, setMonth] = useState(initial?.birthday ? Number(initial.birthday.slice(0, 2)) : 0);
   const [day, setDay] = useState(initial?.birthday ? Number(initial.birthday.slice(3)) : 0);
+  const [firstName, setFirstName] = useState(initial?.firstName ?? "");
+  const [batch, setBatch] = useState(initial?.batch ?? 0);
   const [year, setYear] = useState(initial?.birthYear ?? 0);
   const [error, setError] = useState("");
   const set = <K extends keyof Look>(key: K, value: Look[K]) => setLook((l) => ({ ...l, [key]: value }));
 
   function submit(e: FormEvent) {
     e.preventDefault();
-    if (!name.trim()) return setError("Enter the name your teammates will see.");
+    if (!name.trim()) return setError("Enter the username your teammates will see.");
     if ((month > 0) !== (day > 0)) return setError("Pick both a month and a day for your birthday, or leave both empty.");
-    onSubmit(name.trim().slice(0, 24), role.trim().slice(0, 40), look, month && day ? birthdayKey(month, day) : undefined, month && day && year ? year : undefined);
+    onSubmit(name.trim().slice(0, 24), role.trim().slice(0, 40), look, month && day ? birthdayKey(month, day) : undefined, month && day && year ? year : undefined, firstName.trim().slice(0, 20) || undefined, batch || undefined);
   }
 
   const swatches = (label: string, key: "skin" | "hair" | "outfit", colors: string[]) => (
@@ -49,12 +51,25 @@ export function AvatarBuilder({ initial, submitLabel, onSubmit, onCancel }: Prop
       <div className="builder-fields">
         <div className="field-row">
           <div className="field">
-            <label htmlFor="av-name">Name</label>
+            <label htmlFor="av-name">Username</label>
             <input id="av-name" type="text" maxLength={24} autoComplete="nickname" value={name} onChange={(e) => setName(e.target.value)} required />
           </div>
           <div className="field">
+            <label htmlFor="av-first">First name (optional)</label>
+            <input id="av-first" type="text" maxLength={20} autoComplete="given-name" value={firstName} onChange={(e) => setFirstName(e.target.value)} placeholder="Shown beside your username" />
+          </div>
+        </div>
+        <div className="field-row">
+          <div className="field">
             <label htmlFor="av-role">Role (optional)</label>
             <input id="av-role" type="text" maxLength={40} value={role} onChange={(e) => setRole(e.target.value)} placeholder="e.g. Designer" />
+          </div>
+          <div className="field">
+            <label htmlFor="av-batch">Batch (optional)</label>
+            <select id="av-batch" className="plain-select" value={batch} onChange={(e) => setBatch(Number(e.target.value))}>
+              <option value={0}>No batch: public room only</option>
+              {Array.from({ length: BATCHES }, (_, i) => <option key={i} value={i + 1}>Batch {i + 1}</option>)}
+            </select>
           </div>
         </div>
 

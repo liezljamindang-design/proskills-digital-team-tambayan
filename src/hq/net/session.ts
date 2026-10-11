@@ -58,13 +58,15 @@ function noteZone(id: string, name: string, from: string | null, to: string | nu
   const room = (z: string) => (z === "game" ? "arcade 🎮" : ZONES.find((r) => r.id === z)!.name);
   window.clearTimeout(leaving.get(id));
   leaving.delete(id);
+  // Only the meeting room is announced. Every other room would flood the chat; the People tab shows where everyone is.
   if (to) {
-    if (lastRoom.get(id) !== to) note(id, name, `entered the ${room(to)}`);
+    if (to === "huddle" && lastRoom.get(id) !== to) note(id, name, `joined the ${room(to)}`);
     lastRoom.set(id, to);
   } else if (from) {
     lastRoom.set(id, from);
-    leaving.set(id, window.setTimeout(() => { leaving.delete(id); lastRoom.delete(id); note(id, name, `left the ${room(from)}`); }, 6000));
+    leaving.set(id, window.setTimeout(() => { leaving.delete(id); lastRoom.delete(id); }, 6000));
   }
+  if (from === "huddle" && to !== "huddle") note(id, name, `left the ${room(from)}`);
 }
 
 // One device per account: the newest sign-in stays, the older one steps out.

@@ -741,3 +741,11 @@ select option, select optgroup { background-color: var(--surface); color: var(--
 .pong-box.is-pickle .pong-net { stroke: #ffffff; stroke-dasharray: none; stroke-width: 4; }
 .pong-box.is-pickle .pong-paddle { fill: #ff922b; } .pong-box.is-pickle .pong-paddle.is-mine { fill: #ffe14a; }
 .pong-box.is-pickle .pong-ball { fill: #d8f25a; filter: drop-shadow(0 0 5px #d8f25a); }
+
+/* Garage */
+.dialog:has(.garage) { width: min(34rem, calc(100% - 24px)); }
+.garage { display: grid; gap: 12px; }
+.ride-chip { display: grid; gap: 1px; text-align: left; padding: 8px 12px; min-height: 48px; }
+.ride-chip small { font-size: 11.5px; font-weight: 600; opacity: 0.8; }
+.garage input[type="text"] { min-height: 44px; padding: 0 12px; border-radius: 10px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); font: inherit; font-size: 16px; width: 100%; }
+.ride-btn.is-on { background: var(--lav); color: var(--on-accent); border-color: var(--lav); }

@@ -324,6 +324,13 @@ export const ChibiArt = memo(function ChibiArt({ look, act }: { look: Look; act?
         </g>
       )}
       {act?.food && !asleep && <text className="sip" x={7} y={-7.5} fontSize={7} textAnchor="middle" stroke="none">{act.food}</text>}
+      {act?.ride && !asleep && !act.pose && !act.gym && !act.band && (
+        act.ride.kind === "bmx" || act.ride.kind === "mtb" || act.ride.kind === "road" ? (
+          <g stroke="none"><circle cx={-8} cy={1} r={4.2} fill="none" stroke="#22262e" strokeWidth={1.6} /><circle cx={8} cy={1} r={4.2} fill="none" stroke="#22262e" strokeWidth={1.6} /><path d="M-8 1 L-2 -6 L6 -6 L8 1 M-2 -6 L1 1 L-8 1 M6 -6 L5 -9" fill="none" stroke={act.ride.color} strokeWidth={1.6} strokeLinecap="round" strokeLinejoin="round" /></g>
+        ) : (
+          <g stroke="none"><rect x={-13} y={-6} width={26} height={8} rx={3} fill={act.ride.color} stroke="#22262e" strokeWidth={0.7} /><circle cx={-8} cy={2.5} r={3} fill="#22262e" /><circle cx={8} cy={2.5} r={3} fill="#22262e" />{act.ride.name && <text x={0} y={-0.5} fontSize={4} fontWeight={800} textAnchor="middle" fill="#fff" stroke="none">{act.ride.name.slice(0, 10)}</text>}</g>
+        )
+      )}
       {act?.band && !asleep && <text className="float-up" x={11} y={-30} fontSize={7} stroke="none">🎵</text>}
       {act?.ball && !asleep && <circle cx={7.5} cy={-10} r={3.6} fill="#ff922b" stroke="#b85c00" strokeWidth={0.7} />}
       {act?.gym === "lift" && <g className="float-up" stroke="none"><rect x={-13} y={-43} width={26} height={1.6} rx={0.8} fill="#3a4150" /><rect x={-15} y={-46} width={3} height={7.6} rx={1} fill="#e03131" /><rect x={12} y={-46} width={3} height={7.6} rx={1} fill="#e03131" /></g>}

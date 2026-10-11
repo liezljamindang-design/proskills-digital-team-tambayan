@@ -9,6 +9,8 @@ import { statusOf } from "../status";
 import { useHq, type CamMode } from "../store";
 import type { Act, Look } from "../types";
 import { animateChibi, buildChibi, disposeChibi } from "./chibi3d";
+import { buildRide, disposeRide } from "./ride3d";
+import { isCar } from "../rides";
 import { buildOffice, UNIT } from "./scene";
 
 interface Actor {
@@ -252,7 +254,8 @@ export function Floor3D() {
       if (!sp) { sp = new THREE.Sprite(new THREE.SpriteMaterial({ transparent: true, depthWrite: false })); sp.name = "food"; sp.scale.setScalar(0.26); a.holder.add(sp); }
       if (sp.userData.emoji !== emoji) { sp.material.map = foodTexture(emoji); sp.material.needsUpdate = true; sp.userData.emoji = emoji; }
       const bite = Math.max(0, Math.sin(t * 1.8)) ** 4;
-      sp.visible = true; sp.position.set(0.2 - bite * 0.14, 0.4 + bite * 0.2, 0.26);
+      // Each bite travels from the hand up to the mouth.
+      sp.visible = true; sp.position.set(0.2 - bite * 0.2, 0.4 + bite * 0.36, 0.26 + bite * 0.12); sp.scale.setScalar(0.26 - bite * 0.08);
     }
     let raf = 0, last = performance.now(), lastMode: CamMode | null = null;
     let liteNow: boolean | null = useHq.getState().lite, frames = 0, fpsFrom = performance.now(), windows = 0, autoTried = false;
@@ -311,6 +314,16 @@ export function Floor3D() {
         if (pose === "sleep") facing = 0;
         const swimming = false;
         const gym = a.act?.gym, band = a.act?.band;
+        // Bike or car: built once per choice, the wheels turn while moving, and the rider sits on it.
+        const ride = !pose && !gym && !band ? a.act?.ride : undefined, rideSig = ride ? `${ride.kind}|${ride.color}|${ride.name ?? ""}` : "";
+        let vehicle = a.holder.getObjectByName("ride");
+        if (vehicle && vehicle.userData.sig !== rideSig) { a.holder.remove(vehicle); disposeRide(vehicle); vehicle = undefined; }
+        if (ride && !vehicle) { const built = buildRide(ride); built.group.name = "ride"; built.group.userData = { sig: rideSig, seat: built.seat, wheels: built.wheels }; a.holder.add(built.group); vehicle = built.group; }
+        if (vehicle && ride) {
+          if (a.moving) for (const w of vehicle.userData.wheels as THREE.Object3D[]) w.rotation.x += dt * 9;
+          oy += Number(vehicle.userData.seat) - (isCar(ride.kind) ? 0 : 0);
+          vehicle.position.y = -Number(vehicle.userData.seat);
+        }
         if (band === "drums") { facing = 0; oy = 0.1; }
         if (band === "mic" || band === "guitar" || band === "bass") facing = 0;
         // The instrument in your hands is rebuilt when you swap guitar for bass.
@@ -328,7 +341,7 @@ export function Floor3D() {
         a.holder.position.set(a.x + ox, oy, a.y + oz);
         a.holder.rotation.y = facing;
         a.holder.visible = !(a.self && mode === "first");
-        animateChibi(a.chibi, t, { moving: a.moving || gym === "run" || swimming, lift: gym === "lift" ? liftK : undefined, play: piano || band === "drums", strum: band === "guitar" || band === "bass", sing: band === "mic", dance: partyOn || a.act?.mood === "dance" || (!pose && !gym && !band && zoneAt(a.x, a.y) === "dance"), boing: a.boing, dizzy: a.dizzy });
+        animateChibi(a.chibi, t, { moving: (a.moving && !ride) || gym === "run" || swimming, eat: a.act?.food && !pose ? Math.max(0, Math.sin(t * 1.8)) ** 4 : undefined, lift: gym === "lift" ? liftK : undefined, play: piano || band === "drums", strum: band === "guitar" || band === "bass", sing: band === "mic", dance: partyOn || a.act?.mood === "dance" || (!pose && !gym && !band && zoneAt(a.x, a.y) === "dance"), boing: a.boing, dizzy: a.dizzy });
       }
 
       // Camera

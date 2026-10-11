@@ -119,6 +119,8 @@ export interface Act {
   djAt?: number;
   /** They switched party mode on. The party runs while anyone has this set. */
   party?: boolean;
+  /** The bike or car they are riding. */
+  ride?: { kind: string; color: string; name?: string };
   /** Holding a basketball on the court. */
   ball?: boolean;
   /** Using gym equipment: running on a treadmill or lifting weights. */

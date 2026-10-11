@@ -4,6 +4,7 @@ import { earnForMeeting } from "../economy";
 import { ARCADE_SPOT, BALL_SPOT, BED_FEET, FLOOR, FURNITURE, SEATS, START, type Seat } from "../data/office";
 import { myPosition, openMeeting, pickUpBall, react, reportMove, setAct, shoot } from "../net/session";
 import { canStand, findPath, SPEED, zoneAt, zoneEntry, type Point } from "../office/engine";
+import { rideInfo } from "../rides";
 import { useHq } from "../store";
 
 const KEY_DIRS: Record<string, [number, number]> = {
@@ -67,7 +68,7 @@ export function useMovement(makeView: () => WalkView | null) {
       const spot = nearest(spots);
       restFrom = { ...pos };
       pos.x = spot.x; pos.y = spot.y; path = [];
-      updateSlot(); reportMove({ ...pos }); setAct({ pose, at: pose === "sit" ? { dx: spot.dx ?? 0, dy: spot.dy ?? -8 } : undefined });
+      updateSlot(); reportMove({ ...pos }); setAct({ pose, at: pose === "sit" ? { dx: spot.dx ?? 0, dy: spot.dy ?? -8 } : undefined, ride: undefined });
     }
     function getUp() {
       if (restFrom) { pos.x = restFrom.x; pos.y = restFrom.y; restFrom = null; updateSlot(); reportMove({ ...pos }); }
@@ -76,6 +77,8 @@ export function useMovement(makeView: () => WalkView | null) {
     }
     const leaveOverview = () => { if (useHq.getState().overview) useHq.getState().setOverview(false); };
 
+    /** Riding a bike or a car is quicker than walking. */
+    const boost = () => rideInfo(useHq.getState().me?.act?.ride?.kind)?.speed ?? 1;
     function frame(now: number) {
       const dt = Math.min(0.12, (now - last) / 1000); // slow devices still walk at normal speed
       last = now;
@@ -84,13 +87,13 @@ export function useMovement(makeView: () => WalkView | null) {
       if ((kx || ky) && view!.steer) [kx, ky] = view!.steer(kx, ky);
       if (kx || ky) {
         path = [];
-        const len = Math.hypot(kx, ky), stepX = (kx / len) * SPEED * dt, stepY = (ky / len) * SPEED * dt;
+        const len = Math.hypot(kx, ky), pace = SPEED * boost(), stepX = (kx / len) * pace * dt, stepY = (ky / len) * pace * dt;
         // Full step, then each axis alone, so the avatar slides along walls and furniture.
         if (canStand(pos.x + stepX, pos.y + stepY)) { pos.x += stepX; pos.y += stepY; moving = true; }
         else if (stepX && canStand(pos.x + stepX, pos.y)) { pos.x += stepX; moving = true; }
         else if (stepY && canStand(pos.x, pos.y + stepY)) { pos.y += stepY; moving = true; }
       } else if (path.length) {
-        let budget = SPEED * dt;
+        let budget = SPEED * boost() * dt;
         while (budget > 0 && path.length) {
           const t = path[0], d = Math.hypot(t.x - pos.x, t.y - pos.y);
           if (d <= budget) { pos.x = t.x; pos.y = t.y; budget -= d; path.shift(); }
@@ -172,7 +175,7 @@ export function useMovement(makeView: () => WalkView | null) {
       const act = run ? { gym: "run" as const } : f.kind === "weights" ? { gym: "lift" as const } : { band: f.kind === "drums" ? "drums" as const : f.kind === "mic" ? "mic" as const : f.id === "bass" ? "bass" as const : "guitar" as const };
       approach(run ? { x: spot.x, y: f.y + f.h + 0.25 } : spot, () => {
         restFrom = { ...pos }; pos.x = spot.x; pos.y = spot.y; path = [];
-        updateSlot(); reportMove({ ...pos }); setAct({ gym: undefined, band: undefined, ...act });
+        updateSlot(); reportMove({ ...pos }); setAct({ gym: undefined, band: undefined, ride: undefined, ...act });
       });
     }
     function walkTo(target: Point) { pendingSeat = null; pendingDo = null; leaveOverview(); getUp(); path = findPath(pos, target); kick(); }

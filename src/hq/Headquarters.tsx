@@ -14,6 +14,7 @@ import { Pong, PongMenu, PongPrompt } from "./components/Pong";
 import { RoomCard } from "./components/RoomCard";
 import { HelpDialog } from "./components/HelpDialog";
 import { UpdateBanner } from "./components/UpdateBanner";
+import { Garage } from "./components/Garage";
 import { BandSound } from "./components/BandSound";
 import { myPosition } from "./net/session";
 import { Hud } from "./components/Hud";
@@ -77,6 +78,7 @@ export function Headquarters() {
       <Welcome />
       <HelpDialog />
       <Shop />
+      <Garage />
       <PongPrompt />
       <PongMenu />
       <BandSound myAt={myPosition} />

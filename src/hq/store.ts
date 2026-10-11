@@ -68,6 +68,7 @@ interface State {
   /** Ping-pong: who I am inviting, who invited me, or who I am playing. */
   /** The "who do you want to play?" card for ping-pong is open. */
   pongMenu: boolean;
+  garageOpen: boolean;
   /** Which table game the menu (and the next match) is for. */
   pongGame: "pong" | "pickle";
   pong: { opp: string; name: string; stage: "inviting" | "invited" | "playing"; host: boolean; game?: "pong" | "pickle" } | null;
@@ -180,6 +181,7 @@ export const useHq = create<State>((set, get) => ({
   selectPeer: (selectedPeer) => set({ selectedPeer }),
   pong: null,
   pongMenu: false,
+  garageOpen: false,
   pongGame: "pong",
   voice: { on: false, muted: false, deaf: false, error: "", links: {}, speaking: [] },
   shopOpen: false,

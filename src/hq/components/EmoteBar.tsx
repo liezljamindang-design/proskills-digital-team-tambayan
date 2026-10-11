@@ -13,6 +13,7 @@ const EMOTES: { mood: Mood; emoji: string; label: string }[] = [
 /** Quick reactions. Each one shows on your chibi for a few seconds, for everyone. */
 export function EmoteBar() {
   const mood = useHq((s) => s.me?.act?.mood);
+  const riding = useHq((s) => Boolean(s.me?.act?.ride));
   const partyOn = useHq((s) => Boolean(s.me?.act?.party) || Object.values(s.peers).some((p) => p.act?.party));
   return (
     <div className="emotes" role="group" aria-label="Reactions">
@@ -21,6 +22,9 @@ export function EmoteBar() {
           <Emoji char={e.emoji} size={26} />
         </button>
       ))}
+      <button type="button" className={`emote ride-btn${riding ? " is-on" : ""}`} aria-pressed={riding} onClick={() => useHq.setState({ garageOpen: true })}>
+        <Emoji char="🚲" size={22} /> {riding ? "Riding" : "Ride"}
+      </button>
       <button type="button" className={`emote party-btn${partyOn ? " is-on" : ""}`} aria-pressed={partyOn} onClick={toggleParty}>
         <Emoji char="🎉" size={22} /> {partyOn ? "Stop the party" : "Party mode"}
       </button>

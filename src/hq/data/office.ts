@@ -18,7 +18,7 @@ export const COURT = { x: 0.5, y: 15.2, w: 6.2, h: 6.2 };
 export const ARCADE_SPOT = { x: 1.7, y: 11.2 };
 
 export const ZONES: Zone[] = [
-  { id: "lobby", key: 1, name: "Lobby", summary: "Where everyone lands. Say hi on your way in.", rect: { x: 6.6, y: 5, w: 4.8, h: 9 } },
+  { id: "lobby", key: 1, name: "Central Hall", summary: "The open space in the middle. Say hi on your way through.", rect: { x: 6.6, y: 5, w: 4.8, h: 9 } },
   { id: "focus", key: 2, name: "Classroom", summary: `${HQ.classTitle} · Monday to Friday, ${HQ.classSchedule}. Live training on Zoom: walk in and the class opens.`, rect: { x: 0, y: 0, w: 6.5, h: 4.2 } },
   { id: "huddle", key: 3, name: "Collaboration Room", summary: "The glass meeting room. Join the team's live Zoom call from here.", rect: { x: 7, y: 0, w: 4, h: 4 } },
   { id: "cafe", key: 4, name: "Café", summary: "Walk in and order a coffee. Your chibi sips it.", rect: { x: 11.5, y: 0, w: 6.5, h: 4.2 } },

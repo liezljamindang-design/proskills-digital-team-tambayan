@@ -70,7 +70,7 @@ export function InstallBanner() {
   const dismiss = () => { try { localStorage.setItem(KEY, "1"); } catch { /* private mode */ } setGone(true); };
   return (
     <aside className="install-banner" aria-label="Install the app" style={steps ? { flexWrap: "wrap" } : undefined}>
-      <p>📲 Get the Tambayan app on your phone or computer</p>
+      <p>📲 Get the Pro Skills Digital Lobby app on your phone or computer</p>
       <button type="button" onClick={() => (mode === "prompt" ? install() : setSteps(!steps))}>{mode === "prompt" ? "Install" : "How"}</button>
       <button type="button" className="install-x" aria-label="Hide" onClick={dismiss}>×</button>
       {steps && mode !== "prompt" && <div className="install-steps">{mode === "apple" ? <AppleSteps /> : <MenuSteps />}</div>}

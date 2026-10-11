@@ -12,7 +12,7 @@ self.addEventListener("push", (event) => {
     const windows = await self.clients.matchAll({ type: "window", includeUncontrolled: true });
     // Already looking at the app: the message is on screen, so stay quiet.
     if (windows.some((w) => w.visibilityState === "visible" && w.focused)) return;
-    await self.registration.showNotification(String(data.title || "Pro Skills Digital Tambayan").slice(0, 80), {
+    await self.registration.showNotification(String(data.title || "Pro Skills Digital Lobby").slice(0, 80), {
       body: String(data.body || "New message").slice(0, 160), tag: String(data.tag || "tambayan"), renotify: true,
       icon: "/icon-192.png", badge: "/icon-192.png",
     });

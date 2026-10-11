@@ -38,7 +38,7 @@ export function Shop() {
     <Dialog open={open} onClose={() => setOpen(false)} labelledBy="shop-title">
       <div className="shop">
         <header className="panel-head">
-          <div><p className="eyebrow">Tambayan shop</p><h2 id="shop-title">Skins, hats and pets</h2></div>
+          <div><p className="eyebrow">Lobby shop</p><h2 id="shop-title">Skins, hats and pets</h2></div>
           <button type="button" className="icon-btn" onClick={() => setOpen(false)} aria-label="Close the shop">✕</button>
         </header>
         <p className="shop-balance"><span className="shop-coins"><Coin size={22} /> <strong>{coins}</strong> coins</span><span>🔥 <strong>{me.streak ?? 0}</strong> day streak</span></p>

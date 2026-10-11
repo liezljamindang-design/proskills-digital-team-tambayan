@@ -17,7 +17,7 @@ const MEETING = link(import.meta.env.VITE_MEETING_URL as string | undefined);
 const CLASSROOM = link(import.meta.env.VITE_CLASSROOM_URL as string | undefined);
 
 export const HQ = {
-  name: (import.meta.env.VITE_HQ_NAME as string | undefined) || "Pro Skills Digital Tambayan",
+  name: (import.meta.env.VITE_HQ_NAME as string | undefined) || "Pro Skills Digital Lobby",
   /** The team's standing video-meeting link, opened from the Collaboration Room. */
   meetingUrl: MEETING,
   /** The live-training video link, opened from the Classroom. Falls back to the team link only when none is set. */

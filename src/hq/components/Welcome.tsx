@@ -93,7 +93,7 @@ export function Welcome() {
     <Dialog open onClose={() => undefined} labelledBy="kicked-title">
       <div className="welcome">
         <h2 id="kicked-title">You're signed in on another device</h2>
-        <p>Your account can be in the Tambayan on one device at a time, phone or computer. It was just opened somewhere else, so this one stepped out.</p>
+        <p>Your account can be in the Pro Skills Digital Lobby on one device at a time, phone or computer. It was just opened somewhere else, so this one stepped out.</p>
         <div className="dialog-actions"><button type="button" className="btn-primary" onClick={() => window.location.reload()}>Use it here instead</button></div>
       </div>
     </Dialog>

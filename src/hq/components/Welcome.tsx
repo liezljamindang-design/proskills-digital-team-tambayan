@@ -126,7 +126,7 @@ function SignIn({ onSignedIn, onGuest }: { onSignedIn: (account: Account) => voi
       </div>
       <p>{mode === "up" ? "Create an account once and your name and chibi are remembered on any device." : "Welcome back! Sign in to pick up your chibi."}</p>
       <div className="field"><label htmlFor="si-email">Email</label><input id="si-email" type="email" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} /></div>
-      <div className="field"><label htmlFor="si-pass">Password</label><input id="si-pass" type="password" autoComplete={mode === "up" ? "new-password" : "current-password"} value={password} onChange={(e) => setPassword(e.target.value)} /></div>
+      <div className="field"><label htmlFor="si-pass">Password</label><PasswordInput id="si-pass" autoComplete={mode === "up" ? "new-password" : "current-password"} value={password} onChange={setPassword} /></div>
       {notice && <p className="muted" role="status">{notice}</p>}
       {error && <p className="field-error" role="alert">{error}</p>}
       <button type="submit" className="btn-primary inquiry-submit" disabled={busy}>{busy ? "One moment…" : mode === "up" ? "Create account" : "Sign in"}</button>
@@ -166,13 +166,29 @@ function AccountBox({ email }: { email: string }) {
       </div>
       {open && (
         <form className="inquiry" onSubmit={submit} noValidate>
-          <div className="field"><label htmlFor="pw-new">New password</label><input id="pw-new" type="password" autoComplete="new-password" value={password} onChange={(e) => setPassword(e.target.value)} /></div>
-          <div className="field"><label htmlFor="pw-again">Type it again</label><input id="pw-again" type="password" autoComplete="new-password" value={again} onChange={(e) => setAgain(e.target.value)} /></div>
+          <div className="field"><label htmlFor="pw-new">New password</label><PasswordInput id="pw-new" autoComplete="new-password" value={password} onChange={setPassword} /></div>
+          <div className="field"><label htmlFor="pw-again">Type it again</label><PasswordInput id="pw-again" autoComplete="new-password" value={again} onChange={setAgain} /></div>
           {error && <p className="field-error" role="alert">{error}</p>}
           {done && <p className="muted" role="status">Password changed. Use the new one next time you sign in.</p>}
           <button type="submit" className="btn-primary inquiry-submit" disabled={busy}>{busy ? "Saving…" : "Save new password"}</button>
         </form>
       )}
     </section>
+  );
+}
+
+/** A password field with an eye button to show or hide what was typed. */
+function PasswordInput({ id, autoComplete, value, onChange }: { id: string; autoComplete: string; value: string; onChange: (value: string) => void }) {
+  const [shown, setShown] = useState(false);
+  return (
+    <div className="pw-wrap">
+      <input id={id} type={shown ? "text" : "password"} autoComplete={autoComplete} value={value} onChange={(e) => onChange(e.target.value)} />
+      <button type="button" className="pw-eye" onClick={() => setShown((v) => !v)} aria-label={shown ? "Hide password" : "Show password"} aria-pressed={shown}>
+        <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12Z" /><circle cx="12" cy="12" r="3" />
+          {shown && <path d="M4 4l16 16" />}
+        </svg>
+      </button>
+    </div>
   );
 }

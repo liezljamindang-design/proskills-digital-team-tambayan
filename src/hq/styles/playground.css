@@ -247,6 +247,6 @@ h1, h2 { font-weight: 800; letter-spacing: -0.01em; }
 .sit-prompt:hover { filter: brightness(1.1); }
 .scene .seat, .scene .seat *, .scene .arcade, .scene .arcade * { pointer-events: auto; }
 
-.account-box { display: grid; gap: 10px; padding-top: 14px; border-top: 1px solid var(--line); }
+.account-box { display: grid; gap: 10px; padding: 12px 14px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface-2); }
 .account-actions { display: flex; flex-wrap: wrap; gap: 8px; }
 .account-actions .btn-secondary { min-height: 44px; padding: 0 16px; }

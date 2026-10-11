@@ -64,6 +64,9 @@ export function Welcome() {
         {!joined && !liveMode && <p className="muted">Preview mode: you'll only see people who are in other tabs of this same browser. Connecting Supabase makes it live for the whole team.</p>}
         {failed && <p className="field-error" role="alert">{failed}</p>}
 
+        {!checking && !needsSignIn && account && (
+          <AccountBox email={account.email} />
+        )}
         {checking ? (
           <p className="muted">Checking who you are…</p>
         ) : needsSignIn ? (
@@ -75,9 +78,6 @@ export function Welcome() {
             onSubmit={enter}
             onCancel={joined ? () => setEditing(false) : undefined}
           />
-        )}
-        {!checking && !needsSignIn && account && (
-          <AccountBox email={account.email} />
         )}
       </div>
     </Dialog>

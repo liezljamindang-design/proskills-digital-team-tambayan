@@ -34,6 +34,7 @@ function canDo3d(): boolean {
   try { const c = document.createElement("canvas"); return Boolean(c.getContext("webgl2") ?? c.getContext("webgl")); } catch { return false; }
 }
 
+export interface Shot { id: string; from: string; x: number; y: number; hoop: number; made: boolean; at: number }
 export type SideTab = "chat" | "people" | "rooms" | "app";
 /** "all" is the public room; any other thread id is the other person's id. */
 export const PUBLIC = "all";
@@ -63,6 +64,10 @@ interface State {
   setShopOpen: (open: boolean) => void;
   /** A short "+10 coins" style message beside the coin counter. */
   toast: { text: string; n: number } | null;
+  /** Basketball shots in the air right now, and your own tally. */
+  shots: Shot[];
+  addShot: (shot: Shot) => void;
+  hoopScore: { made: number; tried: number };
   helpOpen: boolean;
   setHelpOpen: (open: boolean) => void;
 
@@ -145,6 +150,9 @@ export const useHq = create<State>((set, get) => ({
   shopOpen: false,
   setShopOpen: (shopOpen) => set({ shopOpen }),
   toast: null,
+  shots: [],
+  addShot: (shot) => set((s) => ({ shots: [...s.shots.filter((x) => Date.now() - x.at < 4000), shot], hoopScore: shot.from === s.me?.id ? { made: s.hoopScore.made + (shot.made ? 1 : 0), tried: s.hoopScore.tried + 1 } : s.hoopScore })),
+  hoopScore: { made: 0, tried: 0 },
   helpOpen: false,
   setHelpOpen: (helpOpen) => set({ helpOpen }),
 

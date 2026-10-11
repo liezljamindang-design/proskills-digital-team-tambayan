@@ -6,6 +6,11 @@ export const START = { x: 17, y: 21.3 };
 export const ENTRANCE = { from: 16.1, to: 17.9 };
 /** The swimming pool: flat, so you can walk (swim) through it. */
 export const POOL = { x: 8.0, y: 15.6, w: 3.8, h: 4.6 };
+/** Where the basketballs sit on the court, and where each hoop's ring is. */
+export const BALL_SPOT = { x: 2.7, y: 19.9 };
+export const HOOPS = [{ id: "hoop-1", x: 0.93, y: 18.3 }, { id: "hoop-2", x: 6.27, y: 18.3 }];
+/** The light-up dance floor. */
+export const DANCE_FLOOR = { x: 19.6, y: 8.6, w: 5.4, h: 4.2 };
 /** The basketball court's painted floor. */
 export const COURT = { x: 0.5, y: 15.2, w: 6.2, h: 6.2 };
 /** Where you stand to use the arcade cabinets. */
@@ -22,7 +27,8 @@ export const ZONES: Zone[] = [
   { id: "nap", key: 8, name: "Sleeping Quarters", summary: "Stop here and your chibi lies down on a bed. Move to wake up.", rect: { x: 12, y: 10, w: 6, h: 4 } },
   { id: "gym", key: 9, name: "Gym", summary: "Treadmills, weights and punching bags. Your status shows you are working out.", rect: { x: 18.1, y: 0, w: 7.9, h: 6 } },
   { id: "library", key: 10, name: "Library", summary: "Quiet shelves, reading tables and study desks.", rect: { x: 26.1, y: 0, w: 7.9, h: 6 } },
-  { id: "hall", key: 11, name: "Town Hall", summary: "Fifty seats and a stage, for all-hands and events.", rect: { x: 18.5, y: 7, w: 15.5, h: 7 } },
+  { id: "dance", key: 11, name: "Dance Studio", summary: "Step onto the light-up floor and your chibi starts dancing.", rect: { x: 18.5, y: 7, w: 7.7, h: 7 } },
+  { id: "cinema", key: 17, name: "Cinema", summary: "Grab a seat in front of the big screen. Popcorn at the back.", rect: { x: 26.4, y: 7, w: 7.6, h: 7 } },
   { id: "court", key: 12, name: "Basketball Court", summary: "Shoot some hoops outside.", rect: { x: 0, y: 14.6, w: 7, h: 7.4 } },
   { id: "pool", key: 13, name: "Swimming Pool", summary: "Walk into the water for a swim, or take a lounger.", rect: { x: 7.4, y: 14.6, w: 5, h: 7.4 } },
   { id: "plaza", key: 14, name: "Main Entrance", summary: "The front door. Everyone arrives here.", rect: { x: 12.8, y: 14.6, w: 8.4, h: 7.4 } },
@@ -113,10 +119,15 @@ export const FURNITURE: FurnitureItem[] = [
   ...workstation("lib-desk-1", 26.6, 3.4), ...workstation("lib-desk-2", 28.0, 3.4),
   bean("lib-bean-1", 32.9, 2.4), bean("lib-bean-2", 33.1, 3.6), bean("lib-bean-3", 32.5, 4.7), lamp("lib-lamp", 33.5, 0.6), plant("lib-plant", 26.3, 5.3),
 
-  // Town Hall: five rows of ten seats facing the stage
-  ...[8.2, 9.2, 10.2, 11.6, 12.6].flatMap((y, r) => Array.from({ length: 10 }, (_, c) => chair(`hall-${r}-${c}`, 20 + c, y))),
-  { id: "hall-speaker-1", kind: "speaker", x: 30.6, y: 7.3, w: 0.45, h: 0.45 }, { id: "hall-speaker-2", kind: "speaker", x: 30.6, y: 13.2, w: 0.45, h: 0.45 },
-  { id: "hall-podium", kind: "reception", x: 32.6, y: 9.9, w: 0.5, h: 0.9 }, plant("hall-plant-1", 33.5, 7.2), plant("hall-plant-2", 33.5, 13.5),
+  // Dance Studio
+  { id: "dj-booth", kind: "counter", x: 21.0, y: 7.4, w: 2.4, h: 0.55 },
+  { id: "dance-speaker-1", kind: "speaker", x: 19.0, y: 7.3, w: 0.45, h: 0.45 }, { id: "dance-speaker-2", kind: "speaker", x: 25.0, y: 7.3, w: 0.45, h: 0.45 },
+  bean("dance-bean-1", 19.0, 12.9), bean("dance-bean-2", 24.9, 12.2), lamp("dance-lamp", 18.8, 10.9),
+
+  // Cinema: three rows of seats facing the big screen on the back wall
+  ...[9.6, 10.8, 12.0].flatMap((y, r) => Array.from({ length: 7 }, (_, c) => chair(`cinema-${r}-${c}`, 27.5 + c * 0.85, y))),
+  { id: "cinema-speaker-1", kind: "speaker", x: 26.7, y: 7.3, w: 0.45, h: 0.45 }, { id: "cinema-speaker-2", kind: "speaker", x: 33.3, y: 7.3, w: 0.45, h: 0.45 },
+  { id: "popcorn", kind: "counter", x: 31.6, y: 13.2, w: 2.0, h: 0.5 }, plant("cinema-plant", 26.7, 13.5),
 
   // Basketball Court
   { id: "hoop-1", kind: "hoop", x: 0.5, y: 17.9, w: 0.3, h: 0.8 }, { id: "hoop-2", kind: "hoop", x: 6.4, y: 17.9, w: 0.3, h: 0.8 },
@@ -169,10 +180,11 @@ const RUNS: (Omit<WallSegment, "id" | "height"> & { solid?: boolean })[] = [
   // Gym and Library
   { axis: "y", at: 6, from: 18.1, to: 21, solid: true }, { axis: "y", at: 6, from: 23, to: 26, solid: true }, { axis: "x", at: 26, from: 0, to: 6, solid: true },
   { axis: "y", at: 6, from: 26, to: 29, solid: true }, { axis: "y", at: 6, from: 31, to: 34, solid: true },
-  // Town Hall
-  { axis: "y", at: 7, from: 18.5, to: 24, solid: true }, { axis: "y", at: 7, from: 28, to: 34, solid: true },
+  // Dance Studio and Cinema
+  { axis: "y", at: 7, from: 18.5, to: 26.3, solid: true }, { axis: "y", at: 7, from: 26.3, to: 34, solid: true },
+  { axis: "x", at: 26.3, from: 7, to: 9, solid: true }, { axis: "x", at: 26.3, from: 11, to: 14, solid: true },
   { axis: "x", at: 18.5, from: 7, to: 8.5, solid: true }, { axis: "x", at: 18.5, from: 10.5, to: 14, solid: true },
-  { axis: "y", at: 14, from: 18.5, to: 25, solid: true }, { axis: "y", at: 14, from: 27, to: 34, solid: true },
+  { axis: "y", at: 14, from: 18.5, to: 21.5, solid: true }, { axis: "y", at: 14, from: 23.5, to: 29.5, solid: true }, { axis: "y", at: 14, from: 31.5, to: 34, solid: true },
   // Canteen and Music Room
   { axis: "x", at: 21.6, from: 14.6, to: 17, solid: true }, { axis: "x", at: 21.6, from: 19, to: 22, solid: true },
   { axis: "x", at: 28, from: 14.6, to: 17, solid: true }, { axis: "x", at: 28, from: 19, to: 22, solid: true },
@@ -196,7 +208,6 @@ export const RUGS = [
   { id: "rug-nap", x: 12.5, y: 12.1, w: 4.8, h: 1.0 },
   { id: "rug-huddle", x: 7.7, y: 0.6, w: 2.6, h: 2.5 },
   { id: "rug-entrance", x: 16.1, y: 20.2, w: 1.8, h: 1.7 },
-  { id: "rug-stage", x: 31.4, y: 8.0, w: 2.3, h: 5.0 },
   { id: "rug-yoga-1", x: 22.9, y: 2.6, w: 0.6, h: 1.5 }, { id: "rug-yoga-2", x: 23.8, y: 2.6, w: 0.6, h: 1.5 },
   { id: "rug-music", x: 28.9, y: 15.6, w: 2.4, h: 1.7 },
   { id: "rug-library", x: 32.2, y: 2.0, w: 1.6, h: 3.4 },

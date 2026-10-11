@@ -1,6 +1,6 @@
 import * as THREE from "three";
 import { HQ } from "../config";
-import { COURT, ENTRANCE, FLOOR, FURNITURE, POOL, RUGS, SEAT_IDS, WALL_HEIGHT, WALLS, ZONES } from "../data/office";
+import { BALL_SPOT, COURT, DANCE_FLOOR, ENTRANCE, FLOOR, FURNITURE, POOL, RUGS, SEAT_IDS, WALL_HEIGHT, WALLS, ZONES } from "../data/office";
 import type { FurnitureItem } from "../types";
 
 /** The office as a 3D model: floor, rooms, walls and every piece of furniture. Floor (x, y) maps to 3D (x, z). */
@@ -137,10 +137,12 @@ function furniture(parent: THREE.Object3D, f: FurnitureItem) {
     default: return;
   }
   if (SEAT_IDS.has(f.id)) g.userData.seat = f.id;
+  if (f.kind === "treadmill" || f.kind === "weights") g.userData.gym = f.id;
+  if (f.kind === "hoop") g.userData.hoop = true;
   parent.add(g);
 }
 
-const ZONE_TINT: Record<string, string> = { focus: "#dbe8ff", huddle: "#e2ebf8", cafe: "#ffeccf", lounge: "#ecd3b4", deck: "#c6e9c2", nap: "#e4defb", game: "#22203f", lobby: "#ffffff", gym: "#d9dee8", library: "#f0e2c8", hall: "#e6e0f5", court: "#d98a4e", pool: "#f3ead2", plaza: "#f6f1e4", canteen: "#ffe3c2", music: "#f7d6e6" };
+const ZONE_TINT: Record<string, string> = { focus: "#dbe8ff", huddle: "#e2ebf8", cafe: "#ffeccf", lounge: "#ecd3b4", deck: "#c6e9c2", nap: "#e4defb", game: "#22203f", lobby: "#ffffff", gym: "#d9dee8", library: "#f0e2c8", dance: "#2b1f4a", cinema: "#3a3552", court: "#d98a4e", pool: "#f3ead2", plaza: "#f6f1e4", canteen: "#ffe3c2", music: "#f7d6e6" };
 
 function label(text: string, color: string, size = 46): THREE.CanvasTexture {
   const canvas = document.createElement("canvas");
@@ -167,7 +169,7 @@ export function buildOffice(): Office {
   for (const zone of ZONES) {
     const { x, y, w, h } = zone.rect;
     const plate = box(root, x + 0.06, y + 0.06, w - 0.12, h - 0.12, 0, 0.5, ZONE_TINT[zone.id] ?? "#ffffff"); plate.castShadow = false;
-    const name = new THREE.Mesh(new THREE.PlaneGeometry(2.6, 0.5), new THREE.MeshBasicMaterial({ map: label(`${zone.key}  ${zone.name}`, zone.id === "game" ? "#f4f0ff" : "#4a5568"), transparent: true, depthWrite: false }));
+    const name = new THREE.Mesh(new THREE.PlaneGeometry(2.6, 0.5), new THREE.MeshBasicMaterial({ map: label(`${zone.key}  ${zone.name}`, ["game", "dance", "cinema"].includes(zone.id) ? "#f4f0ff" : "#4a5568"), transparent: true, depthWrite: false }));
     name.rotation.x = -Math.PI / 2; name.position.set(x + 1.55, 0.03, y + h - 0.38);
     root.add(name);
   }
@@ -183,16 +185,21 @@ export function buildOffice(): Office {
     line(c.x, c.y, c.w, 0.05); line(c.x, c.y + c.h - 0.05, c.w, 0.05); line(c.x, c.y, 0.05, c.h); line(c.x + c.w - 0.05, c.y, 0.05, c.h); line(c.x + c.w / 2 - 0.025, c.y, 0.05, c.h);
     const ring = new THREE.Mesh(new THREE.TorusGeometry(0.8, 0.025, 6, 40), material("#ffffff")); ring.rotation.x = Math.PI / 2; ring.position.set(c.x + c.w / 2, 0.025, c.y + c.h / 2); root.add(ring);
     for (const kx of [c.x, c.x + c.w - 1.4]) box(root, kx, c.y + c.h / 2 - 0.9, 1.4, 1.8, 0.7, 0.85, "#e8a36b").castShadow = false;
-    const ballMesh = ball(root, c.x + 2.2, c.y + 4.4, 5, 0.14, "#ff922b"); ballMesh.castShadow = true;
+    for (const [bx, by] of [[0, 0], [0.32, 0.1], [0.12, 0.32]]) { const b = ball(root, BALL_SPOT.x + bx, BALL_SPOT.y + by, 5.6, 0.14, "#ff922b"); b.userData.ball = true; }
     const p = POOL;
     box(root, p.x - 0.25, p.y - 0.25, p.w + 0.5, p.h + 0.5, 0.5, 1.4, "#f1f3f5").castShadow = false;
     box(root, p.x, p.y, p.w, p.h, 1.4, 1.7, "#4dabf7", { roughness: 0.1, metalness: 0.35, emissive: "#1c7ed6", emissiveIntensity: 0.25 }).castShadow = false;
     for (let i = 1; i < 4; i++) box(root, p.x + (p.w / 4) * i - 0.02, p.y + 0.1, 0.04, p.h - 0.2, 1.7, 1.85, i % 2 ? "#ffffff" : "#e03131").castShadow = false;
     box(root, p.x + p.w - 0.1, p.y + 1.0, 0.5, 0.05, 0, 22, "#c9d1dc"); box(root, p.x + p.w - 0.1, p.y + 1.5, 0.5, 0.05, 0, 22, "#c9d1dc");
   }
-  // Raised stage in the Town Hall, with a big screen behind it.
-  box(root, 33.75, 8.2, 0.08, 4.6, 14, 70, "screen").castShadow = false;
-  box(root, 33.73, 8.4, 0.02, 4.2, 18, 66, "#16324f", { emissive: "#2aa845", emissiveIntensity: 0.55 }).castShadow = false;
+  // Cinema screen on the back wall, and the light-up dance floor with a disco ball.
+  box(root, 27.3, 7.06, 5.9, 0.06, 16, 72, "screen").castShadow = false;
+  box(root, 27.45, 7.12, 5.6, 0.02, 20, 68, "#16324f", { emissive: "#6fb4ff", emissiveIntensity: 0.75 }).castShadow = false;
+  { const d = DANCE_FLOOR, tints = ["#ff4fa3", "#35c9ff", "#ffd43b", "#7ee08f"], n = 6, m = 5;
+    for (let i = 0; i < n; i++) for (let j = 0; j < m; j++) { const c = tints[(i * 3 + j * 5) % 4]; box(root, d.x + (d.w / n) * i + 0.03, d.y + (d.h / m) * j + 0.03, d.w / n - 0.06, d.h / m - 0.06, 0.5, 1, c, { emissive: c, emissiveIntensity: 0.55 }).castShadow = false; }
+    const disco = new THREE.Mesh(new THREE.IcosahedronGeometry(0.3, 1), material("#e9edf4", { metalness: 0.9, roughness: 0.15, flatShading: true })); disco.position.set(d.x + d.w / 2, 2.1, d.y + d.h / 2); root.add(disco);
+    box(root, d.x + d.w / 2 - 0.01, d.y + d.h / 2 - 0.01, 0.02, 0.02, 86, 100, "dark").castShadow = false;
+  }
   const plaza = new THREE.Mesh(new THREE.CylinderGeometry(1.75, 1.75, 0.02, 48), material("#fbe9a8")); plaza.position.set(9, 0.025, 7.85); plaza.receiveShadow = true; root.add(plaza);
   for (const r of RUGS) { const rug = box(root, r.x, r.y, r.w, r.h, 0.5, 1.4, "#22a03c"); rug.castShadow = false; const edge = box(root, r.x + 0.1, r.y + 0.1, r.w - 0.2, r.h - 0.2, 1.4, 1.6, "#35b850"); edge.castShadow = false; }
 
@@ -246,7 +253,7 @@ export function buildOffice(): Office {
   ["#ff4fa3", "#ffd43b", "#ffffff", "#ff922b"].forEach((color, i) => { for (let k = 0; k < 5; k++) ball(root, ENTRANCE.from - 1.7 + i * 0.25 + k * 0.05, D + 0.5 + (k % 2) * 0.25 + i * 0.1, -11, 0.07, color); });
 
   // Inside: hanging lights, a pond on the Garden Deck, a TV, a whiteboard, a clock and a neon arcade sign.
-  for (const [lx, ly, color] of [[2.6, 2.1, "#fff1c2"], [9, 2, "#fff1c2"], [14.6, 2.1, "#ffd9a0"], [3, 7, "#ffd9a0"], [9, 9.5, "#fff1c2"], [15, 12, "#d6c9ff"], [22, 3, "#fff1c2"], [30, 3, "#ffd9a0"], [23, 10.5, "#fff1c2"], [28, 10.5, "#fff1c2"], [17, 17.5, "#fff1c2"], [24.6, 18, "#ffd9a0"], [31, 18, "#ffb3d9"]] as const) {
+  for (const [lx, ly, color] of [[2.6, 2.1, "#fff1c2"], [9, 2, "#fff1c2"], [14.6, 2.1, "#ffd9a0"], [3, 7, "#ffd9a0"], [9, 9.5, "#fff1c2"], [15, 12, "#d6c9ff"], [22, 3, "#fff1c2"], [30, 3, "#ffd9a0"], [17, 17.5, "#fff1c2"], [24.6, 18, "#ffd9a0"], [31, 18, "#ffb3d9"]] as const) {
     box(root, lx - 0.01, ly - 0.01, 0.02, 0.02, 62, 86, "dark").castShadow = false;
     const bulb = ball(root, lx, ly, 60, 0.16, color); bulb.castShadow = false;
     bulb.material = material(color, { emissive: color, emissiveIntensity: 1.1 });

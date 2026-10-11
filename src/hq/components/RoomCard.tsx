@@ -1,6 +1,6 @@
 import { HQ } from "../config";
 import { ZONES } from "../data/office";
-import { openMeeting, setAct, updateMyProfile } from "../net/session";
+import { openMeeting, setAct, shoot, updateMyProfile } from "../net/session";
 import { ChibiPortrait } from "../office/Chibi";
 import { zoneAt } from "../office/engine";
 import { MANUAL, statusOf, WORK_STATUSES } from "../status";
@@ -20,7 +20,8 @@ export function RoomCard() {
   const peers = useHq((s) => s.peers);
   const blocked = useHq((s) => s.meetingBlocked);
   const requestPose = useHq((s) => s.requestPose);
-  if (!me || !zone || !["cafe", "lounge", "nap", "huddle", "focus"].includes(zone)) return null;
+  const hoopScore = useHq((s) => s.hoopScore);
+  if (!me || !zone || !["cafe", "lounge", "nap", "huddle", "focus", "court", "gym"].includes(zone)) return null;
   const act = me.act ?? {};
   const name = ZONES.find((z) => z.id === zone)!.name;
 
@@ -47,6 +48,25 @@ export function RoomCard() {
             <button type="button" className="btn-secondary" onClick={() => requestPose(act.pose === "sit" ? "stand" : "sit")}>{act.pose === "sit" ? "Stand up" : "Sit on the sofa"}</button>
             <button type="button" className="btn-secondary" onClick={() => setAct({ phone: !act.phone })}>{act.phone ? "Put phone away" : "Use phone"}</button>
           </div>
+        </>
+      )}
+
+      {zone === "court" && (
+        <>
+          <p>{act.ball ? "Tap a hoop, or press Shoot. The closer you stand, the easier the shot." : "Tap the basketballs on the court, or press the button, to pick one up."}</p>
+          <p className="hoop-score">🏀 <strong>{hoopScore.made}</strong> made of {hoopScore.tried}</p>
+          {act.ball
+            ? <div className="room-actions"><button type="button" className="btn-primary" onClick={shoot}>Shoot</button><button type="button" className="btn-secondary" onClick={() => setAct({ ball: undefined })}>Put the ball down</button></div>
+            : <button type="button" className="btn-primary" onClick={() => requestPose("sit", "ball")}>Pick up a ball</button>}
+        </>
+      )}
+
+      {zone === "gym" && (
+        <>
+          <p>{act.gym === "run" ? "Running! Move to step off." : act.gym === "lift" ? "Lifting! Move to stop." : "Tap a treadmill to run, or the weights to lift."}</p>
+          {act.gym
+            ? <button type="button" className="btn-secondary" onClick={() => requestPose("stand")}>Stop</button>
+            : <div className="room-actions"><button type="button" className="btn-primary" onClick={() => requestPose("sit", "treadmill-" + Math.floor(Math.random() * 4))}>Run on a treadmill</button><button type="button" className="btn-secondary" onClick={() => requestPose("sit", Math.random() < 0.5 ? "weights-1" : "weights-2")}>Lift weights</button></div>}
         </>
       )}
 

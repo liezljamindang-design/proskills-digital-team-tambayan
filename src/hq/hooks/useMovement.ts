@@ -1,8 +1,8 @@
 import { useEffect } from "react";
 import { HQ } from "../config";
 import { earnForMeeting } from "../economy";
-import { ARCADE_SPOT, BED_FEET, FLOOR, SEATS, START, type Seat } from "../data/office";
-import { openMeeting, react, reportMove, setAct, updateMyProfile } from "../net/session";
+import { ARCADE_SPOT, BALL_SPOT, BED_FEET, FLOOR, FURNITURE, SEATS, START, type Seat } from "../data/office";
+import { openMeeting, pickUpBall, react, reportMove, setAct, shoot, updateMyProfile } from "../net/session";
 import { WORK_STATUSES } from "../status";
 import { canStand, findPath, SPEED, zoneAt, zoneEntry, type Point } from "../office/engine";
 import { useHq } from "../store";
@@ -13,7 +13,7 @@ const KEY_DIRS: Record<string, [number, number]> = {
 };
 
 /** What a click landed on. */
-export type Hit = { kind: "self" } | { kind: "peer"; id: string } | { kind: "seat"; id: string } | { kind: "arcade" } | { kind: "floor"; point: Point } | null;
+export type Hit = { kind: "self" } | { kind: "peer"; id: string } | { kind: "seat"; id: string } | { kind: "arcade" } | { kind: "ball" } | { kind: "hoop" } | { kind: "gym"; id: string } | { kind: "floor"; point: Point } | null;
 
 /** How the office is drawn. The walking rules are the same whether it is the flat drawing or the 3D scene. */
 export interface WalkView {
@@ -56,7 +56,7 @@ export function useMovement(makeView: () => WalkView | null) {
     }
     // Resting: sitting on the sofa or asleep on a bed. `restFrom` is where you were standing before.
     let pokes: number[] = [];
-    let restFrom: Point | null = null, wasMoving = false, pendingSeat: string | null = null;
+    let restFrom: Point | null = null, wasMoving = false, pendingSeat: string | null = null, pendingDo: (() => void) | null = null;
     const nearest = <T extends Point>(spots: T[]): T => {
       const taken = Object.values(useHq.getState().peers);
       const free = spots.filter((s) => !taken.some((t) => Math.hypot(t.x - s.x, t.y - s.y) < 0.25));
@@ -71,7 +71,8 @@ export function useMovement(makeView: () => WalkView | null) {
     }
     function getUp() {
       if (restFrom) { pos.x = restFrom.x; pos.y = restFrom.y; restFrom = null; updateSlot(); reportMove({ ...pos }); }
-      if (useHq.getState().me?.act?.pose) setAct({ pose: undefined, at: undefined });
+      const act = useHq.getState().me?.act;
+      if (act?.pose || act?.gym) setAct({ pose: undefined, at: undefined, gym: undefined });
     }
     const leaveOverview = () => { if (useHq.getState().overview) useHq.getState().setOverview(false); };
 
@@ -108,6 +109,7 @@ export function useMovement(makeView: () => WalkView | null) {
           // Work statuses belong to the Work Room, so they are dropped on the way out.
           const me = useHq.getState().me;
           if (zone === "focus" && me?.status && WORK_STATUSES.includes(me.status)) updateMyProfile({ ...me, status: undefined });
+          if (zone === "court" && me?.act?.ball) setAct({ ball: undefined });
           if (z === "huddle") { openMeeting(HQ.meetingUrl); earnForMeeting(); }
           zone = z;
           useHq.getState().setMyZone(z);
@@ -118,6 +120,7 @@ export function useMovement(makeView: () => WalkView | null) {
       if (wasMoving && !moving && !held.size && !path.length && zone === "nap") rest("sleep", BED_FEET);
       // Arriving at a seat you clicked sits you down on it.
       if (wasMoving && !moving && !held.size && !path.length && pendingSeat) { const id = pendingSeat; pendingSeat = null; sitOn(id); }
+      if (wasMoving && !moving && !held.size && !path.length && pendingDo) { const go = pendingDo; pendingDo = null; go(); }
       wasMoving = moving;
 
       const settled = view!.render(pos, moving, dt);
@@ -147,7 +150,28 @@ export function useMovement(makeView: () => WalkView | null) {
       if (path.length) pendingSeat = id; else sitOn(id);
     }
     function kick() { if (running) return; running = true; last = performance.now(); raf = requestAnimationFrame(frame); }
-    function walkTo(target: Point) { pendingSeat = null; leaveOverview(); getUp(); path = findPath(pos, target); kick(); }
+    /** Walks to somewhere you can stand beside `target`, then does `then`. */
+    function approach(target: Point, then: () => void) {
+      let stand: Point | null = null;
+      for (const r of [0, 0.3, 0.5, 0.75, 1, 1.3]) {
+        for (let k = 0; k < 12 && !stand; k++) { const p = { x: target.x + Math.cos((k * Math.PI) / 6) * r, y: target.y + Math.sin((k * Math.PI) / 6) * r }; if (canStand(p.x, p.y)) stand = p; }
+        if (stand) break;
+      }
+      if (!stand) return;
+      walkTo(stand);
+      if (path.length) pendingDo = then; else then();
+    }
+    /** Hop on a treadmill to run, or step up to the weights to lift. */
+    function workout(id: string) {
+      const f = FURNITURE.find((q) => q.id === id);
+      if (!f) return;
+      const run = f.kind === "treadmill", spot = run ? { x: f.x + f.w / 2, y: f.y + 0.8 } : { x: f.x + f.w / 2, y: f.y + f.h + 0.3 };
+      approach(run ? { x: spot.x, y: f.y + f.h + 0.25 } : spot, () => {
+        restFrom = { ...pos }; pos.x = spot.x; pos.y = spot.y; path = [];
+        updateSlot(); reportMove({ ...pos }); setAct({ gym: run ? "run" : "lift" });
+      });
+    }
+    function walkTo(target: Point) { pendingSeat = null; pendingDo = null; leaveOverview(); getUp(); path = findPath(pos, target); kick(); }
 
     const blocked = () => { const s = useHq.getState(); return !s.joined || s.editingAvatar || s.helpOpen || s.gameOpen; };
     function onKeyDown(e: KeyboardEvent) {
@@ -155,7 +179,7 @@ export function useMovement(makeView: () => WalkView | null) {
       const el = e.target as HTMLElement | null;
       if (el && (el.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName))) return;
       e.preventDefault();
-      held.add(e.key); pendingSeat = null; leaveOverview(); getUp(); kick();
+      held.add(e.key); pendingSeat = null; pendingDo = null; leaveOverview(); getUp(); kick();
     }
     const onKeyUp = (e: KeyboardEvent) => { held.delete(e.key); };
     const onBlur = () => held.clear();
@@ -180,6 +204,13 @@ export function useMovement(makeView: () => WalkView | null) {
       // Clicking an arcade cabinet walks you into the Recreation Room, which opens the arcade.
       if (hit.kind === "arcade") { walkTo(ARCADE_SPOT); return; }
       if (hit.kind === "seat") { goSit(hit.id); return; }
+      if (hit.kind === "gym") { workout(hit.id); return; }
+      // Basketball: take a ball first, then tap a hoop to shoot from where you stand.
+      if (hit.kind === "ball" || hit.kind === "hoop") {
+        const st = useHq.getState();
+        if (hit.kind === "hoop" && st.me?.act?.ball && st.myZone === "court") shoot(); else approach(BALL_SPOT, pickUpBall);
+        return;
+      }
       const f = hit.point;
       if (f.x < -0.6 || f.y < -0.6 || f.x > FLOOR.width + 0.6 || f.y > FLOOR.depth + 0.6) return;
       walkTo(f);
@@ -189,7 +220,7 @@ export function useMovement(makeView: () => WalkView | null) {
       if (s.walkRequest && s.walkRequest !== prev.walkRequest) walkTo(zoneEntry(s.walkRequest.zone));
       if (s.overview !== prev.overview || s.zoom !== prev.zoom) { view.refresh?.(); kick(); }
       if (s.poseRequest && s.poseRequest !== prev.poseRequest) {
-        if (s.poseRequest.pose === "sit") goSit(s.poseRequest.seat ?? "lounge-sofa"); else { pendingSeat = null; getUp(); }
+        if (s.poseRequest.pose === "sit") { const want = s.poseRequest.seat ?? "lounge-sofa"; if (/^(treadmill|weights)/.test(want)) workout(want); else if (want === "ball") approach(BALL_SPOT, pickUpBall); else goSit(want); } else { pendingSeat = null; getUp(); }
         kick();
       }
     });

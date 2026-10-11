@@ -1,4 +1,4 @@
-export type ZoneId = "lobby" | "focus" | "huddle" | "cafe" | "lounge" | "game" | "deck" | "nap" | "gym" | "library" | "hall" | "court" | "pool" | "plaza" | "canteen" | "music";
+export type ZoneId = "lobby" | "focus" | "huddle" | "cafe" | "lounge" | "game" | "deck" | "nap" | "gym" | "library" | "dance" | "cinema" | "court" | "pool" | "plaza" | "canteen" | "music";
 
 export interface Zone {
   id: ZoneId;
@@ -105,6 +105,10 @@ export interface Act {
   radio?: string;
   /** They switched party mode on. The party runs while anyone has this set. */
   party?: boolean;
+  /** Holding a basketball on the court. */
+  ball?: boolean;
+  /** Using gym equipment: running on a treadmill or lifting weights. */
+  gym?: "run" | "lift";
   /** They have joined the voice chat. */
   voice?: boolean;
 }

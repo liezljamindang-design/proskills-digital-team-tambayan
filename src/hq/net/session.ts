@@ -1,4 +1,5 @@
-import { START } from "../data/office";
+import { HOOPS, START } from "../data/office";
+import { earn } from "../economy";
 import { ZONES } from "../data/office";
 import { zoneAt } from "../office/engine";
 import { safeImage } from "../media";
@@ -95,6 +96,14 @@ export async function joinOffice(me: Profile): Promise<void> {
       if (msg.room === ARCADE && s().myZone !== "game") return;
       if (msg.rtc) { rtcListener?.(msg.from, msg.rtc); return; }
       if (msg.pong) { receivePong(msg.from, msg.name, msg.pong); return; }
+      if (msg.hoop) {
+        const h = msg.hoop;
+        if (HOOPS[h.hoop] && Number.isFinite(h.x) && Number.isFinite(h.y)) {
+          s().addShot({ id: msg.id, from: msg.from, x: h.x, y: h.y, hoop: h.hoop, made: Boolean(h.made), at: Date.now() });
+          setTimeout(() => s().showBubble(msg.from, h.made ? "🏀 Swish!" : "🏀 Missed!", false), 1000);
+        }
+        return;
+      }
       if (msg.poke && POKES[msg.poke.kind]) {
         const poke = POKES[msg.poke.kind], mine = msg.poke.to === s().me?.id;
         note(msg.from, msg.name, `${poke.verb} ${mine ? "you" : String(msg.poke.toName).slice(0, 40)} ${poke.emoji}`);
@@ -238,6 +247,30 @@ export const POKES: Record<string, { label: string; verb: string; emoji: string 
   hug: { label: "Hug", verb: "hugged", emoji: "🤗" },
   cheer: { label: "Cheer", verb: "cheered for", emoji: "🎉" },
 };
+/** Picks up a basketball. Only on the court. */
+export function pickUpBall() {
+  if (useHq.getState().myZone === "court") setAct({ ball: true });
+}
+let lastShot = 0;
+/** Shoots at the nearest hoop. The closer you stand, the more often it goes in. */
+export function shoot() {
+  const state = useHq.getState(), me = state.me;
+  if (!me || !transport || !me.act?.ball || state.myZone !== "court" || Date.now() - lastShot < 1800) return;
+  lastShot = Date.now();
+  const at = myPos, hoop = Math.hypot(HOOPS[0].x - at.x, HOOPS[0].y - at.y) <= Math.hypot(HOOPS[1].x - at.x, HOOPS[1].y - at.y) ? 0 : 1;
+  const d = Math.hypot(HOOPS[hoop].x - at.x, HOOPS[hoop].y - at.y);
+  const made = Math.random() < Math.min(0.9, Math.max(0.2, 0.95 - d * 0.15));
+  const id = nextId();
+  transport.chat({ id, from: me.id, name: displayName(me), text: "", hoop: { x: at.x, y: at.y, hoop, made } });
+  state.addShot({ id, from: me.id, x: at.x, y: at.y, hoop, made, at: Date.now() });
+  setTimeout(() => {
+    useHq.getState().showBubble(me.id, made ? "🏀 Swish!" : "🏀 Missed!", false);
+    react(made ? "happy" : "cry");
+    const score = useHq.getState().hoopScore;
+    if (made && score.made % 5 === 0) earn(2, "5 baskets");
+  }, 1000);
+}
+
 export function poke(kind: string, to: string) {
   const state = useHq.getState(), me = state.me, target = state.peers[to];
   if (!me || !target || !transport || !POKES[kind]) return;

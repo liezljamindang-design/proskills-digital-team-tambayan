@@ -566,7 +566,10 @@ button:hover > .emoji-3d, button:hover > .emoji-flat { transform: translateY(-3p
 /* New rooms (flat view) */
 .zone-gym .zone-plate { fill: color-mix(in srgb, var(--plate) 70%, #9aa7bd); }
 .zone-library .zone-plate { fill: color-mix(in srgb, var(--plate) 60%, #d9b877); }
-.zone-hall .zone-plate { fill: color-mix(in srgb, var(--plate) 74%, #a99bf0); }
+.zone-dance .zone-plate { fill: color-mix(in srgb, var(--plate) 20%, #2b1f4a); stroke: #ff4fa3; }
+.zone-cinema .zone-plate { fill: color-mix(in srgb, var(--plate) 25%, #3a3552); }
+.zone-dance .zone-name, .zone-cinema .zone-name { fill: #f4f0ff; }
+.dance-tile { opacity: 0.85; }
 .zone-court .zone-plate { fill: color-mix(in srgb, var(--plate) 40%, #d98a4e); }
 .zone-pool .zone-plate { fill: color-mix(in srgb, var(--plate) 60%, #f0dfae); }
 .zone-plaza .zone-plate { fill: color-mix(in srgb, var(--plate) 80%, #f4c21f); }
@@ -574,3 +577,6 @@ button:hover > .emoji-3d, button:hover > .emoji-flat { transform: translateY(-3p
 .zone-music .zone-plate { fill: color-mix(in srgb, var(--plate) 70%, #f09ac4); }
 .court { fill: #c8743a; } .court-line { fill: none; stroke: #fff; stroke-width: 1.2; }
 .pool-edge { fill: #f1f3f5; } .pool-water { fill: #4dabf7; stroke: #1c7ed6; stroke-width: 1; }
+
+.room-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.hoop-score { margin: 0; font-size: 15px; }

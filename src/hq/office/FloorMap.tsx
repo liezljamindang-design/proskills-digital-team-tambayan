@@ -1,6 +1,6 @@
 import { useCallback, useMemo, useRef, useState, type ReactNode } from "react";
 import { HQ } from "../config";
-import { COURT, ENTRANCE, FLOOR, FURNITURE, POOL, RUGS, WALL_HEIGHT, WALLS, ZONES } from "../data/office";
+import { BALL_SPOT, COURT, DANCE_FLOOR, ENTRANCE, FLOOR, FURNITURE, POOL, RUGS, WALL_HEIGHT, WALLS, ZONES } from "../data/office";
 import { useMovement, type WalkView } from "../hooks/useMovement";
 import { useHq } from "../store";
 import { Figure } from "./Actors";
@@ -109,6 +109,10 @@ export function FloorMap() {
         const person = target.closest<SVGGElement>("[data-peer]");
         if (person?.dataset.peer) return { kind: "peer", id: person.dataset.peer };
         if (target.closest("[data-open='game']")) return { kind: "arcade" };
+        if (target.closest("[data-ball]")) return { kind: "ball" };
+        if (target.closest("[data-hoop]")) return { kind: "hoop" };
+        const gym = target.closest<SVGGElement>("[data-gym]");
+        if (gym?.dataset.gym) return { kind: "gym", id: gym.dataset.gym };
         const seat = target.closest<SVGGElement>("[data-seat]");
         if (seat?.dataset.seat) return { kind: "seat", id: seat.dataset.seat };
         const ctm = camera.getScreenCTM();
@@ -220,11 +224,14 @@ export function FloorMap() {
           </g>
 
           <g className="rugs">
+            {Array.from({ length: 30 }, (_, k) => { const i = k % 6, j = Math.floor(k / 6), d = DANCE_FLOOR; return <polygon key={k} className="dance-tile" fill={["#ff4fa3", "#35c9ff", "#ffd43b", "#7ee08f"][(i * 3 + j * 5) % 4]} points={rectPoints(d.x + (d.w / 6) * i, d.y + (d.h / 5) * j, d.w / 6, d.h / 5, 0, 0.03)} />; })}
+            <polygon className="screen" points={panelY(7.08, 27.4, 33.1, 18, 70)} />
             <polygon className="court" points={rectPoints(COURT.x, COURT.y, COURT.w, COURT.h, 0, 0)} />
             <polyline className="court-line" points={`${pt(COURT.x + COURT.w / 2, COURT.y)} ${pt(COURT.x + COURT.w / 2, COURT.y + COURT.h)}`} />
             <polygon className="court-line" points={rectPoints(COURT.x + COURT.w / 2 - 0.8, COURT.y + COURT.h / 2 - 0.8, 1.6, 1.6, 0, 0)} />
             <polygon className="pool-edge" points={rectPoints(POOL.x - 0.2, POOL.y - 0.2, POOL.w + 0.4, POOL.h + 0.4, 0, 0)} />
             <polygon className="pool-water" points={rectPoints(POOL.x, POOL.y, POOL.w, POOL.h, 0, 0)} />
+            <g className="seat" data-ball="">{[[0, 0], [0.32, 0.1], [0.12, 0.32]].map(([bx, by]) => { const [cx, cy] = project(BALL_SPOT.x + bx, BALL_SPOT.y + by, 4); return <circle key={bx} cx={cx} cy={cy} r={4.2} fill="#ff922b" stroke="#b85c00" strokeWidth={0.8} />; })}</g>
             {RUGS.map((r) => (
               <g key={r.id}>
                 <polygon className="rug" points={rectPoints(r.x, r.y, r.w, r.h)} />

@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef } from "react";
 import * as THREE from "three";
 import { isBirthday } from "../birthday";
-import { FLOOR, FURNITURE, SEATS } from "../data/office";
+import { FLOOR, FURNITURE, HOOPS, POOL, SEATS, START } from "../data/office";
 import { useMovement, type Hit, type WalkView } from "../hooks/useMovement";
 import { zoneAt } from "../office/engine";
 import { statusOf } from "../status";
@@ -61,7 +61,7 @@ export function Floor3D() {
     const partyLights = ["#ff4fa3", "#35c9ff", "#ffd43b"].map((color) => { const l = new THREE.PointLight(color, 0, 14, 1.4); l.position.y = 3; scene.add(l); return l; });
 
     const camera = new THREE.PerspectiveCamera(30, 1, 0.3, 300);
-    const cam = { az: Math.PI / 4, azGoal: Math.PI / 4, el: 0.62, heading: Math.PI, pos: new THREE.Vector3(20, 14, 20), look: new THREE.Vector3(9, 0, 13), first: true, tilt: 0, steerAt: 0, steerClock: 0 };
+    const cam = { az: Math.PI / 4, azGoal: Math.PI / 4, el: 0.62, heading: Math.PI, pos: new THREE.Vector3(20, 14, 20), look: new THREE.Vector3(START.x, 0, START.y), first: true, tilt: 0, steerAt: 0, steerClock: 0 };
     spin.current = (by) => { cam.azGoal += by; };
 
     const actors = new Map<string, Actor>();
@@ -80,7 +80,7 @@ export function Floor3D() {
           const holder = new THREE.Group();
           holder.userData = p.self ? { self: true } : { peer: p.id };
           scene.add(holder);
-          a = { holder, chibi: new THREE.Group(), sig: "", x: p.self ? 9 : p.x, y: p.self ? 13.3 : p.y, tx: p.x, ty: p.y, facing: p.self ? Math.PI : Math.PI / 4, moving: false, self: p.self };
+          a = { holder, chibi: new THREE.Group(), sig: "", x: p.self ? START.x : p.x, y: p.self ? START.y : p.y, tx: p.x, ty: p.y, facing: p.self ? Math.PI : Math.PI / 4, moving: false, self: p.self };
           actors.set(p.id, a);
         }
         if (a.sig !== sig) {
@@ -154,6 +154,9 @@ export function Floor3D() {
             if (d.peer) return { kind: "peer", id: d.peer };
             if (d.seat) return { kind: "seat", id: d.seat };
             if (d.arcade) return { kind: "arcade" };
+            if (d.ball) return { kind: "ball" };
+            if (d.hoop) return { kind: "hoop" };
+            if (d.gym) return { kind: "gym", id: d.gym };
           }
           return { kind: "floor", point: { x: hit.point.x, y: hit.point.z } };
         }
@@ -193,6 +196,26 @@ export function Floor3D() {
     const resize = () => { const w = host.clientWidth, h = host.clientHeight; if (!w || !h) return; renderer.setSize(w, h, false); camera.aspect = w / h; camera.updateProjectionMatrix(); };
     const observer = new ResizeObserver(resize); observer.observe(host); resize();
 
+    // Basketballs in the air, the ball in a player's hands, and the barbell for lifting.
+    const ballGeo = new THREE.SphereGeometry(0.13, 16, 12), ballMat = new THREE.MeshStandardMaterial({ color: "#ff922b", roughness: 0.7 });
+    const barMat = new THREE.MeshStandardMaterial({ color: "#3a4150", roughness: 0.5 }), plateMat = new THREE.MeshStandardMaterial({ color: "#e03131", roughness: 0.6 });
+    const flying = new Map<string, { mesh: THREE.Mesh; from: THREE.Vector3; to: THREE.Vector3; t0: number; made: boolean; by: string }>();
+    const RING_Y = 64 / UNIT;
+    function prop(a: Actor, name: "ball" | "barbell" | "ripple", on: boolean) {
+      let m = a.holder.getObjectByName(name);
+      if (on && !m) {
+        if (name === "ball") { m = new THREE.Mesh(ballGeo, ballMat); m.position.set(0, 0.36, 0.3); }
+        else if (name === "ripple") { m = new THREE.Mesh(new THREE.TorusGeometry(0.34, 0.025, 6, 28), new THREE.MeshBasicMaterial({ color: "#ffffff", transparent: true, opacity: 0.8 })); m.rotation.x = Math.PI / 2; }
+        else {
+          m = new THREE.Group();
+          const bar = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 0.9, 8), barMat); bar.rotation.z = Math.PI / 2; m.add(bar);
+          for (const sx of [-0.4, 0.4]) { const plate = new THREE.Mesh(new THREE.CylinderGeometry(0.13, 0.13, 0.06, 16), plateMat); plate.rotation.z = Math.PI / 2; plate.position.x = sx; m.add(plate); }
+        }
+        m.name = name; a.holder.add(m);
+      }
+      if (m) m.visible = on;
+      return m;
+    }
     let raf = 0, last = performance.now(), lastMode: CamMode | null = null;
     const head = new THREE.Vector3();
     function frame(now: number) {
@@ -203,6 +226,28 @@ export function Floor3D() {
       if (mode !== lastMode) { cam.tilt = 0; if (mine && (mode === "third" || mode === "first")) cam.heading = mine.facing; if (mine && mode === "front") cam.heading = mine.facing; lastMode = mode; }
       const partyOn = Boolean(s.me?.act?.party) || Object.values(s.peers).some((p) => p.act?.party);
 
+      // Start any new shot, and move the ones already in the air.
+      for (const shot of s.shots) {
+        if (flying.has(shot.id) || Date.now() - shot.at > 600) continue;
+        const mesh = new THREE.Mesh(ballGeo, ballMat); mesh.castShadow = true; scene.add(mesh);
+        const h = HOOPS[shot.hoop], shooter = actors.get(shot.from);
+        if (shooter) shooter.facing = Math.atan2(h.x - shot.x, h.y - shot.y);
+        flying.set(shot.id, { mesh, from: new THREE.Vector3(shot.x, 0.8, shot.y), to: new THREE.Vector3(h.x, RING_Y, h.y), t0: t, made: shot.made, by: shot.from });
+      }
+      const shooting = new Set<string>();
+      for (const [id, f] of flying) {
+        const k = (t - f.t0) / 0.95;
+        if (k < 1) {
+          shooting.add(f.by);
+          const end = f.made ? f.to : f.to.clone().add(new THREE.Vector3(0, 0.12, 0.26));
+          f.mesh.position.lerpVectors(f.from, end, k); f.mesh.position.y += Math.sin(k * Math.PI) * 1.5;
+        } else if (k < 2) {
+          const j = k - 1;
+          if (f.made) f.mesh.position.set(f.to.x, RING_Y - j * RING_Y + Math.abs(Math.sin(j * 9)) * 0.25 * (1 - j), f.to.z);
+          else f.mesh.position.set(f.to.x + (f.to.x < 3 ? 1 : -1) * j * 1.2, Math.max(0.13, RING_Y + 0.12 - j * j * 2.2) + Math.abs(Math.sin(j * 8)) * 0.2 * (1 - j), f.to.z + 0.26 + j * 0.9);
+        } else { scene.remove(f.mesh); flying.delete(id); }
+      }
+
       for (const a of actors.values()) {
         if (!a.self) {
           const dx = a.tx - a.x, dy = a.ty - a.y, d = Math.hypot(dx, dy);
@@ -211,7 +256,7 @@ export function Floor3D() {
           else if (a.moving) { const k = 1 - Math.exp(-dt * 9); a.x += dx * k; a.y += dy * k; a.facing = turnTo(a.facing, Math.atan2(dx, dy), 0.25); }
         }
         const pose = a.act?.pose;
-        let ox = 0, oy = 0, oz = 0, facing = a.facing;
+        let ox = 0, oy = 0, oz = 0, facing = a.facing, piano = false;
         if (pose === "sit") {
           // Put the chibi on the actual seat: the walking code only knows a spot just in front of it.
           const seat = SEATS.find((q) => Math.hypot(q.x - a.x, q.y - a.y) < 0.3), f = seat && FURNITURE.find((q) => q.id === seat.furniture);
@@ -219,19 +264,34 @@ export function Floor3D() {
             const sofa = f.kind === "sofa";
             const top = (sofa ? 9 : f.kind === "chair" ? 10 : f.kind === "stool" ? 14 : 12) / UNIT;
             ox = (sofa ? seat.x : f.x + f.w / 2) - a.x; oz = (sofa ? f.y + 0.16 + (f.h - 0.16) / 2 - 0.05 : f.y + f.h / 2) - a.y; oy = top - 0.21;
-            facing = f.kind === "chair" ? Math.PI : 0; // desk and meeting chairs face the table
+            facing = f.kind === "chair" || f.id === "piano-stool" ? Math.PI : 0; // desk and meeting chairs face the table; the piano stool faces the keys
+            piano = f.id === "piano-stool";
           }
         }
         if (pose === "sleep") facing = 0;
+        // In the pool you sink to your shoulders, bob, and leave a ripple on the surface.
+        const swimming = !pose && a.x > POOL.x && a.x < POOL.x + POOL.w && a.y > POOL.y && a.y < POOL.y + POOL.h;
+        const ripple = prop(a, "ripple", swimming);
+        if (swimming) {
+          oy = -0.46 + Math.sin(t * 2.4 + a.x) * 0.035;
+          if (ripple) { const k = (t * 0.9 + a.x) % 1; ripple.position.y = 0.055 - oy; ripple.scale.setScalar(0.8 + k * 0.9); (ripple as THREE.Mesh<THREE.TorusGeometry, THREE.MeshBasicMaterial>).material.opacity = 0.85 * (1 - k); }
+        }
+        const gym = a.act?.gym;
+        if (gym === "run") { facing = Math.PI; oy = 4.6 / UNIT; }
+        if (gym === "lift") facing = 0;
+        prop(a, "ball", Boolean(a.act?.ball) && !shooting.has([...actors].find(([, v]) => v === a)?.[0] ?? ""));
+        const bar = prop(a, "barbell", gym === "lift");
+        const liftK = Math.sin(t * 2.6) * 0.5 + 0.5;
+        if (bar && gym === "lift") bar.position.set(0, 0.52 + liftK * 0.42, 0.12);
         a.holder.position.set(a.x + ox, oy, a.y + oz);
         a.holder.rotation.y = facing;
         a.holder.visible = !(a.self && mode === "first");
-        animateChibi(a.chibi, t, { moving: a.moving, dance: partyOn || a.act?.mood === "dance", boing: a.boing, dizzy: a.dizzy });
+        animateChibi(a.chibi, t, { moving: a.moving || gym === "run" || swimming, lift: gym === "lift" ? liftK : undefined, play: piano, dance: partyOn || a.act?.mood === "dance" || (!pose && !gym && zoneAt(a.x, a.y) === "dance"), boing: a.boing, dizzy: a.dizzy });
       }
 
       // Camera
       cam.az = turnTo(cam.az, cam.azGoal, 1 - Math.exp(-dt * 8));
-      const mx = mine?.x ?? 9, mz = mine?.y ?? 13, fwd = new THREE.Vector3(Math.sin(cam.heading), 0, Math.cos(cam.heading));
+      const mx = mine?.x ?? START.x, mz = mine?.y ?? START.y, fwd = new THREE.Vector3(Math.sin(cam.heading), 0, Math.cos(cam.heading));
       const wantPos = new THREE.Vector3(), wantLook = new THREE.Vector3();
       let fov = 30;
       if (mode === "third") { fov = 58; wantPos.set(mx, 2.1, mz).addScaledVector(fwd, -3.3 / Math.sqrt(s.zoom)); wantLook.set(mx, 1.0, mz).addScaledVector(fwd, 1.2); wantPos.y += cam.tilt * 2.5; }

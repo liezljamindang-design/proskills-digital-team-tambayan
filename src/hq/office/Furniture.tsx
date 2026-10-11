@@ -226,5 +226,7 @@ const RENDERERS = {
 export function Furniture({ item }: { item: FurnitureItem }) {
   const Render = RENDERERS[item.kind];
   // Anything you can sit on is clickable: clicking walks you over and sits you down.
+  if (item.kind === "treadmill" || item.kind === "weights") return <g className="seat" data-gym={item.id}><Render {...item} /></g>;
+  if (item.kind === "hoop") return <g className="seat" data-hoop=""><Render {...item} /></g>;
   return SEAT_IDS.has(item.id) ? <g className="seat" data-seat={item.id}><Render {...item} /></g> : <Render {...item} />;
 }

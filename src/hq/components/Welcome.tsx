@@ -98,12 +98,15 @@ function SignIn({ onSignedIn, onGuest }: { onSignedIn: (account: Account) => voi
     try {
       if (mode === "in") return onSignedIn(await signIn(email.trim(), password));
       const account = await signUp(email.trim(), password);
-      if (account) onSignedIn(account);
-      else { setMode("in"); setNotice("Almost there: open the confirmation email we just sent, click the link, then sign in here."); }
+      if (account) return onSignedIn(account);
+      // No session came back. Signing in straight away works unless the project insists on a confirmed email.
+      try { onSignedIn(await signIn(email.trim(), password)); }
+      catch { setMode("in"); setNotice("Almost there: open the confirmation email we just sent, click the link, then sign in here."); }
     } catch (err) {
       const message = err instanceof Error ? err.message : "";
       setError(mode === "in"
-        ? "That email and password didn't match. Check them, or create an account if you are new."
+        ? /not confirmed/i.test(message) ? "This email hasn't been confirmed yet. Click the link in the confirmation email, or ask the admin to confirm you."
+          : "That email and password didn't match. Check them, or create an account if you are new."
         : /already/i.test(message) ? "That email already has an account. Sign in instead."
           : /rate limit|sending|confirmation email/i.test(message) ? "The confirmation email couldn't be sent (the free email limit was reached). Ask the admin to turn off \"Confirm email\" in Supabase, then try again."
           : /signups? (not allowed|disabled)/i.test(message) ? "New sign-ups are turned off in Supabase. Ask the admin to allow them."

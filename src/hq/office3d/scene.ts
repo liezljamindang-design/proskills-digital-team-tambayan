@@ -1,6 +1,6 @@
 import * as THREE from "three";
 import { HQ } from "../config";
-import { ENTRANCE, FLOOR, FURNITURE, RUGS, SEAT_IDS, WALL_HEIGHT, WALLS, ZONES } from "../data/office";
+import { COURT, ENTRANCE, FLOOR, FURNITURE, POOL, RUGS, SEAT_IDS, WALL_HEIGHT, WALLS, ZONES } from "../data/office";
 import type { FurnitureItem } from "../types";
 
 /** The office as a 3D model: floor, rooms, walls and every piece of furniture. Floor (x, y) maps to 3D (x, z). */
@@ -52,6 +52,36 @@ function furniture(parent: THREE.Object3D, f: FurnitureItem) {
     case "tree":
       box(g, x, y, w, h, 0, 9, "pot"); box(g, x + w / 2 - 0.05, y + h / 2 - 0.05, 0.1, 0.1, 9, 34, "trunk");
       ball(g, x + w / 2 - 0.2, y + h / 2, 40, 0.3, COLORS.leaf2); ball(g, x + w / 2 + 0.2, y + h / 2 + 0.05, 42, 0.3, COLORS.leaf2); ball(g, x + w / 2, y + h / 2 - 0.12, 44, 0.3, COLORS.leaf2); ball(g, x + w / 2, y + h / 2, 56, 0.36, COLORS.leaf);
+      break;
+    case "treadmill":
+      box(g, x, y + 0.25, w, h - 0.25, 0, 4, "dark"); box(g, x + 0.06, y + 0.3, w - 0.12, h - 0.35, 4, 4.6, "#555c6b");
+      box(g, x + 0.04, y, 0.06, 0.08, 0, 24, "gold"); box(g, x + w - 0.1, y, 0.06, 0.08, 0, 24, "gold"); box(g, x, y, w, 0.1, 22, 27, "dark");
+      box(g, x + 0.12, y + 0.1, w - 0.24, 0.01, 23, 26.5, "#1c2a44", { emissive: "#33c447", emissiveIntensity: 0.7 });
+      break;
+    case "weights":
+      box(g, x + 0.1, y + 0.1, w - 0.2, h - 0.2, 0, 9, "dark"); box(g, x, y + h / 2 - 0.03, w, 0.06, 12, 14, "#c9d1dc");
+      for (const wx of [x, x + 0.16, x + w - 0.14, x + w - 0.3]) box(g, wx, y + 0.06, 0.12, h - 0.12, 6, 20, wx === x || wx === x + w - 0.14 ? "#e03131" : "dark");
+      break;
+    case "bag": {
+      box(g, x - 0.05, y - 0.05, w + 0.1, h + 0.1, 0, 2, "dark"); box(g, x + w / 2 - 0.03, y + h / 2 - 0.03, 0.06, 0.06, 0, 46, "dark");
+      const bag = new THREE.Mesh(new THREE.CylinderGeometry(0.17, 0.15, 0.75, 16), material("#e03131")); bag.position.set(x + w / 2, 0.58, y + h / 2); bag.castShadow = true; g.add(bag);
+      break;
+    }
+    case "hoop": {
+      const dir = x < 3 ? 1 : -1, cx = x + w / 2;
+      box(g, cx - 0.05, y + h / 2 - 0.05, 0.1, 0.1, 0, 66, "dark"); box(g, cx + dir * 0.08 - 0.02, y - 0.1, 0.04, h + 0.2, 60, 84, "#ffffff");
+      box(g, cx + dir * 0.1 - 0.005, y + h / 2 - 0.15, 0.01, 0.3, 64, 74, "#e03131");
+      const ring = new THREE.Mesh(new THREE.TorusGeometry(0.16, 0.018, 8, 24), material("#ff922b")); ring.rotation.x = Math.PI / 2; ring.position.set(cx + dir * 0.28, 64 / UNIT, y + h / 2); g.add(ring);
+      break;
+    }
+    case "speaker":
+      box(g, x, y, w, h, 0, 32, "dark");
+      for (const [z, r] of [[22, 0.09], [10, 0.14]] as const) { const cone = new THREE.Mesh(new THREE.CylinderGeometry(r, r, 0.02, 20), material("#555c6b")); cone.rotation.x = Math.PI / 2; cone.position.set(x + w / 2, z / UNIT, y + h + 0.005); g.add(cone); }
+      break;
+    case "piano":
+      box(g, x, y, w, h - 0.2, 0, 22, "dark"); box(g, x + 0.06, y + h - 0.2, w - 0.12, 0.2, 12, 14.5, "#ffffff");
+      for (let k = 0; k < 9; k++) box(g, x + 0.14 + k * ((w - 0.34) / 8), y + h - 0.2, 0.05, 0.11, 14.5, 15.5, "dark").castShadow = false;
+      box(g, x + 0.06, y + h - 0.2, 0.07, 0.18, 0, 12, "dark"); box(g, x + w - 0.13, y + h - 0.2, 0.07, 0.18, 0, 12, "dark");
       break;
     case "sofa":
       if (w >= h) { box(g, x, y, w, 0.16, 0, 19, "soft"); box(g, x, y + 0.16, w, h - 0.16, 0, 9, "soft"); box(g, x, y, 0.1, h, 0, 14, "soft"); box(g, x + w - 0.1, y, 0.1, h, 0, 14, "soft"); }
@@ -110,7 +140,7 @@ function furniture(parent: THREE.Object3D, f: FurnitureItem) {
   parent.add(g);
 }
 
-const ZONE_TINT: Record<string, string> = { focus: "#dbe8ff", huddle: "#e2ebf8", cafe: "#ffeccf", lounge: "#ecd3b4", deck: "#c6e9c2", nap: "#e4defb", game: "#22203f", lobby: "#ffffff" };
+const ZONE_TINT: Record<string, string> = { focus: "#dbe8ff", huddle: "#e2ebf8", cafe: "#ffeccf", lounge: "#ecd3b4", deck: "#c6e9c2", nap: "#e4defb", game: "#22203f", lobby: "#ffffff", gym: "#d9dee8", library: "#f0e2c8", hall: "#e6e0f5", court: "#d98a4e", pool: "#f3ead2", plaza: "#f6f1e4", canteen: "#ffe3c2", music: "#f7d6e6" };
 
 function label(text: string, color: string, size = 46): THREE.CanvasTexture {
   const canvas = document.createElement("canvas");
@@ -147,6 +177,22 @@ export function buildOffice(): Office {
   for (let i = 0; i < 9; i++) for (let j = 0; j < 6; j++) if ((i + j) % 2 === 0) { const t = box(root, 11.6 + i * 0.7, 0.08 + j * 0.68, 0.7, 0.68, 0.5, 0.7, "#f6d9ab"); t.castShadow = false; }
   for (const gy of [10.4, 11.4, 12.4, 13.4]) { const l = box(root, 0.1, gy - 0.01, 5.8, 0.02, 0.5, 0.75, "#35e6ff", { emissive: "#35e6ff", emissiveIntensity: 0.8 }); l.castShadow = false; }
   for (const gx of [1, 2, 3, 4, 5]) { const l = box(root, gx - 0.01, 9.9, 0.02, 4.0, 0.5, 0.75, "#35e6ff", { emissive: "#35e6ff", emissiveIntensity: 0.8 }); l.castShadow = false; }
+  // Basketball court paint and the swimming pool.
+  { const c = COURT, line = (x: number, y: number, w: number, h: number) => { box(root, x, y, w, h, 0.5, 0.9, "#ffffff").castShadow = false; };
+    box(root, c.x, c.y, c.w, c.h, 0.5, 0.7, "#c8743a").castShadow = false;
+    line(c.x, c.y, c.w, 0.05); line(c.x, c.y + c.h - 0.05, c.w, 0.05); line(c.x, c.y, 0.05, c.h); line(c.x + c.w - 0.05, c.y, 0.05, c.h); line(c.x + c.w / 2 - 0.025, c.y, 0.05, c.h);
+    const ring = new THREE.Mesh(new THREE.TorusGeometry(0.8, 0.025, 6, 40), material("#ffffff")); ring.rotation.x = Math.PI / 2; ring.position.set(c.x + c.w / 2, 0.025, c.y + c.h / 2); root.add(ring);
+    for (const kx of [c.x, c.x + c.w - 1.4]) box(root, kx, c.y + c.h / 2 - 0.9, 1.4, 1.8, 0.7, 0.85, "#e8a36b").castShadow = false;
+    const ballMesh = ball(root, c.x + 2.2, c.y + 4.4, 5, 0.14, "#ff922b"); ballMesh.castShadow = true;
+    const p = POOL;
+    box(root, p.x - 0.25, p.y - 0.25, p.w + 0.5, p.h + 0.5, 0.5, 1.4, "#f1f3f5").castShadow = false;
+    box(root, p.x, p.y, p.w, p.h, 1.4, 1.7, "#4dabf7", { roughness: 0.1, metalness: 0.35, emissive: "#1c7ed6", emissiveIntensity: 0.25 }).castShadow = false;
+    for (let i = 1; i < 4; i++) box(root, p.x + (p.w / 4) * i - 0.02, p.y + 0.1, 0.04, p.h - 0.2, 1.7, 1.85, i % 2 ? "#ffffff" : "#e03131").castShadow = false;
+    box(root, p.x + p.w - 0.1, p.y + 1.0, 0.5, 0.05, 0, 22, "#c9d1dc"); box(root, p.x + p.w - 0.1, p.y + 1.5, 0.5, 0.05, 0, 22, "#c9d1dc");
+  }
+  // Raised stage in the Town Hall, with a big screen behind it.
+  box(root, 33.75, 8.2, 0.08, 4.6, 14, 70, "screen").castShadow = false;
+  box(root, 33.73, 8.4, 0.02, 4.2, 18, 66, "#16324f", { emissive: "#2aa845", emissiveIntensity: 0.55 }).castShadow = false;
   const plaza = new THREE.Mesh(new THREE.CylinderGeometry(1.75, 1.75, 0.02, 48), material("#fbe9a8")); plaza.position.set(9, 0.025, 7.85); plaza.receiveShadow = true; root.add(plaza);
   for (const r of RUGS) { const rug = box(root, r.x, r.y, r.w, r.h, 0.5, 1.4, "#22a03c"); rug.castShadow = false; const edge = box(root, r.x + 0.1, r.y + 0.1, r.w - 0.2, r.h - 0.2, 1.4, 1.6, "#35b850"); edge.castShadow = false; }
 
@@ -183,19 +229,24 @@ export function buildOffice(): Office {
   for (const item of FURNITURE) furniture(root, item);
 
   // Outside: a lawn, a path to the door, trees and bushes, so the office sits in a place.
-  const lawn = new THREE.Mesh(new THREE.CylinderGeometry(26, 26, 0.2, 64), material("#bfe3a8"));
+  const lawn = new THREE.Mesh(new THREE.CylinderGeometry(44, 44, 0.2, 72), material("#bfe3a8"));
   lawn.position.set(W / 2, -0.5, D / 2); lawn.receiveShadow = true; root.add(lawn);
-  box(root, ENTRANCE.from - 0.2, D, ENTRANCE.to - ENTRANCE.from + 0.4, 9, -14.5, -13.8, "#e8dcc4").castShadow = false;
-  for (const [tx, ty] of [[-2.5, 15.5], [3, 17.5], [13.5, 17], [20.5, 15], [21.5, 8], [21, 1.5], [-3, 20], [16, 21], [6.5, 20.5]] as const) {
+  box(root, ENTRANCE.from - 0.2, D, ENTRANCE.to - ENTRANCE.from + 0.4, 12, -14.5, -13.8, "#e8dcc4").castShadow = false;
+  const outside: [number, number][] = [];
+  for (let tx = -3; tx <= W + 3; tx += 5.5) if (Math.abs(tx - W / 2) > 3) outside.push([tx + (tx % 2), D + 2.5 + ((tx * 7) % 3)]);
+  for (let ty = 1; ty <= D; ty += 5) outside.push([W + 2.5 + (ty % 2), ty]);
+  outside.push([-4, D + 6], [W / 2 + 6, D + 8], [W / 2 - 7, D + 7.5], [W + 5, D + 5]);
+  for (const [tx, ty] of outside) {
     const g = new THREE.Group(); g.position.y = -14 / UNIT; root.add(g);
     box(g, tx - 0.08, ty - 0.08, 0.16, 0.16, 0, 34, "trunk");
     ball(g, tx, ty, 54, 0.75, COLORS.leaf); ball(g, tx - 0.45, ty + 0.2, 42, 0.5, COLORS.leaf2); ball(g, tx + 0.45, ty - 0.15, 44, 0.52, COLORS.leaf2);
   }
-  for (const [bx, by] of [[7.2, 14.8], [10.8, 14.8], [1.5, 14.9], [16.5, 14.9], [18.9, 11], [18.9, 4]] as const) { const b = ball(root, bx, by, -6, 0.55, COLORS.leaf2, 0.7); b.castShadow = true; }
-  ["#ff4fa3", "#ffd43b", "#ffffff", "#ff922b"].forEach((color, i) => { for (let k = 0; k < 5; k++) ball(root, 6.4 + i * 0.25 + k * 0.05, 14.5 + (k % 2) * 0.25 + i * 0.1, -11, 0.07, color); });
+  for (let bx = 1.5; bx < W; bx += 3.2) if (Math.abs(bx - W / 2) > 1.6) { const b = ball(root, bx, D + 0.8, -6, 0.55, COLORS.leaf2, 0.7); b.castShadow = true; }
+  for (let by = 2; by < D; by += 3.5) { const b = ball(root, W + 0.9, by, -6, 0.55, COLORS.leaf2, 0.7); b.castShadow = true; }
+  ["#ff4fa3", "#ffd43b", "#ffffff", "#ff922b"].forEach((color, i) => { for (let k = 0; k < 5; k++) ball(root, ENTRANCE.from - 1.7 + i * 0.25 + k * 0.05, D + 0.5 + (k % 2) * 0.25 + i * 0.1, -11, 0.07, color); });
 
   // Inside: hanging lights, a pond on the Garden Deck, a TV, a whiteboard, a clock and a neon arcade sign.
-  for (const [lx, ly, color] of [[2.6, 2.1, "#fff1c2"], [9, 2, "#fff1c2"], [14.6, 2.1, "#ffd9a0"], [3, 7, "#ffd9a0"], [9, 9.5, "#fff1c2"], [15, 12, "#d6c9ff"]] as const) {
+  for (const [lx, ly, color] of [[2.6, 2.1, "#fff1c2"], [9, 2, "#fff1c2"], [14.6, 2.1, "#ffd9a0"], [3, 7, "#ffd9a0"], [9, 9.5, "#fff1c2"], [15, 12, "#d6c9ff"], [22, 3, "#fff1c2"], [30, 3, "#ffd9a0"], [23, 10.5, "#fff1c2"], [28, 10.5, "#fff1c2"], [17, 17.5, "#fff1c2"], [24.6, 18, "#ffd9a0"], [31, 18, "#ffb3d9"]] as const) {
     box(root, lx - 0.01, ly - 0.01, 0.02, 0.02, 62, 86, "dark").castShadow = false;
     const bulb = ball(root, lx, ly, 60, 0.16, color); bulb.castShadow = false;
     bulb.material = material(color, { emissive: color, emissiveIntensity: 1.1 });

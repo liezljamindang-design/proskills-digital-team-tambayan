@@ -198,7 +198,27 @@ function Tree({ x, y, w, h }: FurnitureItem) {
   );
 }
 
+function Treadmill({ x, y, w, h }: FurnitureItem) {
+  return (<><Box x={x} y={y + 0.25} w={w} h={h - 0.25} z1={4} m="dark" /><Box x={x + 0.04} y={y} w={0.06} h={0.08} z1={24} m="gold" /><Box x={x + w - 0.1} y={y} w={0.06} h={0.08} z1={24} m="gold" /><Box x={x} y={y} w={w} h={0.1} z0={22} z1={27} m="dark" /></>);
+}
+function Weights({ x, y, w, h }: FurnitureItem) {
+  return (<><Box x={x + 0.1} y={y + 0.1} w={w - 0.2} h={h - 0.2} z1={9} m="dark" /><Box x={x} y={y + h / 2 - 0.03} w={w} h={0.06} z0={12} z1={14} m="desk" /><Box x={x} y={y + 0.06} w={0.14} h={h - 0.12} z0={7} z1={19} m="gold" /><Box x={x + w - 0.14} y={y + 0.06} w={0.14} h={h - 0.12} z0={7} z1={19} m="gold" /></>);
+}
+function Bag({ x, y, w, h }: FurnitureItem) {
+  return (<><Box x={x + w / 2 - 0.03} y={y + h / 2 - 0.03} w={0.06} h={0.06} z1={44} m="dark" /><Box x={x + 0.06} y={y + 0.06} w={w - 0.12} h={h - 0.12} z0={8} z1={34} m="soft" /><Box x={x - 0.05} y={y - 0.05} w={w + 0.1} h={h + 0.1} z1={2} m="dark" /></>);
+}
+function Hoop({ x, y, w, h }: FurnitureItem) {
+  return (<><Box x={x + w / 2 - 0.05} y={y + h / 2 - 0.05} w={0.1} h={0.1} z1={48} m="dark" /><Box x={x + w / 2 - 0.03} y={y} w={0.06} h={h} z0={44} z1={66} m="desk" /><Box x={x + w / 2 - 0.2} y={y + h / 2 - 0.16} w={0.4} h={0.32} z0={46} z1={47.5} m="gold" /></>);
+}
+function Speaker({ x, y, w, h }: FurnitureItem) {
+  return (<><Box x={x} y={y} w={w} h={h} z1={30} m="dark" /><Box x={x + 0.08} y={y + h - 0.02} w={w - 0.16} h={0.03} z0={6} z1={17} m="gold" /></>);
+}
+function Piano({ x, y, w, h }: FurnitureItem) {
+  return (<><Box x={x} y={y} w={w} h={h - 0.2} z1={20} m="dark" /><Box x={x + 0.06} y={y + h - 0.2} w={w - 0.12} h={0.2} z0={12} z1={14.5} m="desk" /><Box x={x + 0.06} y={y + h - 0.2} w={0.07} h={0.18} z1={12} m="dark" /><Box x={x + w - 0.13} y={y + h - 0.2} w={0.07} h={0.18} z1={12} m="dark" /></>);
+}
+
 const RENDERERS = {
+  treadmill: Treadmill, weights: Weights, bag: Bag, hoop: Hoop, speaker: Speaker, piano: Piano,
   desk: Desk, chair: Chair, plant: Plant, sofa: Sofa, table: Table, "low-table": LowTable, counter: Counter, lamp: Lamp,
   arcade: Arcade, pingpong: PingPong, beanbag: BeanBag, stool: Stool, bed: Bed, shelf: Shelf, fridge: Fridge, reception: Reception, foosball: Foosball, tree: Tree,
 } as const;

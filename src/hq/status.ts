@@ -18,6 +18,14 @@ const BY_ZONE: Record<ZoneId, Status> = {
   game: { id: "playing", label: "Playing", emoji: "🎮", tone: "fun" },
   deck: { id: "outside", label: "Getting fresh air", emoji: "🌿", tone: "rest" },
   nap: { id: "sleeping", label: "Sleeping", emoji: "💤", tone: "rest" },
+  gym: { id: "gym", label: "Working out", emoji: "🏋️", tone: "fun" },
+  library: { id: "reading", label: "Reading quietly", emoji: "📚", tone: "rest" },
+  hall: { id: "hall", label: "At the Town Hall", emoji: "🎤", tone: "ok" },
+  court: { id: "ball", label: "Playing basketball", emoji: "🏀", tone: "fun" },
+  pool: { id: "swimming", label: "Swimming", emoji: "🏊", tone: "fun" },
+  plaza: { id: "available", label: "Available", emoji: "🟢", tone: "ok" },
+  canteen: { id: "eating", label: "Eating", emoji: "🍜", tone: "rest" },
+  music: { id: "jamming", label: "Jamming", emoji: "🎵", tone: "fun" },
 };
 const AVAILABLE: Status = BY_ZONE.lobby;
 

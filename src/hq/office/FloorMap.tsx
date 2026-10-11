@@ -1,6 +1,6 @@
 import { useCallback, useMemo, useRef, useState, type ReactNode } from "react";
 import { HQ } from "../config";
-import { ENTRANCE, FLOOR, FURNITURE, RUGS, WALL_HEIGHT, WALLS, ZONES } from "../data/office";
+import { COURT, ENTRANCE, FLOOR, FURNITURE, POOL, RUGS, WALL_HEIGHT, WALLS, ZONES } from "../data/office";
 import { useMovement, type WalkView } from "../hooks/useMovement";
 import { useHq } from "../store";
 import { Figure } from "./Actors";
@@ -58,7 +58,7 @@ export function FloorMap() {
   const makeView = useCallback((): WalkView | null => {
     const svg = svgRef.current, camera = cameraRef.current, avatar = avatarRef.current;
     if (!svg || !camera || !avatar) return null;
-    const CENTRE = { x: 65, y: 225 };
+    const CENTRE = { x: 190, y: 415 };
     const mobile = window.matchMedia("(max-width: 900px)"), reduce = window.matchMedia("(prefers-reduced-motion: reduce)");
     const cam = { x: CENTRE.x, y: CENTRE.y, z: 1 };
     let slotNow = -1, first = true;
@@ -79,7 +79,7 @@ export function FloorMap() {
       if (!drag.moved && Math.hypot(dx, dy) < 6) return;
       drag.moved = true; drag.x = e.clientX; drag.y = e.clientY;
       const scale = camera.getScreenCTM()?.a || 1, mx = dx / scale, my = dy / scale;
-      const nx = Math.min(420, Math.max(-420, off.x - mx)), ny = Math.min(300, Math.max(-300, off.y - my));
+      const nx = Math.min(700, Math.max(-700, off.x - mx)), ny = Math.min(450, Math.max(-450, off.y - my));
       cam.x += nx - off.x; cam.y += ny - off.y; off.x = nx; off.y = ny;
       place();
     };
@@ -98,7 +98,7 @@ export function FloorMap() {
       if (useHq.getState().overview) return { x: CENTRE.x, y: CENTRE.y, z: 1 };
       const [sx, sy] = project(pos.x, pos.y), zoom = useHq.getState().zoom;
       // The floor is large, so the camera stays close and follows you. "Whole floor" zooms back out.
-      return mobile.matches ? { x: sx + off.x, y: sy - 14 + off.y, z: 2.1 * zoom } : { x: sx + off.x, y: sy - 20 + off.y, z: 1.55 * zoom };
+      return mobile.matches ? { x: sx + off.x, y: sy - 14 + off.y, z: 3.6 * zoom } : { x: sx + off.x, y: sy - 20 + off.y, z: 2.7 * zoom };
     };
     return {
       element: svg,
@@ -172,7 +172,7 @@ export function FloorMap() {
 
   return (
     <div className="floor">
-      <svg ref={svgRef} viewBox="-470 -100 1070 650" className="floor-svg" aria-hidden="true" focusable="false">
+      <svg ref={svgRef} viewBox="-730 -100 1840 1030" className="floor-svg" aria-hidden="true" focusable="false">
         <g ref={cameraRef}>
           <polygon className="slab-side slab-side-left" points={leftFace} />
           <polygon className="slab-side slab-side-right" points={rightFace} />
@@ -220,6 +220,11 @@ export function FloorMap() {
           </g>
 
           <g className="rugs">
+            <polygon className="court" points={rectPoints(COURT.x, COURT.y, COURT.w, COURT.h, 0, 0)} />
+            <polyline className="court-line" points={`${pt(COURT.x + COURT.w / 2, COURT.y)} ${pt(COURT.x + COURT.w / 2, COURT.y + COURT.h)}`} />
+            <polygon className="court-line" points={rectPoints(COURT.x + COURT.w / 2 - 0.8, COURT.y + COURT.h / 2 - 0.8, 1.6, 1.6, 0, 0)} />
+            <polygon className="pool-edge" points={rectPoints(POOL.x - 0.2, POOL.y - 0.2, POOL.w + 0.4, POOL.h + 0.4, 0, 0)} />
+            <polygon className="pool-water" points={rectPoints(POOL.x, POOL.y, POOL.w, POOL.h, 0, 0)} />
             {RUGS.map((r) => (
               <g key={r.id}>
                 <polygon className="rug" points={rectPoints(r.x, r.y, r.w, r.h)} />

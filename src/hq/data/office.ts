@@ -1,9 +1,13 @@
 import type { FurnitureItem, WallSegment, Zone } from "../types";
 
-/** Floor is 18 units wide and 14 deep. The entrance is on the front edge (y = 14). */
-export const FLOOR = { width: 18, depth: 14 };
-export const START = { x: 9, y: 13.3 };
-export const ENTRANCE = { from: 8.1, to: 9.9 };
+/** Floor is 34 units wide and 22 deep: room for 100+ people. The entrance is on the front edge (y = 22). */
+export const FLOOR = { width: 34, depth: 22 };
+export const START = { x: 17, y: 21.3 };
+export const ENTRANCE = { from: 16.1, to: 17.9 };
+/** The swimming pool: flat, so you can walk (swim) through it. */
+export const POOL = { x: 8.0, y: 15.6, w: 3.8, h: 4.6 };
+/** The basketball court's painted floor. */
+export const COURT = { x: 0.5, y: 15.2, w: 6.2, h: 6.2 };
 /** Where you stand to use the arcade cabinets. */
 export const ARCADE_SPOT = { x: 1.7, y: 11.2 };
 
@@ -16,6 +20,14 @@ export const ZONES: Zone[] = [
   { id: "game", key: 6, name: "Recreation Room", summary: "The arcade. Walk in and it opens up, with everyone who is inside.", rect: { x: 0, y: 9.8, w: 6, h: 4.2 } },
   { id: "deck", key: 7, name: "Garden Deck", summary: "Trees, a bench and fresh pretend air.", rect: { x: 12, y: 5, w: 6, h: 4.4 } },
   { id: "nap", key: 8, name: "Sleeping Quarters", summary: "Stop here and your chibi lies down on a bed. Move to wake up.", rect: { x: 12, y: 10, w: 6, h: 4 } },
+  { id: "gym", key: 9, name: "Gym", summary: "Treadmills, weights and punching bags. Your status shows you are working out.", rect: { x: 18.1, y: 0, w: 7.9, h: 6 } },
+  { id: "library", key: 10, name: "Library", summary: "Quiet shelves, reading tables and study desks.", rect: { x: 26.1, y: 0, w: 7.9, h: 6 } },
+  { id: "hall", key: 11, name: "Town Hall", summary: "Fifty seats and a stage, for all-hands and events.", rect: { x: 18.5, y: 7, w: 15.5, h: 7 } },
+  { id: "court", key: 12, name: "Basketball Court", summary: "Shoot some hoops outside.", rect: { x: 0, y: 14.6, w: 7, h: 7.4 } },
+  { id: "pool", key: 13, name: "Swimming Pool", summary: "Walk into the water for a swim, or take a lounger.", rect: { x: 7.4, y: 14.6, w: 5, h: 7.4 } },
+  { id: "plaza", key: 14, name: "Main Entrance", summary: "The front door. Everyone arrives here.", rect: { x: 12.8, y: 14.6, w: 8.4, h: 7.4 } },
+  { id: "canteen", key: 15, name: "Canteen", summary: "Tables for lunch and merienda together.", rect: { x: 21.6, y: 14.6, w: 6, h: 7.4 } },
+  { id: "music", key: 16, name: "Music Room", summary: "A piano, speakers and a little stage for karaoke.", rect: { x: 28, y: 14.6, w: 6, h: 7.4 } },
 ];
 
 function workstation(id: string, x: number, y: number): FurnitureItem[] {
@@ -84,6 +96,56 @@ export const FURNITURE: FurnitureItem[] = [
   // Sleeping Quarters
   bed("bed-1", 12.7), bed("bed-2", 13.9), bed("bed-3", 15.1), bed("bed-4", 16.3),
   lamp("nap-lamp", 17.4, 10.4), plant("nap-plant", 17.4, 13.4),
+
+  // Gym
+  ...[18.7, 19.9, 21.1, 22.3].map((x, i): FurnitureItem => ({ id: `treadmill-${i}`, kind: "treadmill", x, y: 0.4, w: 0.6, h: 1.2 })),
+  { id: "weights-rack", kind: "weights", x: 23.6, y: 0.3, w: 1.6, h: 0.5 },
+  { id: "weights-1", kind: "weights", x: 19.0, y: 3.2, w: 1.2, h: 0.5 }, { id: "weights-2", kind: "weights", x: 21.0, y: 3.2, w: 1.2, h: 0.5 },
+  { id: "bag-1", kind: "bag", x: 25.1, y: 2.0, w: 0.4, h: 0.4 }, { id: "bag-2", kind: "bag", x: 25.1, y: 3.4, w: 0.4, h: 0.4 },
+  { id: "gym-fridge", kind: "fridge", x: 18.4, y: 4.9, w: 0.6, h: 0.55 }, plant("gym-plant", 25.5, 0.2), stool("gym-stool", 24.0, 4.6),
+
+  // Library
+  ...[26.5, 27.9, 29.3, 30.7, 32.1].map((x, i): FurnitureItem => ({ id: `lib-shelf-${i}`, kind: "shelf", x, y: 0.15, w: 1.2, h: 0.32 })),
+  { id: "lib-shelf-a", kind: "shelf", x: 26.6, y: 1.9, w: 1.2, h: 0.32 }, { id: "lib-shelf-b", kind: "shelf", x: 28.0, y: 1.9, w: 1.2, h: 0.32 },
+  { id: "lib-table", kind: "table", x: 30.2, y: 2.2, w: 1.8, h: 1.0 },
+  chair("lib-c1", 30.35, 1.7), chair("lib-c2", 30.95, 1.7), chair("lib-c3", 31.55, 1.7),
+  chair("lib-c4", 30.35, 3.35), chair("lib-c5", 30.95, 3.35), chair("lib-c6", 31.55, 3.35),
+  ...workstation("lib-desk-1", 26.6, 3.4), ...workstation("lib-desk-2", 28.0, 3.4),
+  bean("lib-bean-1", 32.9, 2.4), bean("lib-bean-2", 33.1, 3.6), bean("lib-bean-3", 32.5, 4.7), lamp("lib-lamp", 33.5, 0.6), plant("lib-plant", 26.3, 5.3),
+
+  // Town Hall: five rows of ten seats facing the stage
+  ...[8.2, 9.2, 10.2, 11.6, 12.6].flatMap((y, r) => Array.from({ length: 10 }, (_, c) => chair(`hall-${r}-${c}`, 20 + c, y))),
+  { id: "hall-speaker-1", kind: "speaker", x: 30.6, y: 7.3, w: 0.45, h: 0.45 }, { id: "hall-speaker-2", kind: "speaker", x: 30.6, y: 13.2, w: 0.45, h: 0.45 },
+  { id: "hall-podium", kind: "reception", x: 32.6, y: 9.9, w: 0.5, h: 0.9 }, plant("hall-plant-1", 33.5, 7.2), plant("hall-plant-2", 33.5, 13.5),
+
+  // Basketball Court
+  { id: "hoop-1", kind: "hoop", x: 0.5, y: 17.9, w: 0.3, h: 0.8 }, { id: "hoop-2", kind: "hoop", x: 6.4, y: 17.9, w: 0.3, h: 0.8 },
+  { id: "court-bench", kind: "sofa", x: 2.4, y: 14.5, w: 2.2, h: 0.5 }, tree("court-tree", 0.2, 14.3),
+
+  // Swimming Pool
+  bean("pool-bean-1", 7.7, 20.8), bean("pool-bean-2", 8.7, 20.9), bean("pool-bean-3", 11.4, 20.8),
+  { id: "pool-bench", kind: "sofa", x: 8.8, y: 14.7, w: 2.2, h: 0.5 }, tree("pool-tree", 11.8, 14.7), lamp("pool-lamp", 7.6, 14.9),
+
+  // Main Entrance
+  { id: "front-desk", kind: "reception", x: 14.0, y: 17.4, w: 0.6, h: 1.5 },
+  tree("plaza-tree-1", 13.1, 15.0), tree("plaza-tree-2", 20.4, 15.0),
+  plant("plaza-plant-1", 15.6, 21.5), plant("plaza-plant-2", 18.1, 21.5), lamp("plaza-lamp", 20.6, 21.4),
+  { id: "plaza-bench", kind: "sofa", x: 18.4, y: 17.6, w: 2.2, h: 0.6 },
+
+  // Canteen
+  { id: "canteen-counter", kind: "counter", x: 22.4, y: 15.2, w: 3.0, h: 0.55 },
+  stool("can-stool-1", 22.7, 15.95), stool("can-stool-2", 23.5, 15.95), stool("can-stool-3", 24.3, 15.95), stool("can-stool-4", 25.0, 15.95),
+  { id: "canteen-fridge", kind: "fridge", x: 26.0, y: 14.8, w: 0.6, h: 0.55 }, { id: "canteen-vending", kind: "fridge", x: 26.8, y: 14.8, w: 0.6, h: 0.55 },
+  ...[[23.0, 17.8], [25.4, 17.8], [23.0, 19.6], [25.4, 19.6]].flatMap(([x, y], i): FurnitureItem[] => [
+    { id: `can-table-${i}`, kind: "table", x, y, w: 0.75, h: 0.75 }, stool(`can-s${i}a`, x - 0.45, y + 0.2), stool(`can-s${i}b`, x + 0.9, y + 0.2),
+  ]),
+  plant("canteen-plant", 27.1, 21.4),
+
+  // Music Room
+  { id: "piano", kind: "piano", x: 32.0, y: 15.2, w: 1.4, h: 0.8 }, stool("piano-stool", 32.5, 16.1),
+  { id: "music-speaker-1", kind: "speaker", x: 28.4, y: 14.9, w: 0.45, h: 0.45 }, { id: "music-speaker-2", kind: "speaker", x: 31.2, y: 14.9, w: 0.45, h: 0.45 },
+  { id: "music-sofa", kind: "sofa", x: 29.0, y: 18.6, w: 2.2, h: 0.6 },
+  bean("music-bean-1", 32.2, 18.6), bean("music-bean-2", 33.0, 19.8), bean("music-bean-3", 31.6, 20.4), lamp("music-lamp", 33.5, 21.4),
 ];
 
 export const WALL_HEIGHT = 80;
@@ -101,6 +163,19 @@ const RUNS: (Omit<WallSegment, "id" | "height"> & { solid?: boolean })[] = [
   { axis: "y", at: 9.8, from: 0, to: 4.2, solid: true }, { axis: "x", at: 6, from: 11.4, to: 14, solid: true },
   // Sleeping Quarters
   { axis: "y", at: 10, from: 14.2, to: 18, solid: true }, { axis: "x", at: 12, from: 11.6, to: 14, solid: true },
+  // The old outer edges are now inside the building
+  { axis: "x", at: 18, from: 0, to: 4.2, solid: true }, { axis: "x", at: 18, from: 10, to: 14, solid: true },
+  { axis: "y", at: 14, from: 0, to: 4.4, solid: true }, { axis: "y", at: 14, from: 13.6, to: 18, solid: true },
+  // Gym and Library
+  { axis: "y", at: 6, from: 18.1, to: 21, solid: true }, { axis: "y", at: 6, from: 23, to: 26, solid: true }, { axis: "x", at: 26, from: 0, to: 6, solid: true },
+  { axis: "y", at: 6, from: 26, to: 29, solid: true }, { axis: "y", at: 6, from: 31, to: 34, solid: true },
+  // Town Hall
+  { axis: "y", at: 7, from: 18.5, to: 24, solid: true }, { axis: "y", at: 7, from: 28, to: 34, solid: true },
+  { axis: "x", at: 18.5, from: 7, to: 8.5, solid: true }, { axis: "x", at: 18.5, from: 10.5, to: 14, solid: true },
+  { axis: "y", at: 14, from: 18.5, to: 25, solid: true }, { axis: "y", at: 14, from: 27, to: 34, solid: true },
+  // Canteen and Music Room
+  { axis: "x", at: 21.6, from: 14.6, to: 17, solid: true }, { axis: "x", at: 21.6, from: 19, to: 22, solid: true },
+  { axis: "x", at: 28, from: 14.6, to: 17, solid: true }, { axis: "x", at: 28, from: 19, to: 22, solid: true },
 ];
 /** Each run is cut into pieces about a unit long, so walls sort correctly against furniture and people. */
 export const WALLS: WallSegment[] = RUNS.flatMap((run, r) => {
@@ -120,6 +195,11 @@ export const RUGS = [
   { id: "rug-deck", x: 13.1, y: 5.8, w: 2.4, h: 2.0 },
   { id: "rug-nap", x: 12.5, y: 12.1, w: 4.8, h: 1.0 },
   { id: "rug-huddle", x: 7.7, y: 0.6, w: 2.6, h: 2.5 },
+  { id: "rug-entrance", x: 16.1, y: 20.2, w: 1.8, h: 1.7 },
+  { id: "rug-stage", x: 31.4, y: 8.0, w: 2.3, h: 5.0 },
+  { id: "rug-yoga-1", x: 22.9, y: 2.6, w: 0.6, h: 1.5 }, { id: "rug-yoga-2", x: 23.8, y: 2.6, w: 0.6, h: 1.5 },
+  { id: "rug-music", x: 28.9, y: 15.6, w: 2.4, h: 1.7 },
+  { id: "rug-library", x: 32.2, y: 2.0, w: 1.6, h: 3.4 },
 ];
 
 /** A place to sit: where the chibi is placed on the floor, and how far it is nudged on screen to land on the seat. */

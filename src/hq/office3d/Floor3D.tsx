@@ -53,9 +53,9 @@ export function Floor3D() {
     scene.add(office.root);
     scene.add(new THREE.HemisphereLight("#ffffff", "#b9c6da", 1.25));
     const sun = new THREE.DirectionalLight("#fff6e5", 2.1);
-    sun.position.set(FLOOR.width / 2 - 9, 16, FLOOR.depth / 2 + 8); sun.target.position.set(FLOOR.width / 2, 0, FLOOR.depth / 2);
+    sun.position.set(FLOOR.width / 2 - 12, 24, FLOOR.depth / 2 + 11); sun.target.position.set(FLOOR.width / 2, 0, FLOOR.depth / 2);
     sun.castShadow = true; sun.shadow.mapSize.set(2048, 2048);
-    Object.assign(sun.shadow.camera, { left: -14, right: 14, top: 14, bottom: -14, near: 1, far: 50 });
+    Object.assign(sun.shadow.camera, { left: -24, right: 24, top: 20, bottom: -20, near: 1, far: 90 });
     sun.shadow.bias = -0.0006; sun.shadow.normalBias = 0.03;
     scene.add(sun, sun.target);
     const partyLights = ["#ff4fa3", "#35c9ff", "#ffd43b"].map((color) => { const l = new THREE.PointLight(color, 0, 14, 1.4); l.position.y = 3; scene.add(l); return l; });
@@ -238,7 +238,7 @@ export function Floor3D() {
       else if (mode === "front") { fov = 50; wantPos.set(mx, 1.5, mz).addScaledVector(fwd, 3.2 / Math.sqrt(s.zoom)); wantLook.set(mx, 0.85, mz); wantPos.y += cam.tilt * 2.5; }
       else if (mode === "first") { fov = 72; wantPos.set(mx, 1.18, mz).addScaledVector(fwd, 0.12); wantLook.copy(wantPos).addScaledVector(fwd, 2); wantLook.y += cam.tilt * 2.4 - 0.12; }
       else {
-        const whole = s.overview, el = cam.el, dist = whole ? 48 : 19 / s.zoom;
+        const whole = s.overview, el = cam.el, dist = whole ? 58 : 19 / s.zoom;
         wantLook.set(whole ? FLOOR.width / 2 : mx, whole ? 0 : 0.6, whole ? FLOOR.depth / 2 : mz);
         wantPos.copy(wantLook).add(new THREE.Vector3(Math.sin(cam.az) * Math.cos(el), Math.sin(el), Math.cos(cam.az) * Math.cos(el)).multiplyScalar(dist));
       }

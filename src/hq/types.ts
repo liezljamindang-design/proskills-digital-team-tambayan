@@ -1,4 +1,4 @@
-export type ZoneId = "lobby" | "focus" | "huddle" | "cafe" | "lounge" | "game" | "deck" | "nap";
+export type ZoneId = "lobby" | "focus" | "huddle" | "cafe" | "lounge" | "game" | "deck" | "nap" | "gym" | "library" | "hall" | "court" | "pool" | "plaza" | "canteen" | "music";
 
 export interface Zone {
   id: ZoneId;
@@ -10,7 +10,7 @@ export interface Zone {
 
 export type FurnitureKind =
   | "desk" | "chair" | "plant" | "sofa" | "table" | "low-table" | "counter" | "lamp"
-  | "arcade" | "pingpong" | "beanbag" | "stool" | "bed" | "shelf" | "fridge" | "reception" | "foosball" | "tree";
+  | "arcade" | "pingpong" | "beanbag" | "stool" | "bed" | "shelf" | "fridge" | "reception" | "foosball" | "tree" | "treadmill" | "weights" | "bag" | "hoop" | "speaker" | "piano";
 
 /** One object on the floor. Its footprint is both how it is drawn and what the avatar bumps into. */
 export interface FurnitureItem {

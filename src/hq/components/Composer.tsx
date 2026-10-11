@@ -18,6 +18,10 @@ export function Composer({ id, placeholder, onSend, attachments }: Props) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const fileRef = useRef<HTMLInputElement>(null);
+  const cameraRef = useRef<HTMLInputElement>(null);
+  const [camOpen, setCamOpen] = useState(false);
+  // Phones open their own camera app; computers get a small webcam window.
+  const touch = typeof window !== "undefined" && window.matchMedia("(pointer: coarse)").matches;
 
   function submit(e: FormEvent) {
     e.preventDefault();
@@ -31,12 +35,13 @@ export function Composer({ id, placeholder, onSend, attachments }: Props) {
     setBusy(true); setError("");
     try { setPhoto(await shrinkPhoto(file)); }
     catch (err) { setError(err instanceof Error ? err.message : "That picture could not be added."); }
-    finally { setBusy(false); if (fileRef.current) fileRef.current.value = ""; }
+    finally { setBusy(false); if (fileRef.current) fileRef.current.value = ""; if (cameraRef.current) cameraRef.current.value = ""; }
   }
 
   return (
     <form className="composer" onSubmit={submit}>
       {panel === "emoji" && <EmojiPicker onPick={(emoji) => setText((t) => (t + emoji).slice(0, 280))} />}
+      {camOpen && <CameraShot onClose={() => setCamOpen(false)} onShot={(file) => { setCamOpen(false); void pickPhoto(file); }} />}
       {panel === "gif" && <GifPicker onPick={(url) => { onSend(text, url); setText(""); setPanel(null); }} />}
       {photo && (
         <div className="attach-preview">
@@ -52,8 +57,12 @@ export function Composer({ id, placeholder, onSend, attachments }: Props) {
         {attachments && (
           <>
             <input ref={fileRef} type="file" accept="image/*" hidden onChange={(e) => void pickPhoto(e.target.files?.[0])} />
-            <button type="button" className="icon-btn emoji-toggle" aria-label="Attach a photo" title="Attach a photo" disabled={busy} onClick={() => fileRef.current?.click()}>
-              <span aria-hidden="true">{busy ? "…" : "📷"}</span>
+            <input ref={cameraRef} type="file" accept="image/*" capture="environment" hidden onChange={(e) => void pickPhoto(e.target.files?.[0])} />
+            <button type="button" className="icon-btn emoji-toggle" aria-label="Attach a photo from your gallery" title="Attach a photo" disabled={busy} onClick={() => fileRef.current?.click()}>
+              <span aria-hidden="true">{busy ? "…" : "🖼️"}</span>
+            </button>
+            <button type="button" className="icon-btn emoji-toggle" aria-label="Take a photo with the camera" title="Take a photo" disabled={busy} onClick={() => (touch ? cameraRef.current?.click() : setCamOpen(true))}>
+              <span aria-hidden="true">📷</span>
             </button>
             <button type="button" className="icon-btn emoji-toggle gif-toggle" aria-expanded={panel === "gif"} aria-label="Send a GIF" onClick={() => setPanel((p) => (p === "gif" ? null : "gif"))}>GIF</button>
           </>
@@ -123,6 +132,36 @@ function GifPicker({ onPick }: { onPick: (url: string) => void }) {
           {linkError && <p className="field-error" role="alert">{linkError}</p>}
         </>
       )}
+    </div>
+  );
+}
+
+/** A small webcam window for computers: live preview, then Capture. */
+function CameraShot({ onShot, onClose }: { onShot: (file: File) => void; onClose: () => void }) {
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const [problem, setProblem] = useState("");
+  useEffect(() => {
+    let stream: MediaStream | null = null, gone = false;
+    navigator.mediaDevices?.getUserMedia({ video: { facingMode: "user" }, audio: false })
+      .then((s) => { if (gone) { s.getTracks().forEach((t) => t.stop()); return; } stream = s; if (videoRef.current) { videoRef.current.srcObject = s; void videoRef.current.play(); } })
+      .catch(() => setProblem("The camera couldn't be opened. Allow camera access for this site in your browser, then try again."));
+    if (!navigator.mediaDevices) setProblem("This browser can't use the camera here.");
+    return () => { gone = true; stream?.getTracks().forEach((t) => t.stop()); };
+  }, []);
+  function capture() {
+    const v = videoRef.current;
+    if (!v || !v.videoWidth) return;
+    const canvas = document.createElement("canvas"); canvas.width = v.videoWidth; canvas.height = v.videoHeight;
+    canvas.getContext("2d")?.drawImage(v, 0, 0);
+    canvas.toBlob((blob) => { if (blob) onShot(new File([blob], "camera.jpg", { type: "image/jpeg" })); }, "image/jpeg", 0.9);
+  }
+  return (
+    <div className="camera-shot" role="dialog" aria-label="Take a photo">
+      {problem ? <p className="field-error" role="alert">{problem}</p> : <video ref={videoRef} playsInline muted />}
+      <div className="room-actions">
+        {!problem && <button type="button" className="btn-primary" onClick={capture}>📸 Capture</button>}
+        <button type="button" className="btn-secondary" onClick={onClose}>Cancel</button>
+      </div>
     </div>
   );
 }

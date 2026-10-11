@@ -23,6 +23,7 @@ export function RoomCard() {
   const requestPose = useHq((s) => s.requestPose);
   const hoopScore = useHq((s) => s.hoopScore);
   const [menuOpen, setMenuOpen] = useState(false);
+  const bandMuted = useHq((s) => s.bandMuted);
   if (!me || !zone || !["cafe", "lounge", "nap", "huddle", "focus", "court", "gym", "canteen", "music"].includes(zone)) return null;
   const act = me.act ?? {};
   const name = ZONES.find((z) => z.id === zone)!.name;
@@ -60,6 +61,7 @@ export function RoomCard() {
       {zone === "music" && (
         <>
           <p>{act.band ? `🎵 You're on ${act.band === "mic" ? "vocals" : act.band}! Move to stop.` : "Tap an instrument to play it, or pick one here."}</p>
+          <button type="button" className="text-btn band-mute" aria-pressed={bandMuted} onClick={() => useHq.setState({ bandMuted: !bandMuted })}>{bandMuted ? "🔇 Instrument sound is off · turn on" : "🔊 Instrument sound is on · mute"}</button>
           {act.band
             ? <button type="button" className="btn-secondary" onClick={() => requestPose("stand")}>Stop playing</button>
             : <div className="room-actions">

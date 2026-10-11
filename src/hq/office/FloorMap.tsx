@@ -1,12 +1,12 @@
 import { useCallback, useMemo, useRef, useState, type ReactNode } from "react";
 import { HQ } from "../config";
 import { ENTRANCE, FLOOR, FURNITURE, RUGS, WALL_HEIGHT, WALLS, ZONES } from "../data/office";
-import { useMovement } from "../hooks/useMovement";
+import { useMovement, type WalkView } from "../hooks/useMovement";
 import { useHq } from "../store";
 import { Figure } from "./Actors";
 import { celebrants, isBirthday } from "../birthday";
 import { statusOf } from "../status";
-import { slotFor, wallRect, zoneAt, type Box } from "./engine";
+import { sceneToFloor, slotFor, wallRect, zoneAt, type Box } from "./engine";
 import { Furniture } from "./Furniture";
 import { project, rectPoints } from "./iso";
 import { Box as Cuboid, panelX, panelY, pt } from "./primitives";
@@ -55,7 +55,53 @@ export function FloorMap() {
   const onSlot = useCallback((next: number) => setSlot(next), []);
   const boxesRef = useRef(boxes);
   boxesRef.current = boxes;
-  useMovement({ svgRef, cameraRef, avatarRef, boxesRef, onSlot });
+  const makeView = useCallback((): WalkView | null => {
+    const svg = svgRef.current, camera = cameraRef.current, avatar = avatarRef.current;
+    if (!svg || !camera || !avatar) return null;
+    const CENTRE = { x: 65, y: 225 };
+    const mobile = window.matchMedia("(max-width: 900px)"), reduce = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const cam = { x: CENTRE.x, y: CENTRE.y, z: 1 };
+    let slotNow = -1, first = true;
+    const goal = (pos: { x: number; y: number }) => {
+      if (useHq.getState().overview) return { x: CENTRE.x, y: CENTRE.y, z: 1 };
+      const [sx, sy] = project(pos.x, pos.y), zoom = useHq.getState().zoom;
+      // The floor is large, so the camera stays close and follows you. "Whole floor" zooms back out.
+      return mobile.matches ? { x: sx, y: sy - 14, z: 2.1 * zoom } : { x: sx, y: sy - 20, z: 1.55 * zoom };
+    };
+    return {
+      element: svg,
+      pick(e) {
+        const target = e.target as Element;
+        if (target.closest(".avatar")) return { kind: "self" };
+        const person = target.closest<SVGGElement>("[data-peer]");
+        if (person?.dataset.peer) return { kind: "peer", id: person.dataset.peer };
+        if (target.closest("[data-open='game']")) return { kind: "arcade" };
+        const seat = target.closest<SVGGElement>("[data-seat]");
+        if (seat?.dataset.seat) return { kind: "seat", id: seat.dataset.seat };
+        const ctm = camera.getScreenCTM();
+        if (!ctm) return null;
+        const p = new DOMPoint(e.clientX, e.clientY).matrixTransform(ctm.inverse());
+        return { kind: "floor", point: sceneToFloor(p.x, p.y) };
+      },
+      render(pos, moving, dt) {
+        const g = goal(pos), k = first || reduce.matches ? 1 : 1 - Math.exp(-dt * 3.2);
+        first = false;
+        cam.x += (g.x - cam.x) * k; cam.y += (g.y - cam.y) * k; cam.z += (g.z - cam.z) * k;
+        const [sx, sy] = project(pos.x, pos.y);
+        avatar.setAttribute("transform", `translate(${sx.toFixed(2)} ${sy.toFixed(2)})`);
+        avatar.classList.toggle("is-walking", moving);
+        camera.setAttribute("transform", `translate(${CENTRE.x} ${CENTRE.y}) scale(${cam.z.toFixed(4)}) translate(${(-cam.x).toFixed(2)} ${(-cam.y).toFixed(2)})`);
+        return Math.abs(g.x - cam.x) < 0.2 && Math.abs(g.y - cam.y) < 0.2 && Math.abs(g.z - cam.z) < 0.002;
+      },
+      moved(pos) { const next = slotFor(pos, boxesRef.current); if (next !== slotNow) { slotNow = next; onSlot(next); } },
+      poke(dizzy) {
+        avatar.classList.remove("is-boing", "is-dizzy");
+        void avatar.getBoundingClientRect(); // restart the animation
+        avatar.classList.add(dizzy ? "is-dizzy" : "is-boing");
+      },
+    };
+  }, [onSlot]);
+  useMovement(makeView);
 
   // Everyone on the floor, grouped by where they fall in the draw order.
   const actorsAt = new Map<number, ReactNode[]>();
@@ -206,6 +252,9 @@ export function FloorMap() {
           </g>
         </g>
       </svg>
+      <div className="view-controls">
+        <button type="button" className="floor-btn view-3d-btn" onClick={() => useHq.getState().setView3d(true)}>Switch to 3D view</button>
+      </div>
       <div className="zoom-controls" role="group" aria-label="Zoom">
         <button type="button" onClick={() => zoomBy(1.2)} disabled={!overview && zoom >= 2.2} aria-label="Zoom in">+</button>
         <button type="button" onClick={() => zoomBy(1 / 1.2)} disabled={!overview && zoom <= 0.5} aria-label="Zoom out">−</button>

@@ -211,12 +211,21 @@ export function openMeeting(url: string) {
   useHq.setState({ meetingBlocked: !tab });
 }
 
+export const PARTY_SECONDS = 30;
+let partyTimer = 0;
 /** Starts the party for everyone, or ends it for everyone if one is running. */
 export function toggleParty() {
   const state = useHq.getState(), me = state.me;
   if (!me || !transport) return;
   const running = Boolean(me.act?.party) || Object.values(state.peers).some((p) => p.act?.party);
-  if (!running) { setAct({ party: true }); return; }
+  if (!running) {
+    setAct({ party: true });
+    // A party lasts thirty seconds, then winds down by itself.
+    window.clearTimeout(partyTimer);
+    partyTimer = window.setTimeout(() => { if (useHq.getState().me?.act?.party) setAct({ party: undefined }); }, PARTY_SECONDS * 1000);
+    return;
+  }
+  window.clearTimeout(partyTimer);
   if (me.act?.party) setAct({ party: undefined });
   transport.chat({ id: nextId(), from: me.id, name: displayName(me), text: "", partyOver: true });
 }

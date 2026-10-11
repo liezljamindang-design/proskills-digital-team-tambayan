@@ -28,6 +28,12 @@ const keepAway = (away: Record<string, Away>) => {
   return kept;
 };
 
+/** How the 3D office is looked at. */
+export type CamMode = "iso" | "free" | "third" | "front" | "first";
+function canDo3d(): boolean {
+  try { const c = document.createElement("canvas"); return Boolean(c.getContext("webgl2") ?? c.getContext("webgl")); } catch { return false; }
+}
+
 export type SideTab = "chat" | "people" | "rooms";
 /** "all" is the public room; any other thread id is the other person's id. */
 export const PUBLIC = "all";
@@ -106,6 +112,11 @@ interface State {
   /** How close the camera sits while it follows you. 1 is the normal distance. */
   zoom: number;
   zoomBy: (factor: number) => void;
+  /** True for the 3D office, false for the flat drawing. */
+  view3d: boolean;
+  setView3d: (on: boolean) => void;
+  camMode: CamMode;
+  setCamMode: (mode: CamMode) => void;
   overview: boolean;
   setOverview: (overview: boolean) => void;
 }
@@ -220,6 +231,10 @@ export const useHq = create<State>((set, get) => ({
     write("playground.zoom", String(zoom));
     set({ zoom, overview: false });
   },
+  view3d: read("playground.view") !== "2d" && canDo3d(),
+  setView3d: (view3d) => { write("playground.view", view3d ? "3d" : "2d"); set({ view3d, overview: false }); },
+  camMode: (["iso", "free", "third", "front", "first"].includes(read("playground.cam") ?? "") ? read("playground.cam") : "iso") as CamMode,
+  setCamMode: (camMode) => { write("playground.cam", camMode); set({ camMode, overview: false }); },
   overview: false,
   setOverview: (overview) => set({ overview }),
 }));

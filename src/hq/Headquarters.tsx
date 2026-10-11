@@ -18,12 +18,14 @@ import { Welcome } from "./components/Welcome";
 import { HQ } from "./config";
 import { say } from "./net/session";
 import { FloorMap } from "./office/FloorMap";
+import { Floor3D } from "./office3d/Floor3D";
 import { useHq } from "./store";
 
 /** The whole space: the office in the middle, chat and people beside it. */
 export function Headquarters() {
   const gameOpen = useHq((s) => s.gameOpen);
   const sheetOpen = useHq((s) => s.sheetOpen);
+  const view3d = useHq((s) => s.view3d);
   const me = useHq((s) => s.me);
   const peers = useHq((s) => s.peers);
   const joined = useHq((s) => s.joined);
@@ -49,7 +51,7 @@ export function Headquarters() {
             </div>
           </header>
           <div className="stage-body">
-            <FloorMap />
+            {view3d ? <Floor3D /> : <FloorMap />}
             {!gameOpen && <Party />}
             {gameOpen && <Arcade />}
             {!gameOpen && <RoomCard />}

@@ -18,7 +18,7 @@ export function Party() {
       {Array.from({ length: 36 }, (_, i) => (
         <i key={i} className="confetti" style={{ left: `${(i * 37) % 100}%`, background: COLORS[i % COLORS.length], animationDelay: `${-(i * 0.37) % 5}s`, animationDuration: `${4 + (i % 5) * 0.6}s` }} />
       ))}
-      <p className="party-banner">🎉 Party mode! Started by {hosts.join(", ")}</p>
+      <p className="party-banner">🎉 Party mode for 30 seconds! Started by {hosts.join(", ")}</p>
     </div>
   );
 }

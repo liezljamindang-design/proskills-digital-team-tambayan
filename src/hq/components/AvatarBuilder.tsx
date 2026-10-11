@@ -1,5 +1,7 @@
 import { useState, type FormEvent } from "react";
 import { birthdayKey, MONTHS } from "../birthday";
+import { useHq } from "../store";
+import { Chibi3DPreview } from "./Chibi3DPreview";
 import { ACCESSORIES, FITS, ChibiFull, DEFAULT_LOOK, HAIRS, OUTFITS, randomLook, SKINS, STYLES } from "../office/Chibi";
 import { BATCHES, batchesOf, type Look, type Profile } from "../types";
 
@@ -22,6 +24,7 @@ export function AvatarBuilder({ initial, submitLabel, onSubmit, onCancel, admin 
   const [firstName, setFirstName] = useState(initial?.firstName ?? "");
   const [batches, setBatches] = useState<number[]>(initial ? batchesOf(initial) : []);
   const [year, setYear] = useState(initial?.birthYear ?? 0);
+  const view3d = useHq((s) => s.view3d);
   const [error, setError] = useState("");
   const set = <K extends keyof Look>(key: K, value: Look[K]) => setLook((l) => ({ ...l, [key]: value }));
 
@@ -46,7 +49,7 @@ export function AvatarBuilder({ initial, submitLabel, onSubmit, onCancel, admin 
   return (
     <form className="builder" onSubmit={submit} noValidate>
       <div className="builder-preview">
-        <ChibiFull look={look} size={170} />
+        {view3d ? <Chibi3DPreview look={look} size={210} /> : <ChibiFull look={look} size={170} />}
         <button type="button" className="btn-secondary" onClick={() => setLook((l) => ({ ...randomLook(), hat: l.hat, pet: l.pet }))}>Surprise me</button>
       </div>
 

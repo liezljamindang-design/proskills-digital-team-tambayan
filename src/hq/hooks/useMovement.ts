@@ -1,53 +1,50 @@
-import { useEffect, type RefObject } from "react";
+import { useEffect } from "react";
 import { HQ } from "../config";
 import { earnForMeeting } from "../economy";
 import { ARCADE_SPOT, BED_FEET, FLOOR, SEATS, START, type Seat } from "../data/office";
 import { openMeeting, react, reportMove, setAct, updateMyProfile } from "../net/session";
 import { WORK_STATUSES } from "../status";
-import { canStand, findPath, sceneToFloor, slotFor, SPEED, zoneAt, zoneEntry, type Box, type Point } from "../office/engine";
-import { project } from "../office/iso";
+import { canStand, findPath, SPEED, zoneAt, zoneEntry, type Point } from "../office/engine";
 import { useHq } from "../store";
 
-const CENTRE = { x: 65, y: 225 };
 const KEY_DIRS: Record<string, [number, number]> = {
   ArrowUp: [-1, -1], w: [-1, -1], W: [-1, -1], ArrowDown: [1, 1], s: [1, 1], S: [1, 1],
   ArrowLeft: [-1, 1], a: [-1, 1], A: [-1, 1], ArrowRight: [1, -1], d: [1, -1], D: [1, -1],
 };
 
-interface Options {
-  svgRef: RefObject<SVGSVGElement | null>;
-  cameraRef: RefObject<SVGGElement | null>;
-  avatarRef: RefObject<SVGGElement | null>;
-  boxesRef: RefObject<Box[]>;
-  onSlot: (slot: number) => void;
+/** What a click landed on. */
+export type Hit = { kind: "self" } | { kind: "peer"; id: string } | { kind: "seat"; id: string } | { kind: "arcade" } | { kind: "floor"; point: Point } | null;
+
+/** How the office is drawn. The walking rules are the same whether it is the flat drawing or the 3D scene. */
+export interface WalkView {
+  /** Receives clicks and the mouse wheel. */
+  element: Element;
+  pick(e: MouseEvent): Hit;
+  /** Draws you at `pos`. Returns true once the camera has caught up, so the loop can rest. */
+  render(pos: Point, moving: boolean, dt: number): boolean;
+  /** Called when you have moved, for views that need to re-sort what is in front of what. */
+  moved?(pos: Point): void;
+  /** Your own chibi was poked. */
+  poke(dizzy: boolean): void;
+  /** Turns a keyboard direction to match the camera, for views that can rotate. */
+  steer?(dx: number, dy: number): [number, number];
+  /** The zoom or whole-floor setting changed. */
+  refresh?(): void;
 }
 
 /**
- * Drives your own avatar and the camera. Positions are written straight to the
- * SVG each frame, so walking never re-renders React, and each step is reported
+ * Drives your own avatar. Each step is handed to the view to draw and reported
  * to the network layer so other people see you move.
  */
-export function useMovement({ svgRef, cameraRef, avatarRef, boxesRef, onSlot }: Options) {
+export function useMovement(makeView: () => WalkView | null) {
   useEffect(() => {
-    const svg = svgRef.current, camera = cameraRef.current, avatar = avatarRef.current;
-    if (!svg || !camera || !avatar) return;
+    const view = makeView();
+    if (!view) return;
 
     const pos: Point = { ...START };
     let path: Point[] = [];
     const held = new Set<string>();
-    let zone = zoneAt(pos.x, pos.y), slot = -1, raf = 0, running = false, last = 0;
-    const mobile = window.matchMedia("(max-width: 900px)");
-    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)");
-    const cam = { x: CENTRE.x, y: CENTRE.y, z: 1 };
-
-    function cameraGoal() {
-      if (useHq.getState().overview) return { x: CENTRE.x, y: CENTRE.y, z: 1 };
-      const [sx, sy] = project(pos.x, pos.y);
-      const zoom = useHq.getState().zoom;
-      if (mobile.matches) return { x: sx, y: sy - 14, z: 2.1 * zoom };
-      // The floor is large, so the camera stays close and follows you. "Whole floor" zooms back out.
-      return { x: sx, y: sy - 20, z: 1.55 * zoom };
-    }
+    let zone = zoneAt(pos.x, pos.y), raf = 0, running = false, last = 0;
     function updateNearSeat() {
       let best: string | null = null, bestD = 1.0;
       for (const s of SEATS) { const d = Math.hypot(s.x - pos.x, s.y - pos.y); if (d < bestD) { bestD = d; best = s.furniture; } }
@@ -55,13 +52,7 @@ export function useMovement({ svgRef, cameraRef, avatarRef, boxesRef, onSlot }: 
     }
     function updateSlot() {
       updateNearSeat();
-      const next = slotFor(pos, boxesRef.current);
-      if (next !== slot) { slot = next; onSlot(next); }
-    }
-    function draw() {
-      const [sx, sy] = project(pos.x, pos.y);
-      avatar!.setAttribute("transform", `translate(${sx.toFixed(2)} ${sy.toFixed(2)})`);
-      camera!.setAttribute("transform", `translate(${CENTRE.x} ${CENTRE.y}) scale(${cam.z.toFixed(4)}) translate(${(-cam.x).toFixed(2)} ${(-cam.y).toFixed(2)})`);
+      view!.moved?.(pos);
     }
     // Resting: sitting on the sofa or asleep on a bed. `restFrom` is where you were standing before.
     let pokes: number[] = [];
@@ -85,10 +76,11 @@ export function useMovement({ svgRef, cameraRef, avatarRef, boxesRef, onSlot }: 
     const leaveOverview = () => { if (useHq.getState().overview) useHq.getState().setOverview(false); };
 
     function frame(now: number) {
-      const dt = Math.min(0.05, (now - last) / 1000);
+      const dt = Math.min(0.12, (now - last) / 1000); // slow devices still walk at normal speed
       last = now;
       let moving = false, kx = 0, ky = 0;
       for (const k of held) { kx += KEY_DIRS[k][0]; ky += KEY_DIRS[k][1]; }
+      if ((kx || ky) && view!.steer) [kx, ky] = view!.steer(kx, ky);
       if (kx || ky) {
         path = [];
         const len = Math.hypot(kx, ky), stepX = (kx / len) * SPEED * dt, stepY = (ky / len) * SPEED * dt;
@@ -122,17 +114,13 @@ export function useMovement({ svgRef, cameraRef, avatarRef, boxesRef, onSlot }: 
           if (z) useHq.getState().selectZone(z);
         }
       }
-      avatar!.classList.toggle("is-walking", moving);
       // Coming to a stop in the Sleeping Quarters puts you to bed.
       if (wasMoving && !moving && !held.size && !path.length && zone === "nap") rest("sleep", BED_FEET);
       // Arriving at a seat you clicked sits you down on it.
       if (wasMoving && !moving && !held.size && !path.length && pendingSeat) { const id = pendingSeat; pendingSeat = null; sitOn(id); }
       wasMoving = moving;
 
-      const goal = cameraGoal(), k = reduce.matches ? 1 : 1 - Math.exp(-dt * 3.2);
-      cam.x += (goal.x - cam.x) * k; cam.y += (goal.y - cam.y) * k; cam.z += (goal.z - cam.z) * k;
-      const settled = Math.abs(goal.x - cam.x) < 0.2 && Math.abs(goal.y - cam.y) < 0.2 && Math.abs(goal.z - cam.z) < 0.002;
-      draw();
+      const settled = view!.render(pos, moving, dt);
       if (moving || held.size || path.length || !settled) raf = requestAnimationFrame(frame);
       else running = false;
     }
@@ -173,39 +161,33 @@ export function useMovement({ svgRef, cameraRef, avatarRef, boxesRef, onSlot }: 
     const onBlur = () => held.clear();
 
     function onClick(e: MouseEvent) {
-      const target = e.target as Element;
-      // Clicking a person opens a private chat with them.
+      const hit = view!.pick(e);
+      if (!hit) return;
       // Poking your own chibi makes it react. Poke it too many times and it gets dizzy.
-      if (target.closest(".avatar")) {
+      if (hit.kind === "self") {
         const now = performance.now();
         pokes = pokes.filter((t) => now - t < 3000); pokes.push(now);
         const dizzy = pokes.length >= 5;
-        avatar!.classList.remove("is-boing", "is-dizzy");
-        void avatar!.getBoundingClientRect(); // restart the animation
-        avatar!.classList.add(dizzy ? "is-dizzy" : "is-boing");
+        view!.poke(dizzy);
         const reactions = ["laugh", "wow", "shy", "love", "happy"] as const;
         react(dizzy ? "cry" : reactions[Math.floor(Math.random() * reactions.length)]);
         if (dizzy) { pokes = []; useHq.getState().showBubble(useHq.getState().me?.id ?? "", "Stop poking me! 😵", false); }
         return;
       }
-      const person = target.closest<SVGGElement>("[data-peer]");
-      if (person?.dataset.peer) { useHq.getState().selectPeer(person.dataset.peer); return; }
+      // Clicking a teammate opens their card: greet, message or challenge them.
+      if (hit.kind === "peer") { useHq.getState().selectPeer(hit.id); return; }
       if (useHq.getState().selectedPeer) useHq.getState().selectPeer(null);
       // Clicking an arcade cabinet walks you into the Recreation Room, which opens the arcade.
-      if (target.closest("[data-open='game']")) { walkTo(ARCADE_SPOT); return; }
-      const seat = target.closest<SVGGElement>("[data-seat]");
-      if (seat?.dataset.seat) { goSit(seat.dataset.seat); return; }
-      const ctm = camera!.getScreenCTM();
-      if (!ctm) return;
-      const p = new DOMPoint(e.clientX, e.clientY).matrixTransform(ctm.inverse());
-      const f = sceneToFloor(p.x, p.y);
+      if (hit.kind === "arcade") { walkTo(ARCADE_SPOT); return; }
+      if (hit.kind === "seat") { goSit(hit.id); return; }
+      const f = hit.point;
       if (f.x < -0.6 || f.y < -0.6 || f.x > FLOOR.width + 0.6 || f.y > FLOOR.depth + 0.6) return;
       walkTo(f);
     }
 
     const unsubscribe = useHq.subscribe((s, prev) => {
       if (s.walkRequest && s.walkRequest !== prev.walkRequest) walkTo(zoneEntry(s.walkRequest.zone));
-      if (s.overview !== prev.overview || s.zoom !== prev.zoom) kick();
+      if (s.overview !== prev.overview || s.zoom !== prev.zoom) { view.refresh?.(); kick(); }
       if (s.poseRequest && s.poseRequest !== prev.poseRequest) {
         if (s.poseRequest.pose === "sit") goSit(s.poseRequest.seat ?? "lounge-sofa"); else { pendingSeat = null; getUp(); }
         kick();
@@ -217,15 +199,16 @@ export function useMovement({ svgRef, cameraRef, avatarRef, boxesRef, onSlot }: 
       e.preventDefault();
       useHq.getState().zoomBy(e.deltaY < 0 ? 1.1 : 1 / 1.1);
     }
-    svg.addEventListener("wheel", onWheel, { passive: false });
+    const target = view.element as HTMLElement;
+    target.addEventListener("wheel", onWheel, { passive: false });
     window.addEventListener("keydown", onKeyDown); window.addEventListener("keyup", onKeyUp); window.addEventListener("blur", onBlur);
-    svg.addEventListener("click", onClick); mobile.addEventListener("change", kick);
+    target.addEventListener("click", onClick as EventListener);
 
-    Object.assign(cam, cameraGoal()); updateSlot(); draw();
+    updateSlot(); view.render(pos, false, 0); kick();
     return () => {
-      cancelAnimationFrame(raf); unsubscribe(); svg.removeEventListener("wheel", onWheel);
+      cancelAnimationFrame(raf); unsubscribe(); target.removeEventListener("wheel", onWheel);
       window.removeEventListener("keydown", onKeyDown); window.removeEventListener("keyup", onKeyUp); window.removeEventListener("blur", onBlur);
-      svg.removeEventListener("click", onClick); mobile.removeEventListener("change", kick);
+      target.removeEventListener("click", onClick as EventListener);
     };
-  }, [svgRef, cameraRef, avatarRef, boxesRef, onSlot]);
+  }, [makeView]);
 }

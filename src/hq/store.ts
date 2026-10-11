@@ -67,7 +67,7 @@ interface State {
   pongMenu: boolean;
   pong: { opp: string; name: string; stage: "inviting" | "invited" | "playing"; host: boolean } | null;
   /** Voice chat: whether I am in, muted, who I am connected to and who is talking. */
-  voice: { on: boolean; muted: boolean; error: string; links: Record<string, "connecting" | "connected" | "failed">; speaking: string[] };
+  voice: { on: boolean; muted: boolean; /** Other people's voices are silenced on this device. */ deaf: boolean; error: string; links: Record<string, "connecting" | "connected" | "failed">; speaking: string[] };
   shopOpen: boolean;
   setShopOpen: (open: boolean) => void;
   /** A short "+10 coins" style message beside the coin counter. */
@@ -160,7 +160,7 @@ export const useHq = create<State>((set, get) => ({
   selectPeer: (selectedPeer) => set({ selectedPeer }),
   pong: null,
   pongMenu: false,
-  voice: { on: false, muted: false, error: "", links: {}, speaking: [] },
+  voice: { on: false, muted: false, deaf: false, error: "", links: {}, speaking: [] },
   shopOpen: false,
   setShopOpen: (shopOpen) => set({ shopOpen }),
   toast: null,

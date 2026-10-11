@@ -80,7 +80,7 @@ function announceTakeover() {
 }
 function stepOut() {
   window.clearInterval(takeoverTimer);
-  void import("./voice").then((v) => v.leaveVoice()).catch(() => undefined);
+  void import("./voice").then((v) => v.stopListening()).catch(() => undefined);
   transport?.leave(); transport = null;
   useHq.setState({ joined: false, kicked: true, peers: {}, gameOpen: false, sheetOpen: false });
 }
@@ -155,6 +155,7 @@ export async function joinOffice(joining: Profile): Promise<void> {
   });
   useHq.getState().setJoined(true);
   void refreshPush();
+  void import("./voice").then((v) => v.startListening()).catch(() => undefined); // hear whoever is talking, without joining
   announceTakeover();
   window.setTimeout(() => { const mine = useHq.getState().me; if (mine) transport?.updateProfile(mine, myPos); }, 1500); // in case an older device of yours just left
   window.clearInterval(takeoverTimer);

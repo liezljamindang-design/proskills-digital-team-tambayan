@@ -47,3 +47,10 @@ export async function signOut(): Promise<void> {
   const supabase = await getSupabase();
   await supabase.auth.signOut();
 }
+
+/** Sets a new password for whoever is signed in. */
+export async function changePassword(password: string): Promise<void> {
+  const supabase = await getSupabase();
+  const { error } = await supabase.auth.updateUser({ password });
+  if (error) throw new Error(error.message);
+}

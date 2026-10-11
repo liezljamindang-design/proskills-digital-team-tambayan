@@ -1,6 +1,6 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { HQ } from "../config";
-import { accountsEnabled, currentAccount, saveToAccount, signIn, signUp, type Account } from "../net/auth";
+import { accountsEnabled, changePassword, currentAccount, saveToAccount, signIn, signOut, signUp, type Account } from "../net/auth";
 import { joinOffice, liveMode, updateMyProfile } from "../net/session";
 import { DEFAULT_LOOK } from "../office/Chibi";
 import { useHq } from "../store";
@@ -76,13 +76,16 @@ export function Welcome() {
             onCancel={joined ? () => setEditing(false) : undefined}
           />
         )}
+        {!checking && !needsSignIn && account && (
+          <AccountBox email={account.email} />
+        )}
       </div>
     </Dialog>
   );
 }
 
 function SignIn({ onSignedIn, onGuest }: { onSignedIn: (account: Account) => void; onGuest: () => void }) {
-  const [mode, setMode] = useState<"up" | "in">("up");
+  const [mode, setMode] = useState<"up" | "in">("in");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
@@ -118,8 +121,8 @@ function SignIn({ onSignedIn, onGuest }: { onSignedIn: (account: Account) => voi
   return (
     <form className="inquiry" onSubmit={submit} noValidate>
       <div className="chips" role="group" aria-label="Account">
-        <button type="button" className="service-chip" aria-pressed={mode === "up"} onClick={() => { setMode("up"); setError(""); }}>I'm new: create account</button>
         <button type="button" className="service-chip" aria-pressed={mode === "in"} onClick={() => { setMode("in"); setError(""); }}>I have an account</button>
+        <button type="button" className="service-chip" aria-pressed={mode === "up"} onClick={() => { setMode("up"); setError(""); }}>I'm new: create account</button>
       </div>
       <p>{mode === "up" ? "Create an account once and your name and chibi are remembered on any device." : "Welcome back! Sign in to pick up your chibi."}</p>
       <div className="field"><label htmlFor="si-email">Email</label><input id="si-email" type="email" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} /></div>
@@ -129,5 +132,47 @@ function SignIn({ onSignedIn, onGuest }: { onSignedIn: (account: Account) => voi
       <button type="submit" className="btn-primary inquiry-submit" disabled={busy}>{busy ? "One moment…" : mode === "up" ? "Create account" : "Sign in"}</button>
       <button type="button" className="text-btn" onClick={onGuest}>Just visiting? Continue as a guest</button>
     </form>
+  );
+}
+
+/** For signed-in people: change your password, or sign out of this browser. */
+function AccountBox({ email }: { email: string }) {
+  const [open, setOpen] = useState(false);
+  const [password, setPassword] = useState("");
+  const [again, setAgain] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+  const [done, setDone] = useState(false);
+
+  async function submit(e: FormEvent) {
+    e.preventDefault();
+    setDone(false);
+    if (password.length < 6) return setError("Use a password of at least 6 characters.");
+    if (password !== again) return setError("The two passwords don't match.");
+    setBusy(true); setError("");
+    try { await changePassword(password); setDone(true); setPassword(""); setAgain(""); }
+    catch (err) {
+      const message = err instanceof Error ? err.message : "";
+      setError(/different from the old/i.test(message) ? "That is already your password. Choose a different one." : `Couldn't change the password${message ? `: ${message}` : "."}`);
+    } finally { setBusy(false); }
+  }
+
+  return (
+    <section className="account-box" aria-label="Your account">
+      <p className="muted">Signed in as <strong>{email}</strong></p>
+      <div className="account-actions">
+        <button type="button" className="btn-secondary" aria-expanded={open} onClick={() => setOpen((o) => !o)}>Change password</button>
+        <button type="button" className="btn-secondary" onClick={() => { void signOut().finally(() => window.location.reload()); }}>Sign out</button>
+      </div>
+      {open && (
+        <form className="inquiry" onSubmit={submit} noValidate>
+          <div className="field"><label htmlFor="pw-new">New password</label><input id="pw-new" type="password" autoComplete="new-password" value={password} onChange={(e) => setPassword(e.target.value)} /></div>
+          <div className="field"><label htmlFor="pw-again">Type it again</label><input id="pw-again" type="password" autoComplete="new-password" value={again} onChange={(e) => setAgain(e.target.value)} /></div>
+          {error && <p className="field-error" role="alert">{error}</p>}
+          {done && <p className="muted" role="status">Password changed. Use the new one next time you sign in.</p>}
+          <button type="submit" className="btn-primary inquiry-submit" disabled={busy}>{busy ? "Saving…" : "Save new password"}</button>
+        </form>
+      )}
+    </section>
   );
 }

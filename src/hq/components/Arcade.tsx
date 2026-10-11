@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { accountsEnabled, saveToAccount } from "../net/auth";
 import { say, updateMyProfile } from "../net/session";
 import { ChibiFull, ChibiPortrait } from "../office/Chibi";
 import { zoneAt } from "../office/engine";
@@ -38,6 +39,7 @@ export function Arcade() {
     if (!won || !me) return;
     if (me.best === undefined || moves < me.best) {
       updateMyProfile({ ...me, best: moves });
+      if (accountsEnabled) void saveToAccount({ best: moves }).catch(() => undefined);
       say(`I finished Memory Match in ${moves} moves! 🎉`);
     }
     // Only when the game is won; `me` and `moves` are read at that moment.

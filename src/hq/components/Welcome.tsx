@@ -1,4 +1,4 @@
-import { useEffect, useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent, useRef } from "react";
 import { HQ } from "../config";
 import { accountsEnabled, changePassword, currentAccount, saveToAccount, signIn, signOut, signUp, type Account } from "../net/auth";
 import { joinOffice, liveMode, updateMyProfile } from "../net/session";
@@ -41,9 +41,10 @@ export function Welcome() {
     const profile: Profile = { id: account?.id ?? guestId(), name, role, look, birthday, birthYear, best: me?.best ?? account?.saved.best, status: me?.status, act: joined ? me?.act : undefined };
     setFailed("");
     try {
+      // Saved to the account first, so the chibi is remembered even if the live connection fails.
+      if (account) void saveToAccount({ name, role, look, birthday: birthday ?? "", birthYear: birthYear ?? null, best: profile.best });
       if (joined) updateMyProfile(profile);
       else { useHq.getState().setMe(profile); await joinOffice(profile); }
-      if (account) void saveToAccount({ name, role, look, birthday: birthday ?? "", birthYear: birthYear ?? null, best: profile.best });
       setEditing(false);
     } catch (err) {
       setFailed(`Couldn't connect to the office. Try again in a moment.${err instanceof Error && err.message ? ` (Details: ${err.message})` : ""}`);
@@ -52,8 +53,26 @@ export function Welcome() {
 
   const needsSignIn = accountsEnabled && !account && !guest && !joined;
   const open = !joined || editing;
-  const initial: Profile | null =
-    me ?? (account?.saved.name ? { id: account.id, name: account.saved.name, role: account.saved.role ?? "", look: { ...DEFAULT_LOOK, ...account.saved.look }, best: account.saved.best, birthday: account.saved.birthday || undefined, birthYear: account.saved.birthYear ?? undefined } : null);
+  // Signed in: what is saved on the account wins over whatever this browser remembers.
+  const fromAccount: Profile | null = account?.saved.name
+    ? { id: account.id, name: account.saved.name, role: account.saved.role ?? "", look: { ...DEFAULT_LOOK, ...account.saved.look }, best: account.saved.best, birthday: account.saved.birthday || undefined, birthYear: account.saved.birthYear ?? undefined }
+    : null;
+  const initial: Profile | null = joined ? me : fromAccount ?? (account ? null : me);
+
+  // A returning teammate with a saved chibi walks straight in, without seeing the editor again.
+  const autoTried = useRef(false);
+  const [entering, setEntering] = useState(false);
+  useEffect(() => {
+    if (!fromAccount || joined || autoTried.current) return;
+    autoTried.current = true;
+    setEntering(true);
+    useHq.getState().setMe(fromAccount);
+    joinOffice(fromAccount)
+      .catch((err) => setFailed(`Couldn't connect to the office. Try again in a moment.${err instanceof Error && err.message ? ` (Details: ${err.message})` : ""}`))
+      .finally(() => setEntering(false));
+    // Runs once, when the account first arrives.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [account, joined]);
 
   return (
     <Dialog open={open} onClose={() => { if (joined) setEditing(false); }} labelledBy="welcome-title">
@@ -67,8 +86,8 @@ export function Welcome() {
         {!checking && !needsSignIn && account && (
           <AccountBox email={account.email} />
         )}
-        {checking ? (
-          <p className="muted">Checking who you are…</p>
+        {checking || entering ? (
+          <p className="muted">{entering ? "Welcome back! Walking you in…" : "Checking who you are…"}</p>
         ) : needsSignIn ? (
           <SignIn onSignedIn={setAccount} onGuest={() => setGuest(true)} />
         ) : (

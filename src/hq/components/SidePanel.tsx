@@ -138,7 +138,7 @@ function PeoplePane() {
       {list.map((p) => (
         <li key={p.id}>
           <ChibiPortrait look={p.look} size={44} />
-          <div className="person-id"><strong><i className="pip pip-ok" aria-hidden="true" />{displayName(p)} <span className="presence">Online</span></strong><span>{p.role || "Team member"}{p.batch ? ` · Batch ${p.batch}` : ""} · {roomName(p.x, p.y)}</span><StatusTag status={statusOf(p, zoneAt(p.x, p.y))} /></div>
+          <div className="person-id"><strong><i className="pip pip-ok" aria-hidden="true" />{displayName(p)} <span className="presence">Online</span></strong><span>{p.role || "Team member"}{p.batch ? ` · Batch ${p.batch}` : ""} · {roomName(p.x, p.y)}{p.act?.radio ? ` · 🎧 ${String(p.act.radio).slice(0, 30)}` : ""}</span><StatusTag status={statusOf(p, zoneAt(p.x, p.y))} /></div>
           <button type="button" className="btn-secondary" onClick={() => openThread(p.id)}>Message</button>
         </li>
       ))}

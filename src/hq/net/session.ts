@@ -37,6 +37,7 @@ function changes(old: Profile, next: Profile): string[] {
   if (a.drink !== b.drink) out.push(b.drink ? `ordered ${DRINK[b.drink]}` : "finished their drink");
   if (Boolean(a.phone) !== Boolean(b.phone)) out.push(b.phone ? "is on their phone 📱" : "put their phone away");
   if (b.mood && a.mood !== b.mood) out.push(MOOD[b.mood]);
+  if (a.radio !== b.radio) out.push(b.radio ? `is listening to ${String(b.radio).slice(0, 40)} 🎧` : "turned the music off");
   if (old.batch !== next.batch && next.batch) out.push(`joined Batch ${next.batch}`);
   if (old.status !== next.status) out.push(next.status ? `is now: ${MANUAL[next.status].emoji} ${MANUAL[next.status].label}` : "cleared their status");
   return out;

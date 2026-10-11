@@ -83,6 +83,8 @@ export interface Act {
   drink?: Drink;
   phone?: boolean;
   mood?: Mood;
+  /** The radio station they are listening to, by name. */
+  radio?: string;
 }
 
 /** Someone else in the office. */

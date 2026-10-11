@@ -121,6 +121,8 @@ export interface Act {
   ball?: boolean;
   /** Using gym equipment: running on a treadmill or lifting weights. */
   gym?: "run" | "lift";
+  /** Playing a band instrument in the Music Room. */
+  band?: "drums" | "guitar" | "bass" | "mic";
   /** They have joined the voice chat. */
   voice?: boolean;
 }

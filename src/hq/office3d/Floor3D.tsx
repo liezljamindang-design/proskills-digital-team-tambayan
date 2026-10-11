@@ -4,6 +4,7 @@ import { isBirthday } from "../birthday";
 import { FLOOR, FURNITURE, HOOPS, POOL, SEATS, START } from "../data/office";
 import { useMovement, type Hit, type WalkView } from "../hooks/useMovement";
 import { zoneAt } from "../office/engine";
+import { myPosition } from "../net/session";
 import { statusOf } from "../status";
 import { useHq, type CamMode } from "../store";
 import type { Act, Look } from "../types";
@@ -80,7 +81,7 @@ export function Floor3D() {
           const holder = new THREE.Group();
           holder.userData = p.self ? { self: true } : { peer: p.id };
           scene.add(holder);
-          a = { holder, chibi: new THREE.Group(), sig: "", x: p.self ? START.x : p.x, y: p.self ? START.y : p.y, tx: p.x, ty: p.y, facing: p.self ? Math.PI : Math.PI / 4, moving: false, self: p.self };
+          a = { holder, chibi: new THREE.Group(), sig: "", x: p.self ? myPosition().x : p.x, y: p.self ? myPosition().y : p.y, tx: p.x, ty: p.y, facing: p.self ? Math.PI : Math.PI / 4, moving: false, self: p.self };
           actors.set(p.id, a);
         }
         if (a.sig !== sig) {
@@ -202,10 +203,17 @@ export function Floor3D() {
     const barMat = new THREE.MeshStandardMaterial({ color: "#3a4150", roughness: 0.5 }), plateMat = new THREE.MeshStandardMaterial({ color: "#e03131", roughness: 0.6 });
     const flying = new Map<string, { mesh: THREE.Mesh; from: THREE.Vector3; to: THREE.Vector3; t0: number; made: boolean; by: string }>();
     const RING_Y = 64 / UNIT;
-    function prop(a: Actor, name: "ball" | "barbell" | "ripple", on: boolean) {
+    function prop(a: Actor, name: "ball" | "barbell" | "ripple" | "axe", on: boolean, color = "#e8590c") {
       let m = a.holder.getObjectByName(name);
       if (on && !m) {
         if (name === "ball") { m = new THREE.Mesh(ballGeo, ballMat); m.position.set(0, 0.36, 0.3); }
+        else if (name === "axe") {
+          m = new THREE.Group();
+          const mk = (r: number, yy: number) => { const d = new THREE.Mesh(new THREE.CylinderGeometry(r, r, 0.035, 18), new THREE.MeshStandardMaterial({ color, roughness: 0.6 })); d.rotation.x = Math.PI / 2; d.position.y = yy; (m as THREE.Group).add(d); };
+          mk(0.11, 0); mk(0.08, 0.14);
+          const neck = new THREE.Mesh(new THREE.BoxGeometry(0.035, 0.42, 0.02), new THREE.MeshStandardMaterial({ color: "#6f4b2c" })); neck.position.y = 0.38; m.add(neck);
+          m.position.set(0.04, 0.3, 0.2); m.rotation.z = -1.0;
+        }
         else if (name === "ripple") { m = new THREE.Mesh(new THREE.TorusGeometry(0.34, 0.025, 6, 28), new THREE.MeshBasicMaterial({ color: "#ffffff", transparent: true, opacity: 0.8 })); m.rotation.x = Math.PI / 2; }
         else {
           m = new THREE.Group();
@@ -227,6 +235,14 @@ export function Floor3D() {
         tex = new THREE.CanvasTexture(cv); tex.colorSpace = THREE.SRGBColorSpace; foodTextures.set(emoji, tex);
       }
       return tex;
+    }
+    /** A music note that drifts up from anyone playing an instrument. */
+    function note(a: Actor, emoji: string | undefined, t: number) {
+      let sp = a.holder.getObjectByName("note") as THREE.Sprite | undefined;
+      if (!emoji) { if (sp) sp.visible = false; return; }
+      if (!sp) { sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: foodTexture(emoji), transparent: true, depthWrite: false })); sp.name = "note"; sp.scale.setScalar(0.22); a.holder.add(sp); }
+      const k = (t * 0.7 + a.x) % 1;
+      sp.visible = true; sp.position.set(0.28 + Math.sin(k * 6) * 0.06, 0.95 + k * 0.45, 0); sp.material.opacity = 1 - k;
     }
     function plate(a: Actor, emoji: string | undefined, t: number) {
       let sp = a.holder.getObjectByName("food") as THREE.Sprite | undefined;
@@ -297,7 +313,14 @@ export function Floor3D() {
           oy = -0.46 + Math.sin(t * 2.4 + a.x) * 0.035;
           if (ripple) { const k = (t * 0.9 + a.x) % 1; ripple.position.y = 0.055 - oy; ripple.scale.setScalar(0.8 + k * 0.9); (ripple as THREE.Mesh<THREE.TorusGeometry, THREE.MeshBasicMaterial>).material.opacity = 0.85 * (1 - k); }
         }
-        const gym = a.act?.gym;
+        const gym = a.act?.gym, band = a.act?.band;
+        if (band === "drums") { facing = 0; oy = 0.1; }
+        if (band === "mic" || band === "guitar" || band === "bass") facing = 0;
+        // The instrument in your hands is rebuilt when you swap guitar for bass.
+        const axeOn = band === "guitar" || band === "bass", old = a.holder.getObjectByName("axe");
+        if (old && old.userData.kind !== band) a.holder.remove(old);
+        const axe = prop(a, "axe", axeOn, band === "bass" ? "#1c7ed6" : "#e8590c"); if (axe && axeOn) axe.userData.kind = band;
+        note(a, band || piano ? "🎵" : undefined, t);
         if (gym === "run") { facing = Math.PI; oy = 4.6 / UNIT; }
         if (gym === "lift") facing = 0;
         prop(a, "ball", Boolean(a.act?.ball) && !shooting.has([...actors].find(([, v]) => v === a)?.[0] ?? ""));
@@ -308,7 +331,7 @@ export function Floor3D() {
         a.holder.position.set(a.x + ox, oy, a.y + oz);
         a.holder.rotation.y = facing;
         a.holder.visible = !(a.self && mode === "first");
-        animateChibi(a.chibi, t, { moving: a.moving || gym === "run" || swimming, lift: gym === "lift" ? liftK : undefined, play: piano, dance: partyOn || a.act?.mood === "dance" || (!pose && !gym && zoneAt(a.x, a.y) === "dance"), boing: a.boing, dizzy: a.dizzy });
+        animateChibi(a.chibi, t, { moving: a.moving || gym === "run" || swimming, lift: gym === "lift" ? liftK : undefined, play: piano || band === "drums", strum: band === "guitar" || band === "bass", sing: band === "mic", dance: partyOn || a.act?.mood === "dance" || (!pose && !gym && !band && zoneAt(a.x, a.y) === "dance"), boing: a.boing, dizzy: a.dizzy });
       }
 
       // Camera

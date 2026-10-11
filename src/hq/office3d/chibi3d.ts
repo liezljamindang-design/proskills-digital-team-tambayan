@@ -230,7 +230,7 @@ export function disposeChibi(root: THREE.Object3D) {
 }
 
 /** Moves the limbs for this moment: walking, dancing, a bounce after a poke, or gentle breathing. */
-export function animateChibi(root: THREE.Object3D, t: number, o: { moving: boolean; dance: boolean; boing?: number; dizzy?: number; lift?: number; play?: boolean }) {
+export function animateChibi(root: THREE.Object3D, t: number, o: { moving: boolean; dance: boolean; boing?: number; dizzy?: number; lift?: number; play?: boolean; strum?: boolean; sing?: boolean }) {
   const p = root.userData.parts as ChibiParts | undefined;
   if (!p || p.pose === "sleep") return;
   const baseY = p.pose === "sit" ? 0.08 : 0;
@@ -246,6 +246,8 @@ export function animateChibi(root: THREE.Object3D, t: number, o: { moving: boole
     p.armL.rotation.z = -0.28 - 1.6 - Math.sin(t * 8) * 0.4; p.armR.rotation.z = 0.28 + 1.6 - Math.sin(t * 8) * 0.4;
   } else { p.armL.rotation.z = -0.28; p.armR.rotation.z = 0.28; if (!o.moving) y += Math.sin(t * 2.2) * 0.008; }
   if (o.play) { p.armL.rotation.x = -1.25 + Math.sin(t * 9) * 0.22; p.armR.rotation.x = -1.25 + Math.sin(t * 9 + 2) * 0.22; tilt = Math.sin(t * 2) * 0.06; }
+  if (o.strum) { p.armR.rotation.x = -0.75 + Math.sin(t * 11) * 0.3; p.armL.rotation.x = -1.0; p.armL.rotation.z = -0.75; tilt = Math.sin(t * 2.5) * 0.07; }
+  if (o.sing) { p.armR.rotation.x = -1.9; tilt = Math.sin(t * 3) * 0.12; y += Math.abs(Math.sin(t * 3)) * 0.03; }
   if (o.lift !== undefined) { p.armL.rotation.z = -0.28 - 1.2 - o.lift * 1.5; p.armR.rotation.z = 0.28 + 1.2 + o.lift * 1.5; y -= (1 - o.lift) * 0.05; }
   if (o.boing !== undefined) { const k = (t - o.boing) / 0.55; if (k >= 0 && k < 1) y += Math.sin(k * Math.PI) * 0.35; }
   if (o.dizzy !== undefined) { const k = (t - o.dizzy) / 1.6; if (k >= 0 && k < 1) { spin = k * Math.PI * 4; tilt = Math.sin(k * Math.PI * 6) * 0.2; } }

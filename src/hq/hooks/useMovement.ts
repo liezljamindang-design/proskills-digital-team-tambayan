@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { HQ } from "../config";
 import { earnForMeeting } from "../economy";
 import { ARCADE_SPOT, BALL_SPOT, BED_FEET, FLOOR, FURNITURE, SEATS, START, type Seat } from "../data/office";
-import { openMeeting, pickUpBall, react, reportMove, setAct, shoot, updateMyProfile } from "../net/session";
+import { myPosition, openMeeting, pickUpBall, react, reportMove, setAct, shoot, updateMyProfile } from "../net/session";
 import { WORK_STATUSES } from "../status";
 import { canStand, findPath, SPEED, zoneAt, zoneEntry, type Point } from "../office/engine";
 import { useHq } from "../store";
@@ -41,7 +41,8 @@ export function useMovement(makeView: () => WalkView | null) {
     const view = makeView();
     if (!view) return;
 
-    const pos: Point = { ...START };
+    // Carry on from where you already are, so changing the view does not send you back to the entrance.
+    const pos: Point = useHq.getState().joined ? { ...myPosition() } : { ...START };
     let path: Point[] = [];
     const held = new Set<string>();
     let zone = zoneAt(pos.x, pos.y), raf = 0, running = false, last = 0;
@@ -72,7 +73,7 @@ export function useMovement(makeView: () => WalkView | null) {
     function getUp() {
       if (restFrom) { pos.x = restFrom.x; pos.y = restFrom.y; restFrom = null; updateSlot(); reportMove({ ...pos }); }
       const act = useHq.getState().me?.act;
-      if (act?.pose || act?.gym) setAct({ pose: undefined, at: undefined, gym: undefined });
+      if (act?.pose || act?.gym || act?.band) setAct({ pose: undefined, at: undefined, gym: undefined, band: undefined });
     }
     const leaveOverview = () => { if (useHq.getState().overview) useHq.getState().setOverview(false); };
 
@@ -166,10 +167,13 @@ export function useMovement(makeView: () => WalkView | null) {
     function workout(id: string) {
       const f = FURNITURE.find((q) => q.id === id);
       if (!f) return;
-      const run = f.kind === "treadmill", spot = run ? { x: f.x + f.w / 2, y: f.y + 0.8 } : { x: f.x + f.w / 2, y: f.y + f.h + 0.3 };
+      const run = f.kind === "treadmill", cx = f.x + f.w / 2;
+      // Where you end up: on the belt, on the drum stool, behind the mic, or just in front of the stand or the weights.
+      const spot = run ? { x: cx, y: f.y + 0.8 } : f.kind === "drums" ? { x: cx, y: f.y + 0.12 } : f.kind === "mic" ? { x: cx, y: f.y - 0.28 } : { x: cx, y: f.y + f.h + 0.3 };
+      const act = run ? { gym: "run" as const } : f.kind === "weights" ? { gym: "lift" as const } : { band: f.kind === "drums" ? "drums" as const : f.kind === "mic" ? "mic" as const : f.id === "bass" ? "bass" as const : "guitar" as const };
       approach(run ? { x: spot.x, y: f.y + f.h + 0.25 } : spot, () => {
         restFrom = { ...pos }; pos.x = spot.x; pos.y = spot.y; path = [];
-        updateSlot(); reportMove({ ...pos }); setAct({ gym: run ? "run" : "lift" });
+        updateSlot(); reportMove({ ...pos }); setAct({ gym: undefined, band: undefined, ...act });
       });
     }
     function walkTo(target: Point) { pendingSeat = null; pendingDo = null; leaveOverview(); getUp(); path = findPath(pos, target); kick(); }
@@ -222,7 +226,7 @@ export function useMovement(makeView: () => WalkView | null) {
       if (s.walkRequest && s.walkRequest !== prev.walkRequest) walkTo(zoneEntry(s.walkRequest.zone));
       if (s.overview !== prev.overview || s.zoom !== prev.zoom) { view.refresh?.(); kick(); }
       if (s.poseRequest && s.poseRequest !== prev.poseRequest) {
-        if (s.poseRequest.pose === "sit") { const want = s.poseRequest.seat ?? "lounge-sofa"; if (/^(treadmill|weights)/.test(want)) workout(want); else if (want === "ball") approach(BALL_SPOT, pickUpBall); else goSit(want); } else { pendingSeat = null; getUp(); }
+        if (s.poseRequest.pose === "sit") { const want = s.poseRequest.seat ?? "lounge-sofa"; if (/^(treadmill|weights|drums|guitar|bass|band-mic)/.test(want)) workout(want); else if (want === "ball") approach(BALL_SPOT, pickUpBall); else goSit(want); } else { pendingSeat = null; getUp(); }
         kick();
       }
     });

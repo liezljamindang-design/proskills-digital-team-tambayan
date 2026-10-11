@@ -23,7 +23,7 @@ export function RoomCard() {
   const requestPose = useHq((s) => s.requestPose);
   const hoopScore = useHq((s) => s.hoopScore);
   const [menuOpen, setMenuOpen] = useState(false);
-  if (!me || !zone || !["cafe", "lounge", "nap", "huddle", "focus", "court", "gym", "canteen"].includes(zone)) return null;
+  if (!me || !zone || !["cafe", "lounge", "nap", "huddle", "focus", "court", "gym", "canteen", "music"].includes(zone)) return null;
   const act = me.act ?? {};
   const name = ZONES.find((z) => z.id === zone)!.name;
 
@@ -54,6 +54,19 @@ export function RoomCard() {
             </div>
           )}
           {act.food && !menuOpen && <div className="room-actions"><button type="button" className="btn-primary" onClick={() => setMenuOpen(true)}>Order something else</button><button type="button" className="btn-secondary" onClick={() => setAct({ food: undefined })}>Finish eating</button></div>}
+        </>
+      )}
+
+      {zone === "music" && (
+        <>
+          <p>{act.band ? `🎵 You're on ${act.band === "mic" ? "vocals" : act.band}! Move to stop.` : "Tap an instrument to play it, or pick one here."}</p>
+          {act.band
+            ? <button type="button" className="btn-secondary" onClick={() => requestPose("stand")}>Stop playing</button>
+            : <div className="room-actions">
+                {([["drums", "🥁 Drums"], ["guitar", "🎸 Guitar"], ["bass", "🎸 Bass"], ["band-mic", "🎤 Sing"], ["piano-stool", "🎹 Piano"]] as const).map(([id, label]) => (
+                  <button key={id} type="button" className="service-chip" onClick={() => requestPose("sit", id)}>{label}</button>
+                ))}
+              </div>}
         </>
       )}
 

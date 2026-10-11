@@ -164,7 +164,7 @@ function furniture(parent: THREE.Object3D, f: FurnitureItem) {
     default: return;
   }
   if (SEAT_IDS.has(f.id)) g.userData.seat = f.id;
-  if (f.kind === "treadmill" || f.kind === "weights") g.userData.gym = f.id;
+  if (["treadmill", "weights", "drums", "guitar", "mic"].includes(f.kind)) g.userData.gym = f.id;
   if (f.kind === "hoop") g.userData.hoop = true;
   if (f.kind === "pingpong") g.userData.pingpong = true;
   parent.add(g);

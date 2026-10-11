@@ -74,6 +74,13 @@ export function Composer({ id, placeholder, onSend, attachments }: Props) {
         </div>
         <label className="sr-only" htmlFor={id}>{placeholder}</label>
         <textarea id={id} ref={boxRef} rows={1} value={text} maxLength={280} autoComplete="off" placeholder={placeholder} onChange={(e) => setText(e.target.value)}
+          onPaste={(e) => {
+            // A copied picture or screenshot is attached as a photo. Ordinary text pastes as usual.
+            const file = attachments ? [...e.clipboardData.files].find((f) => f.type.startsWith("image/")) : undefined;
+            if (file) { e.preventDefault(); void pickPhoto(file); }
+          }}
+          onDragOver={(e) => { if (attachments && e.dataTransfer.types.includes("Files")) e.preventDefault(); }}
+          onDrop={(e) => { const file = attachments ? [...e.dataTransfer.files].find((f) => f.type.startsWith("image/")) : undefined; if (file) { e.preventDefault(); void pickPhoto(file); } }}
           onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) { e.preventDefault(); e.currentTarget.form?.requestSubmit(); } }} />
         <button type="submit" className="btn-primary" disabled={!text.trim() && !photo}>Send</button>
       </div>

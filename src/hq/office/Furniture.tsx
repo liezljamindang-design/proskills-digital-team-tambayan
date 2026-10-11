@@ -217,7 +217,18 @@ function Piano({ x, y, w, h }: FurnitureItem) {
   return (<><Box x={x} y={y} w={w} h={h - 0.2} z1={20} m="dark" /><Box x={x + 0.06} y={y + h - 0.2} w={w - 0.12} h={0.2} z0={12} z1={14.5} m="desk" /><Box x={x + 0.06} y={y + h - 0.2} w={0.07} h={0.18} z1={12} m="dark" /><Box x={x + w - 0.13} y={y + h - 0.2} w={0.07} h={0.18} z1={12} m="dark" /></>);
 }
 
+function Drums({ x, y, w, h }: FurnitureItem) {
+  return (<><Box x={x + 0.04} y={y + 0.12} w={0.05} h={0.05} z1={30} m="desk" /><Box x={x + w - 0.1} y={y + 0.12} w={0.05} h={0.05} z1={32} m="desk" /><Box x={x - 0.06} y={y + 0.06} w={0.28} h={0.22} z0={29} z1={30.5} m="gold" /><Box x={x + w - 0.22} y={y + 0.06} w={0.28} h={0.22} z0={31} z1={32.5} m="gold" /><Box x={x + w / 2 - 0.24} y={y + 0.2} w={0.2} h={0.2} z0={14} z1={21} m="soft" /><Box x={x + w / 2 + 0.04} y={y + 0.2} w={0.2} h={0.2} z0={14} z1={21} m="soft" /><Box x={x + w / 2 - 0.2} y={y + h - 0.36} w={0.4} h={0.3} z1={16} m="soft" /><Box x={x + 0.08} y={y + 0.3} w={0.24} h={0.24} z0={8} z1={19} m="soft" /><Box x={x + w - 0.34} y={y + 0.3} w={0.28} h={0.28} z1={16} m="soft" /></>);
+}
+function Guitar({ x, y, w, h }: FurnitureItem) {
+  return (<><Box x={x} y={y} w={w} h={h} z1={1.5} m="dark" /><Box x={x + 0.04} y={y + h / 2 - 0.03} w={w - 0.08} h={0.06} z0={3} z1={15} m="gold" /><Box x={x + w / 2 - 0.02} y={y + h / 2 - 0.02} w={0.04} h={0.04} z0={15} z1={40} m="trunk" /><Box x={x + w / 2 - 0.04} y={y + h / 2 - 0.02} w={0.08} h={0.04} z0={40} z1={45} m="dark" /></>);
+}
+function Mic({ x, y, w, h }: FurnitureItem) {
+  return (<><Box x={x - 0.03} y={y - 0.03} w={w + 0.06} h={h + 0.06} z1={1.2} m="dark" /><Box x={x + w / 2 - 0.012} y={y + h / 2 - 0.012} w={0.024} h={0.024} z0={1.2} z1={40} m="desk" /><Box x={x + w / 2 - 0.035} y={y + h / 2 - 0.035} w={0.07} h={0.07} z0={40} z1={45} m="dark" /></>);
+}
+
 const RENDERERS = {
+  drums: Drums, guitar: Guitar, mic: Mic,
   treadmill: Treadmill, weights: Weights, bag: Bag, hoop: Hoop, speaker: Speaker, piano: Piano,
   desk: Desk, chair: Chair, plant: Plant, sofa: Sofa, table: Table, "low-table": LowTable, counter: Counter, lamp: Lamp,
   arcade: Arcade, pingpong: PingPong, beanbag: BeanBag, stool: Stool, bed: Bed, shelf: Shelf, fridge: Fridge, reception: Reception, foosball: Foosball, tree: Tree,

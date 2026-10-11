@@ -10,7 +10,7 @@ export interface Zone {
 
 export type FurnitureKind =
   | "desk" | "chair" | "plant" | "sofa" | "table" | "low-table" | "counter" | "lamp"
-  | "arcade" | "pingpong" | "beanbag" | "stool" | "bed" | "shelf" | "fridge" | "reception" | "foosball" | "tree" | "treadmill" | "weights" | "bag" | "hoop" | "speaker" | "piano";
+  | "arcade" | "pingpong" | "beanbag" | "stool" | "bed" | "shelf" | "fridge" | "reception" | "foosball" | "tree" | "treadmill" | "weights" | "bag" | "hoop" | "speaker" | "piano" | "drums" | "guitar" | "mic";
 
 /** One object on the floor. Its footprint is both how it is drawn and what the avatar bumps into. */
 export interface FurnitureItem {

@@ -74,6 +74,33 @@ function furniture(parent: THREE.Object3D, f: FurnitureItem) {
       const ring = new THREE.Mesh(new THREE.TorusGeometry(0.16, 0.018, 8, 24), material("#ff922b")); ring.rotation.x = Math.PI / 2; ring.position.set(cx + dir * 0.28, 64 / UNIT, y + h / 2); g.add(ring);
       break;
     }
+    case "drums": {
+      const drum = (dx: number, dy: number, r: number, z0: number, z1: number, color: string) => {
+        const m = new THREE.Mesh(new THREE.CylinderGeometry(r, r, (z1 - z0) / UNIT, 20), material(color)); m.position.set(x + dx, (z0 + z1) / 2 / UNIT, y + dy); m.castShadow = true; g.add(m);
+        const skin = new THREE.Mesh(new THREE.CylinderGeometry(r * 0.92, r * 0.92, 0.01, 20), material("#f4f1e8")); skin.position.set(x + dx, z1 / UNIT + 0.005, y + dy); g.add(skin);
+      };
+      const kick = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.22, 0.3, 24), material("#e03131")); kick.rotation.x = Math.PI / 2; kick.position.set(x + w / 2, 0.22, y + h - 0.2); kick.castShadow = true; g.add(kick);
+      const head = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.2, 0.01, 24), material("#f4f1e8")); head.rotation.x = Math.PI / 2; head.position.set(x + w / 2, 0.22, y + h - 0.045); g.add(head);
+      drum(0.2, 0.42, 0.13, 14, 19, "#e03131"); drum(w - 0.2, 0.42, 0.15, 6, 16, "#e03131"); drum(w / 2 - 0.13, 0.3, 0.1, 17, 21, "#e03131"); drum(w / 2 + 0.13, 0.3, 0.1, 17, 21, "#e03131");
+      for (const [cx, cz] of [[0.08, 30], [w - 0.08, 32]] as const) {
+        box(g, x + cx - 0.012, y + 0.17, 0.024, 0.024, 0, cz, "#c9d1dc");
+        const cym = new THREE.Mesh(new THREE.CylinderGeometry(0.15, 0.15, 0.012, 20), material("#f4c21f", { metalness: 0.7, roughness: 0.3 })); cym.position.set(x + cx, cz / UNIT, y + 0.18); cym.rotation.z = cx < 0.5 ? 0.15 : -0.15; g.add(cym);
+      }
+      box(g, x + w / 2 - 0.12, y + 0.02, 0.24, 0.2, 0, 11, "dark"); // the drummer's stool
+      break;
+    }
+    case "guitar": {
+      const bass = f.id === "bass", body = bass ? "#1c7ed6" : "#e8590c", cx = x + w / 2, cy = y + h / 2;
+      box(g, cx - 0.1, cy - 0.1, 0.2, 0.2, 0, 1.2, "dark"); box(g, cx - 0.01, cy - 0.06, 0.02, 0.02, 0, 16, "dark");
+      const lower = new THREE.Mesh(new THREE.CylinderGeometry(0.11, 0.11, 0.035, 20), material(body)); lower.rotation.x = Math.PI / 2; lower.position.set(cx, 0.2, cy); lower.castShadow = true; g.add(lower);
+      const upper = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.08, 0.035, 20), material(body)); upper.rotation.x = Math.PI / 2; upper.position.set(cx, 0.34, cy); g.add(upper);
+      box(g, cx - 0.018, cy - 0.008, 0.036, 0.022, 13, bass ? 44 : 38, "#6f4b2c"); box(g, cx - 0.03, cy - 0.01, 0.06, 0.026, bass ? 44 : 38, bass ? 49 : 43, "dark");
+      break;
+    }
+    case "mic":
+      box(g, x - 0.04, y - 0.04, w + 0.08, h + 0.08, 0, 1, "dark"); box(g, x + w / 2 - 0.01, y + h / 2 - 0.01, 0.02, 0.02, 1, 40, "#c9d1dc");
+      ball(g, x + w / 2, y + h / 2 + 0.02, 42, 0.04, "#2b3140");
+      break;
     case "speaker":
       box(g, x, y, w, h, 0, 32, "dark");
       for (const [z, r] of [[22, 0.09], [10, 0.14]] as const) { const cone = new THREE.Mesh(new THREE.CylinderGeometry(r, r, 0.02, 20), material("#555c6b")); cone.rotation.x = Math.PI / 2; cone.position.set(x + w / 2, z / UNIT, y + h + 0.005); g.add(cone); }

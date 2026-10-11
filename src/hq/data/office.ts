@@ -33,7 +33,7 @@ export const ZONES: Zone[] = [
   { id: "pool", key: 13, name: "Swimming Pool", summary: "Walk into the water for a swim, or take a lounger.", rect: { x: 7.4, y: 14.6, w: 5, h: 7.4 } },
   { id: "plaza", key: 14, name: "Main Entrance", summary: "The front door. Everyone arrives here.", rect: { x: 12.8, y: 14.6, w: 8.4, h: 7.4 } },
   { id: "canteen", key: 15, name: "Canteen", summary: "Tables for lunch and merienda together.", rect: { x: 21.6, y: 14.6, w: 6, h: 7.4 } },
-  { id: "music", key: 16, name: "Music Room", summary: "A piano, speakers and a little stage for karaoke.", rect: { x: 28, y: 14.6, w: 6, h: 7.4 } },
+  { id: "music", key: 16, name: "Music Room", summary: "A full band set: drums, guitar, bass, a mic and a piano.", rect: { x: 28, y: 14.6, w: 6, h: 7.4 } },
 ];
 
 function workstation(id: string, x: number, y: number): FurnitureItem[] {
@@ -154,6 +154,10 @@ export const FURNITURE: FurnitureItem[] = [
   // Music Room
   { id: "piano", kind: "piano", x: 32.0, y: 15.2, w: 1.4, h: 0.8 }, stool("piano-stool", 32.5, 16.1),
   { id: "music-speaker-1", kind: "speaker", x: 28.4, y: 14.9, w: 0.45, h: 0.45 }, { id: "music-speaker-2", kind: "speaker", x: 31.2, y: 14.9, w: 0.45, h: 0.45 },
+  // A full band set on the little stage: drums at the back, guitar and bass on stands, a mic out front
+  { id: "drums", kind: "drums", x: 29.65, y: 15.15, w: 0.95, h: 0.75 },
+  { id: "guitar", kind: "guitar", x: 28.95, y: 16.35, w: 0.28, h: 0.28 }, { id: "bass", kind: "guitar", x: 31.0, y: 16.35, w: 0.28, h: 0.28 },
+  { id: "band-mic", kind: "mic", x: 30.02, y: 16.75, w: 0.2, h: 0.2 },
   { id: "music-sofa", kind: "sofa", x: 29.0, y: 18.6, w: 2.2, h: 0.6 },
   bean("music-bean-1", 32.2, 18.6), bean("music-bean-2", 33.0, 19.8), bean("music-bean-3", 31.6, 20.4), lamp("music-lamp", 33.5, 21.4),
 ];

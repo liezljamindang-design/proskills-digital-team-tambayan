@@ -341,7 +341,13 @@ type PongListener = (msg: PongMsg) => void;
 let pongListener: PongListener | null = null;
 /** The open game listens here for the other player's moves. */
 export function onPong(listener: PongListener | null) { pongListener = listener; }
+/** The practice opponent. It lives in your own browser, so nothing is sent anywhere. */
+export const BOT = "robot";
+export function playRobot() {
+  if (!useHq.getState().pong) useHq.setState({ pongMenu: false, pong: { opp: BOT, name: "Robot", stage: "playing", host: true } });
+}
 export function sendPong(to: string, msg: PongMsg) {
+  if (to === BOT) return;
   const me = useHq.getState().me;
   if (me && transport) transport.chat({ id: nextId(), from: me.id, name: displayName(me), text: "", to, pong: msg });
 }
@@ -362,7 +368,7 @@ function receivePong(from: string, name: string, msg: PongMsg) {
 export function invitePong(to: string) {
   const target = useHq.getState().peers[to];
   if (!target || useHq.getState().pong) return;
-  useHq.setState({ pong: { opp: to, name: displayName(target), stage: "inviting", host: true } });
+  useHq.setState({ pongMenu: false, pong: { opp: to, name: displayName(target), stage: "inviting", host: true } });
   sendPong(to, { k: "invite" });
 }
 export function answerPong(accept: boolean) {

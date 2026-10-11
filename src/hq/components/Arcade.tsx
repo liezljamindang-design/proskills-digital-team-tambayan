@@ -82,6 +82,7 @@ export function Arcade() {
     <section className="arcade-room" aria-labelledby="arcade-title">
       <header className="arcade-top">
         <h2 id="arcade-title" className="arcade-marquee">Arcade</h2>
+        <button type="button" className="arcade-btn" onClick={() => useHq.setState({ pongMenu: true })}>🏓 Ping-pong</button>
         <button type="button" className="arcade-btn" onClick={leave}>Leave arcade</button>
       </header>
 

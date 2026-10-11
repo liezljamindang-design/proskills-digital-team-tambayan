@@ -109,6 +109,7 @@ export function FloorMap() {
         const person = target.closest<SVGGElement>("[data-peer]");
         if (person?.dataset.peer) return { kind: "peer", id: person.dataset.peer };
         if (target.closest("[data-open='game']")) return { kind: "arcade" };
+        if (target.closest("[data-pingpong]")) return { kind: "pingpong" };
         if (target.closest("[data-ball]")) return { kind: "ball" };
         if (target.closest("[data-hoop]")) return { kind: "hoop" };
         const gym = target.closest<SVGGElement>("[data-gym]");

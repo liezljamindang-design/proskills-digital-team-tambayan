@@ -10,7 +10,7 @@ import { SitPrompt } from "./components/SitPrompt";
 import { Party } from "./components/Party";
 import { VoiceBar } from "./components/VoiceBar";
 import { PeerCard } from "./components/PeerCard";
-import { Pong, PongPrompt } from "./components/Pong";
+import { Pong, PongMenu, PongPrompt } from "./components/Pong";
 import { RoomCard } from "./components/RoomCard";
 import { HelpDialog } from "./components/HelpDialog";
 import { Hud } from "./components/Hud";
@@ -74,6 +74,7 @@ export function Headquarters() {
       <HelpDialog />
       <Shop />
       <PongPrompt />
+      <PongMenu />
       <Pong />
     </div>
   );

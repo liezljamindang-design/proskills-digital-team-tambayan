@@ -154,6 +154,7 @@ export function Floor3D() {
             if (d.peer) return { kind: "peer", id: d.peer };
             if (d.seat) return { kind: "seat", id: d.seat };
             if (d.arcade) return { kind: "arcade" };
+            if (d.pingpong) return { kind: "pingpong" };
             if (d.ball) return { kind: "ball" };
             if (d.hoop) return { kind: "hoop" };
             if (d.gym) return { kind: "gym", id: d.gym };

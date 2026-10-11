@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { earn } from "../economy";
-import { answerPong, leavePong, onPong, sendPong } from "../net/session";
+import { answerPong, BOT, invitePong, leavePong, onPong, playRobot, sendPong } from "../net/session";
+import { displayName } from "../types";
 import type { PongMsg } from "../net/transport";
 import { useHq } from "../store";
 
@@ -8,6 +9,27 @@ const W = 640, H = 380, PX = 0.06, PADDLE = 0.24, R = 0.02, WIN = 5;
 type Ball = { x: number; y: number; vx: number; vy: number };
 /** The other player sees the table from the opposite end, so positions are flipped left to right on the way out and in. */
 const flip = (b: Ball): Ball => ({ x: 1 - b.x, y: b.y, vx: -b.vx, vy: b.vy });
+
+/** Opened by tapping the ping-pong table: pick a teammate to challenge, or practise against the robot. */
+export function PongMenu() {
+  const open = useHq((s) => s.pongMenu);
+  const peers = useHq((s) => s.peers);
+  const busy = useHq((s) => Boolean(s.pong));
+  if (!open || busy) return null;
+  const list = Object.values(peers).filter((p) => p.status !== "offline" && p.status !== "dnd");
+  return (
+    <div className="pong-prompt pong-menu" role="dialog" aria-label="Play ping-pong">
+      <p>🏓 <strong>Ping-pong</strong> · first to {WIN} wins</p>
+      <button type="button" className="btn-primary" onClick={playRobot}>🤖 Practise against the robot</button>
+      {list.length > 0 ? (
+        <ul className="pong-list">
+          {list.map((p) => <li key={p.id}><span>{displayName(p)}</span><button type="button" className="btn-secondary" onClick={() => invitePong(p.id)}>Challenge</button></li>)}
+        </ul>
+      ) : <p className="muted">Nobody else is free to play right now.</p>}
+      <div className="room-actions"><button type="button" className="btn-secondary" onClick={() => useHq.setState({ pongMenu: false })}>Close</button></div>
+    </div>
+  );
+}
 
 /** Invitations: the card you see when someone challenges you, or while you wait for an answer. */
 export function PongPrompt() {
@@ -39,7 +61,7 @@ export function PongPrompt() {
  */
 export function Pong() {
   const pong = useHq((s) => s.pong);
-  const stillHere = useHq((s) => (pong ? Boolean(s.peers[pong.opp]) : true));
+  const stillHere = useHq((s) => (pong && pong.opp !== BOT ? Boolean(s.peers[pong.opp]) : true));
   const playing = pong?.stage === "playing";
   const [score, setScore] = useState<[number, number]>([0, 0]);
   const [result, setResult] = useState("");
@@ -64,8 +86,9 @@ export function Pong() {
       if (coins) earn(coins, why);
     }
     function checkOver() {
-      if (g.score[0] >= WIN) finish("You win! 🏆", 15, "winning at ping-pong");
-      else if (g.score[1] >= WIN) finish(`${pong!.name} wins. Good game!`, 5, "playing ping-pong");
+      const bot = opp === BOT;
+      if (g.score[0] >= WIN) finish("You win! 🏆", bot ? 3 : 15, bot ? "beating the robot" : "winning at ping-pong");
+      else if (g.score[1] >= WIN) finish(`${pong!.name} wins. Good game!`, bot ? 0 : 5, "playing ping-pong");
       return g.over;
     }
     function serve() {
@@ -110,7 +133,14 @@ export function Pong() {
             sendPong(opp, { k: "miss" });
             if (!checkOver()) { setStatus("You serve"); serveTimer = window.setTimeout(serve, 1300); }
           }
-        } else if (b.vx > 0 && b.x >= 1 - PX - R) { b.x = 1 - PX - R; g.waiting = true; } // their side decides what happens next
+        } else if (b.vx > 0 && b.x >= 1 - PX - R) {
+          b.x = 1 - PX - R;
+          if (opp !== BOT) g.waiting = true; // their side decides what happens next
+          else if (Math.abs(b.y - g.their) <= PADDLE / 2 + R) { b.vx = -Math.min(Math.abs(b.vx) * 1.06, 1.35); b.vy = Math.max(-0.95, Math.min(0.95, b.vy + (b.y - g.their) * 1.7)); }
+          else { g.live = false; g.score = [g.score[0] + 1, g.score[1]]; setScore(g.score); if (!checkOver()) { setStatus("Robot serves"); serveTimer = window.setTimeout(() => { serve(); g.ball.vx = -0.55; }, 1300); } }
+        }
+        // The robot follows the ball, but only so fast, so a sharp angle gets past it.
+        if (opp === BOT) { const want = b.vx > 0 ? b.y : 0.5, step = dt * 0.62; g.theirGoal = g.their + Math.max(-step, Math.min(step, want - g.their)); g.their = g.theirGoal; }
       }
       ballRef.current?.setAttribute("cx", String(g.ball.x * W));
       ballRef.current?.setAttribute("cy", String(g.ball.y * H));

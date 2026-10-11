@@ -580,3 +580,7 @@ button:hover > .emoji-3d, button:hover > .emoji-flat { transform: translateY(-3p
 
 .room-actions { display: flex; flex-wrap: wrap; gap: 8px; }
 .hoop-score { margin: 0; font-size: 15px; }
+
+.pong-menu { max-height: 70vh; overflow-y: auto; }
+.pong-list { display: grid; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.pong-list li { display: flex; align-items: center; justify-content: space-between; gap: 10px; font-weight: 700; }

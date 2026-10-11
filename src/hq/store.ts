@@ -52,6 +52,8 @@ interface State {
   joined: boolean;
   /** This account was opened on another device, so this one stepped out. */
   kicked: boolean;
+  /** Names learned from messages, so a reaction can be credited after its author has gone offline. */
+  names: Record<string, string>;
   /** Instrument sounds in the Music Room are switched off on this device. */
   bandMuted: boolean;
   setJoined: (joined: boolean) => void;
@@ -149,6 +151,7 @@ export const useHq = create<State>((set, get) => ({
   setMe: (me) => { write("playground.profile", JSON.stringify(me)); set({ me }); },
   joined: false,
   kicked: false,
+  names: {},
   bandMuted: false,
   setJoined: (joined) => set({ joined }),
   editingAvatar: false,

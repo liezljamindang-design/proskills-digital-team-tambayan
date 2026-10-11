@@ -78,7 +78,8 @@ function ChatPane() {
   useEffect(() => { const el = logRef.current; if (el) el.scrollTop = el.scrollHeight; }, [lines.length, active]);
   const [menuFor, setMenuFor] = useState<string | null>(null);
   const [whoFor, setWhoFor] = useState<string | null>(null);
-  const nameOf = (id: string) => (id === me?.id ? "You" : peers[id] ? displayName(peers[id]) : away[id] ? displayName(away[id]) : "Someone");
+  const names = useHq((s) => s.names);
+  const nameOf = (id: string) => (id === me?.id ? "You" : peers[id] ? displayName(peers[id]) : away[id] ? displayName(away[id]) : names[id] ?? Object.values(threads).flat().find((l) => l.from === id && l.name)?.name ?? "A teammate who is offline");
   const [replyTo, setReplyTo] = useState<Quote | null>(null);
   const [pinsOpen, setPinsOpen] = useState(false);
   useEffect(() => { setReplyTo(null); setMenuFor(null); }, [active]);

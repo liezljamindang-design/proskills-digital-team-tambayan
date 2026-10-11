@@ -112,6 +112,7 @@ export async function joinOffice(joining: Profile): Promise<void> {
       if (peer) noteZone(id, displayName(peer), zoneAt(peer.x, peer.y), zoneAt(pos.x, pos.y));
     },
     onChat: (msg) => {
+      if (msg.from && msg.name && s().names[msg.from] !== msg.name) useHq.setState({ names: { ...s().names, [msg.from]: String(msg.name).slice(0, 60) } });
       const thread = msg.room ?? (msg.to ? msg.from : PUBLIC); // a private message files under its sender
       // Arcade chat is only for people who are inside the arcade right now.
       if (msg.room === ARCADE && s().myZone !== "game") return;

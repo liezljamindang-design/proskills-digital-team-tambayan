@@ -10,6 +10,8 @@ export interface WireChat { id: string; from: string; name: string; text: string
   react?: { id: string; emoji: string; on: boolean };
   /** Not a message of its own: message `id` was pinned or unpinned. */
   pin?: { id: string; on: boolean };
+  /** Not a message of its own: someone ended the party for everyone. */
+  partyOver?: boolean;
 }
 
 export interface Handlers {

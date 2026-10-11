@@ -1,6 +1,6 @@
 import { useEffect, useState, type FormEvent, useRef } from "react";
 import { HQ } from "../config";
-import { accountsEnabled, changePassword, currentAccount, saveToAccount, signIn, signOut, signUp, type Account } from "../net/auth";
+import { accountsEnabled, changePassword, currentAccount, saveToAccount, signIn, signInWith, signOut, signUp, socialProviders, type Account } from "../net/auth";
 import { startRoster } from "../net/roster";
 import { joinOffice, liveMode, updateMyProfile } from "../net/session";
 import { DEFAULT_LOOK } from "../office/Chibi";
@@ -144,6 +144,17 @@ function SignIn({ onSignedIn, onGuest }: { onSignedIn: (account: Account) => voi
 
   return (
     <form className="inquiry" onSubmit={submit} noValidate>
+      {socialProviders.length > 0 && (
+        <div className="social">
+          {socialProviders.map((provider) => (
+            <button key={provider} type="button" className={`social-btn is-${provider}`}
+              onClick={() => { setError(""); signInWith(provider).catch(() => setError(`Couldn't open ${provider === "google" ? "Google" : "Facebook"} sign-in. Try again, or use email below.`)); }}>
+              Continue with {provider === "google" ? "Google" : "Facebook"}
+            </button>
+          ))}
+          <p className="social-or">or use email</p>
+        </div>
+      )}
       <div className="chips" role="group" aria-label="Account">
         <button type="button" className="service-chip" aria-pressed={mode === "in"} onClick={() => { setMode("in"); setError(""); }}>I have an account</button>
         <button type="button" className="service-chip" aria-pressed={mode === "up"} onClick={() => { setMode("up"); setError(""); }}>I'm new: create account</button>

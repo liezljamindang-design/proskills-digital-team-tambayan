@@ -1,4 +1,5 @@
-import { react } from "../net/session";
+import { react, toggleParty } from "../net/session";
+import { Emoji } from "./Emoji";
 import { useHq } from "../store";
 import type { Mood } from "../types";
 
@@ -12,13 +13,17 @@ const EMOTES: { mood: Mood; emoji: string; label: string }[] = [
 /** Quick reactions. Each one shows on your chibi for a few seconds, for everyone. */
 export function EmoteBar() {
   const mood = useHq((s) => s.me?.act?.mood);
+  const partyOn = useHq((s) => Boolean(s.me?.act?.party) || Object.values(s.peers).some((p) => p.act?.party));
   return (
     <div className="emotes" role="group" aria-label="Reactions">
       {EMOTES.map((e) => (
         <button key={e.mood} type="button" className="emote" aria-pressed={mood === e.mood} aria-label={e.label} title={e.label} onClick={() => react(e.mood)}>
-          <span aria-hidden="true">{e.emoji}</span>
+          <Emoji char={e.emoji} size={26} />
         </button>
       ))}
+      <button type="button" className={`emote party-btn${partyOn ? " is-on" : ""}`} aria-pressed={partyOn} onClick={toggleParty}>
+        <Emoji char="🎉" size={22} /> {partyOn ? "Stop the party" : "Party mode"}
+      </button>
     </div>
   );
 }

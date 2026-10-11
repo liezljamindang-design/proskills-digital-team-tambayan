@@ -9,6 +9,7 @@ import { StatusPicker } from "./StatusPicker";
 import { ARCADE, PUBLIC, useHq, type SideTab } from "../store";
 import { batchesOf, displayName, REACTIONS, type Quote } from "../types";
 import { Composer } from "./Composer";
+import { Emoji } from "./Emoji";
 
 const TABS: { id: SideTab; label: string }[] = [{ id: "chat", label: "Chat" }, { id: "people", label: "People" }, { id: "rooms", label: "Rooms" }];
 const roomName = (x: number, y: number) => ZONES.find((z) => z.id === zoneAt(x, y))?.name ?? "Walking around";
@@ -137,14 +138,14 @@ function ChatPane() {
                   {Object.entries(l.reactions).map(([emoji, who]) => (
                     <button key={emoji} type="button" className="react-chip" aria-pressed={who.includes(me?.id ?? "")} onClick={() => toggleReaction(active, l.id, emoji)}
                       title={who.map((id) => (id === me?.id ? "You" : peers[id] ? displayName(peers[id]) : "Someone")).join(", ")}>
-                      {emoji} {who.length}
+                      <Emoji char={emoji} size={16} /> {who.length}
                     </button>
                   ))}
                 </div>
               )}
               <div className="chat-actions" role="group" aria-label="Message actions">
                 {REACTIONS.map((emoji) => (
-                  <button key={emoji} type="button" onClick={() => { toggleReaction(active, l.id, emoji); setMenuFor(null); }} aria-label={`React ${emoji}`}>{emoji}</button>
+                  <button key={emoji} type="button" onClick={() => { toggleReaction(active, l.id, emoji); setMenuFor(null); }} aria-label={`React ${emoji}`}><Emoji char={emoji} size={22} /></button>
                 ))}
                 <button type="button" className="act-text" onClick={() => { setReplyTo({ id: l.id, name: l.from === me?.id ? "You" : l.name, text: (l.text || (l.image ? "Photo" : "")).slice(0, 90) }); setMenuFor(null); document.getElementById("side-composer")?.focus(); }}>Reply</button>
                 <button type="button" className="act-text" onClick={() => { togglePin(active, l.id); setMenuFor(null); }}>{l.pinned ? "Unpin" : "Pin"}</button>

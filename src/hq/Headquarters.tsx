@@ -4,6 +4,7 @@ import { Arcade } from "./components/Arcade";
 import { celebrants } from "./birthday";
 import { EmoteBar } from "./components/EmoteBar";
 import { SitPrompt } from "./components/SitPrompt";
+import { Party } from "./components/Party";
 import { RoomCard } from "./components/RoomCard";
 import { HelpDialog } from "./components/HelpDialog";
 import { Hud } from "./components/Hud";
@@ -22,9 +23,10 @@ export function Headquarters() {
   const peers = useHq((s) => s.peers);
   const joined = useHq((s) => s.joined);
   const party = joined ? celebrants(me, peers) : [];
+  const partyOn = Boolean(me?.act?.party) || Object.values(peers).some((p) => p.act?.party);
 
   return (
-    <div className={`hq${sheetOpen ? " sheet-open" : ""}${gameOpen ? " in-arcade" : ""}`}>
+    <div className={`hq${sheetOpen ? " sheet-open" : ""}${gameOpen ? " in-arcade" : ""}${partyOn ? " party" : ""}`}>
       <Hud />
       <main className="hq-main">
         <section className="hq-stage" aria-labelledby="hq-title">
@@ -41,6 +43,7 @@ export function Headquarters() {
           </header>
           <div className="stage-body">
             <FloorMap />
+            {!gameOpen && <Party />}
             {gameOpen && <Arcade />}
             {!gameOpen && <RoomCard />}
             {!gameOpen && <SitPrompt />}

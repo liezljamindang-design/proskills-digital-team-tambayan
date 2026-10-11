@@ -56,3 +56,14 @@ export async function changePassword(password: string): Promise<void> {
   const { error } = await supabase.auth.updateUser({ password });
   if (error) throw new Error(error.message);
 }
+
+/** Social sign-in buttons to show, set by VITE_SOCIAL_LOGIN (for example "google,facebook"). Each must also be switched on in Supabase. */
+export type SocialProvider = "google" | "facebook";
+export const socialProviders = String(import.meta.env.VITE_SOCIAL_LOGIN ?? "").split(",").map((p) => p.trim().toLowerCase()).filter((p): p is SocialProvider => p === "google" || p === "facebook");
+
+/** Sends the person to Google or Facebook to sign in. They come back to this page already signed in. */
+export async function signInWith(provider: SocialProvider): Promise<void> {
+  const supabase = await getSupabase();
+  const { error } = await supabase.auth.signInWithOAuth({ provider, options: { redirectTo: window.location.origin } });
+  if (error) throw new Error(error.message);
+}

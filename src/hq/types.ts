@@ -91,6 +91,8 @@ export interface Act {
   mood?: Mood;
   /** The radio station they are listening to, by name. */
   radio?: string;
+  /** They switched party mode on. The party runs while anyone has this set. */
+  party?: boolean;
 }
 
 /** Someone else in the office. */

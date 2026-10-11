@@ -40,6 +40,7 @@ function changes(old: Profile, next: Profile): string[] {
   if (a.drink !== b.drink) out.push(b.drink ? `bought ${DRINK[b.drink]}` : "finished their drink");
   if (Boolean(a.phone) !== Boolean(b.phone)) out.push(b.phone ? "is on their phone 📱" : "put their phone away");
   if (b.mood && a.mood !== b.mood) out.push(MOOD[b.mood]);
+  if (Boolean(a.party) !== Boolean(b.party)) out.push(b.party ? "started a party 🎉" : "stopped partying");
   if (a.radio !== b.radio) out.push(b.radio ? `is listening to ${String(b.radio).slice(0, 40)} 🎧` : "turned the music off");
   const joined = batchesOf(next).filter((b) => !batchesOf(old).includes(b));
   if (joined.length) out.push(`joined Batch ${joined.join(", ")}`);
@@ -93,6 +94,7 @@ export async function joinOffice(me: Profile): Promise<void> {
       const thread = msg.room ?? (msg.to ? msg.from : PUBLIC); // a private message files under its sender
       // Arcade chat is only for people who are inside the arcade right now.
       if (msg.room === ARCADE && s().myZone !== "game") return;
+      if (msg.partyOver) { if (s().me?.act?.party) setAct({ party: undefined }); return; }
       if (msg.react && typeof msg.react.id === "string" && REACTIONS.includes(msg.react.emoji)) return applyReaction(thread, msg.react.id, msg.react.emoji, msg.from, Boolean(msg.react.on));
       if (msg.pin && typeof msg.pin.id === "string") return s().patchLine(thread, msg.pin.id, (l) => ({ ...l, pinned: Boolean(msg.pin!.on) }));
       const reply = msg.reply && typeof msg.reply.id === "string" ? { id: msg.reply.id, name: String(msg.reply.name).slice(0, 50), text: String(msg.reply.text).slice(0, 90) } : undefined;
@@ -198,4 +200,14 @@ export function openMeeting(url: string) {
   const tab = window.open(url, "_blank");
   if (tab) tab.opener = null;
   useHq.setState({ meetingBlocked: !tab });
+}
+
+/** Starts the party for everyone, or ends it for everyone if one is running. */
+export function toggleParty() {
+  const state = useHq.getState(), me = state.me;
+  if (!me || !transport) return;
+  const running = Boolean(me.act?.party) || Object.values(state.peers).some((p) => p.act?.party);
+  if (!running) { setAct({ party: true }); return; }
+  if (me.act?.party) setAct({ party: undefined });
+  transport.chat({ id: nextId(), from: me.id, name: displayName(me), text: "", partyOver: true });
 }

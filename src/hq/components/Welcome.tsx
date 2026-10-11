@@ -26,6 +26,7 @@ function guestId(): string {
 export function Welcome() {
   const me = useHq((s) => s.me);
   const joined = useHq((s) => s.joined);
+  const kicked = useHq((s) => s.kicked);
   const editing = useHq((s) => s.editingAvatar);
   const setEditing = useHq((s) => s.setEditingAvatar);
   const [account, setAccount] = useState<Account | null>(null);
@@ -83,6 +84,16 @@ export function Welcome() {
     // Runs once, when the account first arrives.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [account, joined]);
+
+  if (kicked) return (
+    <Dialog open onClose={() => undefined} labelledBy="kicked-title">
+      <div className="welcome">
+        <h2 id="kicked-title">You're signed in on another device</h2>
+        <p>Your account can be in the Tambayan on one device at a time, phone or computer. It was just opened somewhere else, so this one stepped out.</p>
+        <div className="dialog-actions"><button type="button" className="btn-primary" onClick={() => window.location.reload()}>Use it here instead</button></div>
+      </div>
+    </Dialog>
+  );
 
   return (
     <Dialog open={open} onClose={() => { if (joined) setEditing(false); }} labelledBy="welcome-title">

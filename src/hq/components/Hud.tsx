@@ -8,7 +8,8 @@ import { MusicToggle } from "./MusicToggle";
 export function Hud() {
   const theme = useHq((s) => s.theme);
   const toggleTheme = useHq((s) => s.toggleTheme);
-  const online = useHq((s) => Object.keys(s.peers).length + (s.joined ? 1 : 0));
+  // People who chose "Appear offline" are not counted.
+  const online = useHq((s) => Object.values(s.peers).filter((p) => p.status !== "offline").length + (s.joined && s.me?.status !== "offline" ? 1 : 0));
   const setEditing = useHq((s) => s.setEditingAvatar);
   const setHelpOpen = useHq((s) => s.setHelpOpen);
   const joined = useHq((s) => s.joined);
@@ -34,7 +35,7 @@ export function Hud() {
       </div>
 
       <ul className="hud-status" aria-label="Status">
-        <li><span className="hud-label">In the office</span><span className="hud-value"><i className="pip pip-ok" />{online} {online === 1 ? "person" : "people"}</span></li>
+        <li><span className="hud-label">Online now</span><span className="hud-value"><i className="pip pip-ok" />{online} {online === 1 ? "person" : "people"}</span></li>
       </ul>
 
       <div className="hud-actions">

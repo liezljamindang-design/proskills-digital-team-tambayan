@@ -14,6 +14,7 @@ export function BottomNav() {
   const tab = useHq((s) => s.tab);
   const sheet = useHq((s) => s.sheetOpen);
   const gameOpen = useHq((s) => s.gameOpen);
+  const online = useHq((s) => Object.values(s.peers).filter((p) => p.status !== "offline").length + (s.joined && s.me?.status !== "offline" ? 1 : 0));
   const unread = useHq((s) => Object.values(s.unread).reduce((a, b) => a + b, 0));
 
   const show = (t: SideTab) => useHq.setState({ tab: t, sheetOpen: true });
@@ -31,7 +32,7 @@ export function BottomNav() {
       {items.map((item) => (
         <button key={item.id} type="button" onClick={item.onClick} aria-current={item.current ? "page" : undefined}>
           <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d={ICONS[item.id]} fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" /></svg>
-          <span>{item.label}{item.id === "chat" && unread > 0 ? ` (${unread})` : ""}</span>
+          <span>{item.label}{item.id === "chat" && unread > 0 ? ` (${unread})` : ""}{item.id === "people" ? ` (${online})` : ""}</span>
         </button>
       ))}
     </nav>

@@ -50,6 +50,8 @@ interface State {
   me: Profile | null;
   setMe: (me: Profile) => void;
   joined: boolean;
+  /** This account was opened on another device, so this one stepped out. */
+  kicked: boolean;
   setJoined: (joined: boolean) => void;
   editingAvatar: boolean;
   setEditingAvatar: (open: boolean) => void;
@@ -140,6 +142,7 @@ export const useHq = create<State>((set, get) => ({
   me: savedProfile(),
   setMe: (me) => { write("playground.profile", JSON.stringify(me)); set({ me }); },
   joined: false,
+  kicked: false,
   setJoined: (joined) => set({ joined }),
   editingAvatar: false,
   setEditingAvatar: (editingAvatar) => set({ editingAvatar }),

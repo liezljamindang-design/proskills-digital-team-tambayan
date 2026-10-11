@@ -67,7 +67,25 @@ function noteZone(id: string, name: string, from: string | null, to: string | nu
   }
 }
 
-export async function joinOffice(me: Profile): Promise<void> {
+// One device per account: the newest sign-in stays, the older one steps out.
+const mySession = Math.random().toString(36).slice(2);
+let mySince = 0, takeoverTimer = 0;
+function announceTakeover() {
+  const me = useHq.getState().me;
+  if (me && transport) transport.chat({ id: nextId(), from: me.id, name: displayName(me), text: "", takeover: { session: mySession, since: mySince } });
+}
+function stepOut() {
+  window.clearInterval(takeoverTimer);
+  void import("./voice").then((v) => v.leaveVoice()).catch(() => undefined);
+  transport?.leave(); transport = null;
+  useHq.setState({ joined: false, kicked: true, peers: {}, gameOpen: false, sheetOpen: false });
+}
+
+export async function joinOffice(joining: Profile): Promise<void> {
+  // Everyone starts as active when they come in; a status set after that is kept until they leave.
+  const me: Profile = { ...joining, status: undefined };
+  useHq.getState().setMe(me);
+  mySince = Date.now();
   transport?.leave();
   transport = supabaseConfigured ? createSupabaseTransport() : createLocalTransport();
   const s = useHq.getState;
@@ -94,6 +112,12 @@ export async function joinOffice(me: Profile): Promise<void> {
       const thread = msg.room ?? (msg.to ? msg.from : PUBLIC); // a private message files under its sender
       // Arcade chat is only for people who are inside the arcade right now.
       if (msg.room === ARCADE && s().myZone !== "game") return;
+      if (msg.takeover) {
+        if (msg.from !== s().me?.id || msg.takeover.session === mySession) return;
+        if (msg.takeover.since >= mySince) stepOut();
+        else { announceTakeover(); window.setTimeout(() => { const mine = s().me; if (mine) transport?.updateProfile(mine, myPos); }, 1500); } // the other one is older: tell it again, then show up again once it has left
+        return;
+      }
       if (msg.rtc) { rtcListener?.(msg.from, msg.rtc); return; }
       if (msg.pong) { receivePong(msg.from, msg.name, msg.pong); return; }
       if (msg.hoop) {
@@ -125,6 +149,10 @@ export async function joinOffice(me: Profile): Promise<void> {
     },
   });
   useHq.getState().setJoined(true);
+  announceTakeover();
+  window.setTimeout(() => { const mine = useHq.getState().me; if (mine) transport?.updateProfile(mine, myPos); }, 1500); // in case an older device of yours just left
+  window.clearInterval(takeoverTimer);
+  takeoverTimer = window.setInterval(announceTakeover, 45000); // catches a device that was asleep
   void loadHistory(me);
   startRoster(me);
 }

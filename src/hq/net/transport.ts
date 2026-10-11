@@ -18,6 +18,8 @@ export interface WireChat { id: string; from: string; name: string; text: string
   rtc?: { t: "offer" | "answer" | "ice"; d: unknown };
   /** Not a message of its own: a friendly gesture aimed at one person, seen by everyone. */
   poke?: { kind: string; to: string; toName: string };
+  /** Not a message of its own: "this account is now in use on this device". The older device steps out. */
+  takeover?: { session: string; since: number };
   /** Not a message of its own: a basketball shot, so everyone sees the ball fly. */
   hoop?: { x: number; y: number; hoop: number; made: boolean };
 }

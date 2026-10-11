@@ -102,7 +102,7 @@ export function Welcome() {
   return (
     <Dialog open={open} onClose={() => { if (joined) setEditing(false); }} labelledBy="welcome-title">
       <div className="welcome">
-        <p className="eyebrow">{joined ? "My avatar" : liveMode ? "Team space" : "Preview mode"}</p>
+        <p className="eyebrow">{joined ? "My profile" : liveMode ? "Team space" : "Preview mode"}</p>
         <h2 id="welcome-title">{joined ? "Change your look" : `Welcome to ${HQ.name}`}</h2>
         {!joined && <p>A just-for-fun office for the team. Make your chibi, walk around, chat and play.</p>}
         {!joined && !liveMode && <p className="muted">Preview mode: you'll only see people who are in other tabs of this same browser. Connecting Supabase makes it live for the whole team.</p>}

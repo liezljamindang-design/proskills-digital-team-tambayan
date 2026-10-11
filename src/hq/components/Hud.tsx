@@ -1,4 +1,8 @@
+import { useEffect, useState } from "react";
 import { Coin } from "./Coin";
+import { ChibiPortrait } from "../office/Chibi";
+import { accountsEnabled } from "../net/auth";
+import { getSupabase } from "../net/supabase";
 import { HQ } from "../config";
 import { liveMode } from "../net/session";
 import { useHq } from "../store";
@@ -19,6 +23,20 @@ export function Hud() {
   const streak = useHq((s) => s.me?.streak ?? 0);
   const toast = useHq((s) => s.toast);
   const setShopOpen = useHq((s) => s.setShopOpen);
+
+  const look = useHq((s) => s.me?.look);
+  // The photo from the person's Google sign-in, if they have one. Otherwise their chibi.
+  const [photo, setPhoto] = useState("");
+  useEffect(() => {
+    if (!accountsEnabled || !joined) return;
+    let live = true;
+    getSupabase().then((sb) => sb.auth.getSession()).then(({ data }) => {
+      const m = (data.session?.user.user_metadata ?? {}) as { avatar_url?: unknown; picture?: unknown };
+      const url = typeof m.avatar_url === "string" ? m.avatar_url : typeof m.picture === "string" ? m.picture : "";
+      if (live && /^https:\/\//.test(url)) setPhoto(url);
+    }).catch(() => { /* keep the chibi */ });
+    return () => { live = false; };
+  }, [joined]);
 
   return (
     <header className="hud">
@@ -57,7 +75,9 @@ export function Hud() {
             <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M20 14.2A8 8 0 0 1 9.8 4a8 8 0 1 0 10.2 10.2Z" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round" /></svg>
           )}
         </button>
-        <button type="button" className="text-btn" onClick={() => setEditing(true)}>My avatar</button>
+        <button type="button" className="me-btn" onClick={() => setEditing(true)} aria-label="My profile" title="My profile">
+          {photo ? <img src={photo} alt="" referrerPolicy="no-referrer" onError={() => setPhoto("")} /> : look ? <ChibiPortrait look={look} size={34} /> : <span aria-hidden="true">🙂</span>}
+        </button>
         <button type="button" className="text-btn" onClick={() => setHelpOpen(true)}>Help</button>
       </div>
     </header>

@@ -14,7 +14,7 @@ export function HelpDialog() {
         <div><dt>Talk</dt><dd>Type under the office or in the Chat tab. Your words pop up in a bubble over your head.</dd></div>
         <div><dt>Private chat</dt><dd>Click a person, or use Message in the People tab. Only the two of you see it.</dd></div>
         <div><dt>Play</dt><dd>Walk into the Recreation Room and the arcade opens, with everyone who is inside. Chat stays open beside it.</dd></div>
-        <div><dt>Your look</dt><dd>My avatar changes your name and chibi any time.</dd></div>
+        <div><dt>Your look</dt><dd>Your photo at the top opens your profile. Wardrobe changes your chibi.</dd></div>
         <div><dt>Rooms do things</dt><dd>Order a drink in the Café, sit and scroll in the Lounge, stop in the Sleeping Quarters to nap, walk into the Classroom to join live training on Zoom, and walk into the Collaboration Room to open the team Zoom. Run on a treadmill or lift weights in the Gym, pick up a ball and shoot hoops on the Basketball Court, and dance on the light-up floor in the Dance Studio. Play pickleball on the Pickleball Court. There is also a Library, Cinema, Canteen and Music Room. The Rooms tab takes you to any of them.</dd></div>
         <div><dt>Voice</dt><dd>You hear anyone who is talking on the mic without doing anything. To talk yourself, press "Talk on the mic" under the reactions; your browser will ask to use the microphone. "Hearing voices" switches other people's voices off on your device.</dd></div>
         <div><dt>Views</dt><dd>The View menu at the top left of the office switches between Overhead, Free look, 3rd person, Facing you, 1st person and the simple flat drawing. In 1st and 3rd person, left and right turn you.</dd></div>

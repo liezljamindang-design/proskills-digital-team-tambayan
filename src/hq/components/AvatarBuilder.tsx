@@ -114,6 +114,7 @@ export function AvatarBuilder({ initial, submitLabel, onSubmit, onCancel, admin 
           <p className="field-hint">On your day the office puts up a banner with your name. The year is optional and stays private: teammates never see it.</p>
         </fieldset>
 
+        {!onCancel && (<>
         {swatches("Skin", "skin", SKINS)}
         <fieldset className="field">
           <legend>Hairstyle</legend>
@@ -143,6 +144,8 @@ export function AvatarBuilder({ initial, submitLabel, onSubmit, onCancel, admin 
             {ACCESSORIES.map((a) => <button key={a.id} type="button" className="service-chip" aria-pressed={look.accessory === a.id} onClick={() => set("accessory", a.id)}>{a.label}</button>)}
           </div>
         </fieldset>
+        </>)}
+        {onCancel && <p className="field-hint">To change your skin, hair, clothes and accessories, open Wardrobe at the bottom of the office.</p>}
 
         {error && <p className="field-error" role="alert">{error}</p>}
         <div className="builder-actions">

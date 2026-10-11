@@ -3,6 +3,7 @@ import { earn } from "../economy";
 import { ZONES } from "../data/office";
 import { zoneAt } from "../office/engine";
 import { safeImage } from "../media";
+import { mentionedIds, mentions } from "../mentions";
 import { MANUAL } from "../status";
 import { ARCADE, PUBLIC, useHq } from "../store";
 import { batchesOf, displayName, FOODS, REACTIONS, type Profile, type Quote } from "../types";
@@ -177,7 +178,9 @@ export function say(text: string, to?: string, image?: string, reply?: Quote) {
   const line = { id, from: me.id, name, text: clean, time: clock(), image, reply };
   useHq.getState().addLine(to ?? PUBLIC, line);
   saveMessage(to ?? PUBLIC, line, me);
-  if (to !== ARCADE) void notifyOthers({ to: room ? undefined : to, room, text: clean });
+  // People called by @name are told even if they are offline or only get private notifications.
+  const st = useHq.getState(), called = to && !room ? [] : mentionedIds(clean, [...Object.values(st.peers), ...Object.values(st.away)]).filter((id) => id !== me.id);
+  if (to !== ARCADE) void notifyOthers({ to: room ? undefined : to, room, text: clean, mentions: called.length ? called : undefined });
   useHq.getState().showBubble(me.id, clean || (image?.startsWith("data:") ? "📷 Photo" : "GIF"), Boolean(to) && to !== ARCADE);
 }
 
@@ -340,10 +343,7 @@ export function poke(kind: string, to: string) {
 /** True when a message calls me by @username or @firstname. */
 function mentionsMe(text: string): boolean {
   const me = useHq.getState().me;
-  if (!me) return false;
-  const names = [me.name, me.firstName].filter(Boolean).map((n) => n!.toLowerCase().replace(/\s+/g, ""));
-  const tags = (text.toLowerCase().match(/@[\p{L}\p{N}_.-]+/gu) ?? []).map((t) => t.slice(1));
-  return tags.some((t) => t === "everyone" || names.some((n) => n === t || n.startsWith(t) && t.length >= 3));
+  return Boolean(me) && mentions(text, me!);
 }
 
 let audio: AudioContext | null = null;

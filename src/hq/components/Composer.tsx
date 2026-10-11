@@ -1,3 +1,5 @@
+import { handleOf } from "../mentions";
+import { useHq } from "../store";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { gifFromLink, GIPHY_KEY, READY_GIFS, readyGifUrl, searchGifs, shrinkPhoto, type GifResult } from "../media";
 import { EmojiPicker } from "./EmojiPicker";
@@ -18,6 +20,16 @@ export function Composer({ id, placeholder, onSend, attachments }: Props) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const fileRef = useRef<HTMLInputElement>(null);
+  // Typing @ offers everyone's names, including people who are offline.
+  const peers = useHq((st) => st.peers);
+  const away = useHq((st) => st.away);
+  const myId = useHq((st) => st.me?.id);
+  const asking = /(?:^|\s)@([\p{L}\p{N}_.-]*)$/u.exec(text)?.[1];
+  const suggestions = asking === undefined ? [] : [
+    ...Object.values(peers).map((p) => ({ id: p.id, name: p.name, firstName: p.firstName, online: true })),
+    ...Object.values(away).filter((a) => !peers[a.id] && a.id !== myId).map((a) => ({ id: a.id, name: a.name, firstName: a.firstName, online: false })),
+  ].filter((p) => { const q = asking.toLowerCase(); return handleOf(p).toLowerCase().includes(q) || (p.firstName ?? "").toLowerCase().startsWith(q); }).slice(0, 6);
+  const pickMention = (handle: string) => { setText((t) => `${t.replace(/@[\p{L}\p{N}_.-]*$/u, "")}@${handle} `.slice(0, 280)); boxRef.current?.focus(); };
   // The message box grows with what you type, up to three lines, then scrolls.
   const boxRef = useRef<HTMLTextAreaElement>(null);
   useEffect(() => { const el = boxRef.current; if (!el) return; el.style.height = "auto"; el.style.height = `${Math.min(el.scrollHeight, 86)}px`; }, [text]);
@@ -51,6 +63,14 @@ export function Composer({ id, placeholder, onSend, attachments }: Props) {
           <img src={photo} alt="Photo ready to send" />
           <button type="button" className="text-btn" onClick={() => setPhoto("")}>Remove</button>
         </div>
+      )}
+      {asking !== undefined && (suggestions.length > 0 || "everyone".startsWith(asking.toLowerCase())) && (
+        <ul className="mention-list" aria-label="Mention someone">
+          {suggestions.map((p) => (
+            <li key={p.id}><button type="button" onClick={() => pickMention(handleOf(p))}><i className={`pip pip-${p.online ? "ok" : "off"}`} aria-hidden="true" /><span>{p.name}{p.firstName ? ` (${p.firstName})` : ""}</span>{!p.online && <small>offline</small>}</button></li>
+          ))}
+          {"everyone".startsWith(asking.toLowerCase()) && <li><button type="button" onClick={() => pickMention("everyone")}><span>📣 everyone</span><small>all members</small></button></li>}
+        </ul>
       )}
       {error && <p className="field-error" role="alert">{error}</p>}
       <div className={`composer-row${attachments ? " is-stacked" : ""}`}>

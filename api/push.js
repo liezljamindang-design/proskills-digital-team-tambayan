@@ -52,14 +52,21 @@ export default async function handler(req, res) {
   if (to) query = query.eq("member_id", to);
   else if (batch) query = query.contains("batches", [batch]);
   else query = query.eq("scope", "all"); // the public room only reaches people who asked for everything
-  const { data: subs, error } = await query.limit(1000);
+  const { data: found, error } = await query.limit(1000);
   if (error) return res.status(503).json({ error: "tables-missing" });
+  // People called by @name are notified even if they only asked for private messages.
+  const called = Array.isArray(body.mentions) ? body.mentions.filter((m) => typeof m === "string" && m !== sender).slice(0, 20) : [];
+  const extra = called.length && !to ? (await db.from("tambayan_push").select("endpoint, sub, member_id, scope, batches").in("member_id", called)).data || [] : [];
+  const seen = new Set(), subs = [];
+  for (const s of [...extra, ...(found || [])]) if (!seen.has(s.endpoint)) { seen.add(s.endpoint); subs.push(s); }
 
   webpush.setVapidDetails("mailto:noreply@tambayan.invalid", k.publicKey, k.privateKey);
   const title = to ? name : batch ? `${name} · Batch ${batch}` : `${name} · Everyone`;
-  const payload = JSON.stringify({ title, body: text || "Sent a photo", tag: to ? `dm-${sender}` : room || "all" });
+  const tag = to ? `dm-${sender}` : room || "all";
+  const payload = JSON.stringify({ title, body: text || "Sent a photo", tag });
+  const calling = JSON.stringify({ title: `${name} mentioned you`, body: text || "Sent a photo", tag: `mention-${sender}` });
   const dead = [];
-  await Promise.allSettled((subs || []).map((s) => webpush.sendNotification(s.sub, payload, { TTL: 3600 }).catch((err) => { if (err?.statusCode === 404 || err?.statusCode === 410) dead.push(s.endpoint); })));
+  await Promise.allSettled((subs || []).map((s) => webpush.sendNotification(s.sub, called.includes(s.member_id) ? calling : payload, { TTL: 3600 }).catch((err) => { if (err?.statusCode === 404 || err?.statusCode === 410) dead.push(s.endpoint); })));
   if (dead.length) await db.from("tambayan_push").delete().in("endpoint", dead);
   return res.status(200).json({ sent: (subs || []).length - dead.length });
 }

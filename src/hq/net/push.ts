@@ -68,7 +68,7 @@ export async function refreshPush() {
 }
 
 /** Tells the server a message was sent, so it can notify people who are not looking at the app. */
-export async function notifyOthers(message: { to?: string; room?: string; text: string }) {
+export async function notifyOthers(message: { to?: string; room?: string; text: string; mentions?: string[] }) {
   if (!supabaseConfigured) return;
   try {
     const supabase = await getSupabase();

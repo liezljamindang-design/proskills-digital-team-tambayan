@@ -1,4 +1,5 @@
 import { ARCADE, PUBLIC, useHq } from "../store";
+import { mentions } from "../mentions";
 import { batchesOf, type ChatLine, type Profile } from "../types";
 import { safeImage } from "../media";
 import { getSupabase, supabaseConfigured } from "./supabase";
@@ -44,6 +45,8 @@ export async function loadHistory(me: Profile): Promise<void> {
       const line: ChatLine = {
         id: row.id, from: row.from_id, name: row.name, text: row.body, time: stamp(row.created_at),
         image: safeImage(row.image) ? row.image : undefined, reply: row.reply ?? undefined, reactions: row.reactions ?? undefined, pinned: row.pinned,
+        // A message that called you while you were away is still marked when you come back.
+        mention: row.from_id !== me.id && mentions(row.body ?? "", me) ? true : undefined,
       };
       byThread.set(thread, [...(byThread.get(thread) ?? []), line]);
     }

@@ -45,8 +45,8 @@ export function Welcome() {
       else { useHq.getState().setMe(profile); await joinOffice(profile); }
       if (account) void saveToAccount({ name, role, look, birthday: birthday ?? "", birthYear: birthYear ?? null, best: profile.best });
       setEditing(false);
-    } catch {
-      setFailed("Couldn't connect to the office. Check your connection and try again.");
+    } catch (err) {
+      setFailed(`Couldn't connect to the office. Try again in a moment.${err instanceof Error && err.message ? ` (Details: ${err.message})` : ""}`);
     }
   }
 

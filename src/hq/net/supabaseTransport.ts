@@ -45,10 +45,14 @@ export function createSupabaseTransport(): Transport {
         .on("broadcast", { event: "move" }, ({ payload }) => handlers.onMove(payload.id, { x: payload.x, y: payload.y }))
         .on("broadcast", { event: "chat" }, ({ payload }) => handlers.onChat(payload as WireChat));
 
+      // The library retries by itself after a failed first attempt, so wait for success
+      // for a while instead of giving up on the first error.
       await new Promise<void>((resolve, reject) => {
-        room!.subscribe((status) => {
-          if (status === "SUBSCRIBED") { void room!.track(me!); resolve(); }
-          else if (status === "CHANNEL_ERROR" || status === "TIMED_OUT") reject(new Error(status));
+        let last = "no answer from the realtime service";
+        const timer = window.setTimeout(() => reject(new Error(last)), 20000);
+        room!.subscribe((status, err) => {
+          if (status === "SUBSCRIBED") { window.clearTimeout(timer); void room!.track(me!); resolve(); }
+          else if (status === "CHANNEL_ERROR" || status === "TIMED_OUT") last = `${status}${err?.message ? `: ${err.message}` : ""}`;
         });
       });
 

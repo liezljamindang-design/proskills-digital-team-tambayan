@@ -25,16 +25,15 @@ export function AvatarBuilder({ initial, submitLabel, onSubmit, onCancel, admin 
   const [batches, setBatches] = useState<number[]>(initial ? batchesOf(initial) : []);
   const [year, setYear] = useState(initial?.birthYear ?? 0);
   const view3d = useHq((s) => s.view3d);
-  const locked = useHq((s) => (admin ? null : s.lockedBatch));
   const [error, setError] = useState("");
   const set = <K extends keyof Look>(key: K, value: Look[K]) => setLook((l) => ({ ...l, [key]: value }));
 
   function submit(e: FormEvent) {
     e.preventDefault();
     if (!name.trim()) return setError("Enter the username your teammates will see.");
-    if (!batches.length && !locked) return setError(admin ? "Pick at least one batch." : "Pick your batch number. Everyone is in the public room, plus their own batch room.");
+    if (!batches.length) return setError(admin ? "Pick at least one batch." : "Pick your batch number. Everyone is in the public room, plus their own batch room.");
     if ((month > 0) !== (day > 0)) return setError("Pick both a month and a day for your birthday, or leave both empty.");
-    onSubmit(name.trim().slice(0, 24), role.trim().slice(0, 40), look, month && day ? birthdayKey(month, day) : undefined, month && day && year ? year : undefined, firstName.trim().slice(0, 20) || undefined, admin ? [...batches].sort((a, b) => a - b) : locked ?? batches.slice(0, 1));
+    onSubmit(name.trim().slice(0, 24), role.trim().slice(0, 40), look, month && day ? birthdayKey(month, day) : undefined, month && day && year ? year : undefined, firstName.trim().slice(0, 20) || undefined, admin ? [...batches].sort((a, b) => a - b) : batches.slice(0, 1));
   }
 
   const swatches = (label: string, key: "skin" | "hair" | "outfit", colors: string[]) => (
@@ -73,8 +72,8 @@ export function AvatarBuilder({ initial, submitLabel, onSubmit, onCancel, admin 
           </div>
 {!admin && (
           <div className="field">
-            <label htmlFor="av-batch">{locked ? "Batch (set by an admin)" : "Batch (required)"}</label>
-            <select id="av-batch" className="plain-select" disabled={Boolean(locked)} value={locked?.[0] ?? batches[0] ?? 0} onChange={(e) => setBatches(Number(e.target.value) ? [Number(e.target.value)] : [])}>
+            <label htmlFor="av-batch">{"Batch (required)"}</label>
+            <select id="av-batch" className="plain-select" value={batches[0] ?? 0} onChange={(e) => setBatches(Number(e.target.value) ? [Number(e.target.value)] : [])}>
               <option value={0}>Choose your batch…</option>
               {Array.from({ length: BATCHES }, (_, i) => <option key={i} value={i + 1}>Batch {i + 1}</option>)}
             </select>

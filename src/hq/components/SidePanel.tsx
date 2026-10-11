@@ -2,14 +2,14 @@ import { useEffect, useRef, useState } from "react";
 import { HQ } from "../config";
 import { earnForChat } from "../economy";
 import { ZONES } from "../data/office";
-import { assignBatch, myPosition, say, toggleReaction, togglePin } from "../net/session";
+import { myPosition, say, toggleReaction, togglePin } from "../net/session";
 import { ChibiPortrait } from "../office/Chibi";
 import { zoneAt } from "../office/engine";
 import { presenceOf, statusOf } from "../status";
 import { StatusPicker } from "./StatusPicker";
 import { AppPane } from "./InstallButton";
 import { ARCADE, PUBLIC, useHq, type SideTab } from "../store";
-import { BATCHES, batchesOf, displayName, REACTIONS, type Quote } from "../types";
+import { batchesOf, displayName, REACTIONS, type Quote } from "../types";
 import { Composer } from "./Composer";
 import { Emoji } from "./Emoji";
 
@@ -44,21 +44,6 @@ export function SidePanel() {
         {tab === "app" && <AppPane />}
       </div>
     </aside>
-  );
-}
-
-/** Admin only: a small menu to put a member in a batch. They are then locked to it. */
-function AssignBatch({ id, current }: { id: string; current?: number }) {
-  const [note, setNote] = useState("");
-  return (
-    <label className="assign-batch">
-      <span className="sr-only">Assign batch</span>
-      <select value={current ?? 0} onChange={async (e) => { const n = Number(e.target.value); setNote("Saving…"); const problem = await assignBatch(id, n); setNote(problem ?? (n ? `Set to Batch ${n}` : "They can choose again")); }}>
-        <option value={0}>{current ? "Let them choose" : "Assign batch…"}</option>
-        {Array.from({ length: BATCHES }, (_, i) => <option key={i} value={i + 1}>Batch {i + 1}</option>)}
-      </select>
-      {note && <small role="status">{note}</small>}
-    </label>
   );
 }
 
@@ -237,7 +222,7 @@ function PeoplePane() {
         <li key={p.id}>
           <ChibiPortrait look={p.look} size={44} />
           <div className="person-id"><strong><i className={`pip pip-${presenceOf(p).tone}`} aria-hidden="true" />{displayName(p)} <span className={`presence is-${presenceOf(p).tone}`}>{presenceOf(p).label}</span>{p.admin && <span className="admin-tag">Admin</span>}</strong><span>{p.role || "Team member"}{batchesOf(p).length ? ` · Batch ${batchesOf(p).join(", ")}` : ""} · {roomName(p.x, p.y)}{p.act?.voice ? " · 🎙️ in voice" : ""}{p.act?.radio ? ` · 🎧 ${String(p.act.radio).slice(0, 30)}` : ""}{p.streak ? ` · 🔥 ${p.streak}` : ""}</span><StatusTag status={statusOf(p, zoneAt(p.x, p.y))} /></div>
-          <div className="person-actions"><button type="button" className="btn-secondary" onClick={() => openThread(p.id)}>Message</button>{me?.admin && !p.admin && <AssignBatch id={p.id} current={batchesOf(p)[0]} />}</div>
+          <button type="button" className="btn-secondary" onClick={() => openThread(p.id)}>Message</button>
         </li>
       ))}
       {gone.map((p) => (
@@ -247,7 +232,6 @@ function PeoplePane() {
             <strong><i className="pip pip-off" aria-hidden="true" />{displayName(p)} <span className="presence is-off">Offline</span>{p.admin && <span className="admin-tag">Admin</span>}</strong>
             <span>{p.role || "Team member"}{p.batches?.length ? ` · Batch ${p.batches.join(", ")}` : ""} · last seen {new Date(p.leftAt).toLocaleString([], { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })}</span>
           </div>
-          {me?.admin && !p.admin && <AssignBatch id={p.id} current={p.batches?.[0]} />}
         </li>
       ))}
       {list.length === 0 && gone.length === 0 && <li className="people-empty"><p className="muted">Nobody else is here yet. Invite a teammate, or open this page in a second tab to see how it looks with two people.</p></li>}

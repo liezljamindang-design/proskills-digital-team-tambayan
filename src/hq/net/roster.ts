@@ -19,7 +19,7 @@ async function saveMember(me: Profile) {
   try {
     const supabase = await getSupabase();
     const { error } = await supabase.from(TABLE).upsert({
-      id: me.id, name: me.name, first_name: me.firstName ?? null, role: me.role, look: me.look, batches: batchesOf(me), admin: Boolean(me.admin), last_seen: new Date().toISOString(),
+      id: me.id, name: me.name, first_name: me.firstName ?? null, role: me.role, look: me.look, batches: batchesOf(me), admin: Boolean(me.admin) && !me.hideAdmin, last_seen: new Date().toISOString(),
     });
     if (error) available = false;
   } catch { available = false; }

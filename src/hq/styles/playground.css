@@ -617,3 +617,10 @@ button:hover > .emoji-3d, button:hover > .emoji-flat { transform: translateY(-3p
 .ready-gifs .gif-btn { background: none; border-color: transparent; aspect-ratio: 1; }
 .ready-gifs .gif-btn:hover { border-color: var(--lav); }
 .ready-gifs img { width: 100%; height: 100%; object-fit: contain; }
+
+.admin-toggle { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; font-size: 14px; font-weight: 700; }
+.admin-toggle input { width: 18px; height: 18px; }
+
+.app-top { display: grid; gap: 8px; }
+.app-download { width: 100%; min-height: 52px; font-size: 16px; }
+.app-hint { margin: 0; padding: 10px 12px; border-radius: 10px; background: var(--lav-soft); font-size: 13.5px; }

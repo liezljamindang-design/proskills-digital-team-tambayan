@@ -26,6 +26,7 @@ export function AvatarBuilder({ initial, submitLabel, onSubmit, onCancel, admin 
   const [year, setYear] = useState(initial?.birthYear ?? 0);
   const view3d = useHq((s) => s.view3d);
   const [error, setError] = useState("");
+  const [showTag, setShowTag] = useState(() => { try { return localStorage.getItem("playground.hideAdmin") !== "1"; } catch { return true; } });
   const set = <K extends keyof Look>(key: K, value: Look[K]) => setLook((l) => ({ ...l, [key]: value }));
 
   function submit(e: FormEvent) {
@@ -33,6 +34,7 @@ export function AvatarBuilder({ initial, submitLabel, onSubmit, onCancel, admin 
     if (!name.trim()) return setError("Enter the username your teammates will see.");
     if (!batches.length) return setError(admin ? "Pick at least one batch." : "Pick your batch number. Everyone is in the public room, plus their own batch room.");
     if ((month > 0) !== (day > 0)) return setError("Pick both a month and a day for your birthday, or leave both empty.");
+    if (admin) { try { localStorage.setItem("playground.hideAdmin", showTag ? "0" : "1"); } catch { /* private mode */ } }
     onSubmit(name.trim().slice(0, 24), role.trim().slice(0, 40), look, month && day ? birthdayKey(month, day) : undefined, month && day && year ? year : undefined, firstName.trim().slice(0, 20) || undefined, admin ? [...batches].sort((a, b) => a - b) : batches.slice(0, 1));
   }
 
@@ -83,6 +85,7 @@ export function AvatarBuilder({ initial, submitLabel, onSubmit, onCancel, admin 
 
         {admin && (
           <fieldset className="field">
+            <label className="admin-toggle"><input type="checkbox" checked={showTag} onChange={(e) => setShowTag(e.target.checked)} /> Show the “Admin” label beside my name</label>
             <legend>Batches (required. Admin: pick as many as you handle)</legend>
             <div className="chips">
               {Array.from({ length: BATCHES }, (_, i) => i + 1).map((n) => (

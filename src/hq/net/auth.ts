@@ -2,7 +2,7 @@ import type { Look } from "../types";
 import { getSupabase, supabaseConfigured } from "./supabase";
 
 /** What is stored on a person's account, so their name and chibi follow them between devices. */
-export interface SavedProfile { name?: string; role?: string; look?: Look; best?: number; birthday?: string; birthYear?: number | null; firstName?: string; batch?: number | null; batches?: number[]; coins?: number; streak?: number; lastDay?: string; owned?: string[] }
+export interface SavedProfile { name?: string; role?: string; look?: Look; best?: number; birthday?: string; birthYear?: number | null; firstName?: string; batch?: number | null; batches?: number[]; hideAdmin?: boolean; coins?: number; streak?: number; lastDay?: string; owned?: string[] }
 export interface Account { id: string; email: string; saved: SavedProfile; admin: boolean }
 /** Admins are marked on the account in Supabase (app_metadata.role = "admin"), which people cannot edit themselves. */
 const isAdmin = (user: { app_metadata?: Record<string, unknown> }) => user.app_metadata?.role === "admin";

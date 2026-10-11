@@ -84,6 +84,8 @@ export interface Profile {
   batches?: number[];
   /** Set from the account, not typed in by the person. */
   admin?: boolean;
+  /** An admin who prefers not to show the Admin label beside their name. */
+  hideAdmin?: boolean;
 }
 /** Every batch a person belongs to. */
 export const batchesOf = (p: Pick<Profile, "batch" | "batches">): number[] => (p.batches?.length ? p.batches : p.batch ? [p.batch] : []);

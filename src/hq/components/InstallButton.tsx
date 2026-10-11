@@ -76,6 +76,7 @@ export function AppPane() {
   const { mode, install } = useInstall();
   const here = window.matchMedia("(max-width: 900px)").matches || isApple() ? "phone" : "pc";
   const [copied, setCopied] = useState(false);
+  const [hint, setHint] = useState(false);
   const link = window.location.origin;
   const copy = () => { void navigator.clipboard?.writeText(link).then(() => { setCopied(true); setTimeout(() => setCopied(false), 2000); }); };
   const button = (kind: "pc" | "phone") => {
@@ -86,6 +87,12 @@ export function AppPane() {
   };
   return (
     <div className="app-pane">
+      <div className="app-top">
+        {!mode ? <p className="app-done">✅ Already installed on this device.</p> : (
+          <button type="button" className="btn-primary app-download" onClick={() => { if (mode === "prompt") install(); else setHint(true); }}>⬇ Download the app{here === "pc" ? " for PC" : " for mobile"}</button>
+        )}
+        {hint && mode && mode !== "prompt" && <p className="app-hint" role="status">{mode === "apple" ? "iPhone and iPad don't allow a one-tap download. Follow the iPhone steps below: Share, then “Add to Home Screen”." : "This browser didn't offer a one-tap download. Use the steps below: browser menu, then “Install app” or “Add to Home screen”. Chrome and Edge work best."}</p>}
+      </div>
       <p className="muted">Free, no app store needed. It opens in its own window with the owl icon.</p>
       <section className="app-card">
         <h3>💻 Download on PC</h3>

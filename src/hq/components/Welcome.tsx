@@ -104,7 +104,11 @@ function SignIn({ onSignedIn, onGuest }: { onSignedIn: (account: Account) => voi
       const message = err instanceof Error ? err.message : "";
       setError(mode === "in"
         ? "That email and password didn't match. Check them, or create an account if you are new."
-        : /already/i.test(message) ? "That email already has an account. Sign in instead." : "Couldn't create the account. Check your connection and try again.");
+        : /already/i.test(message) ? "That email already has an account. Sign in instead."
+          : /rate limit|sending|confirmation email/i.test(message) ? "The confirmation email couldn't be sent (the free email limit was reached). Ask the admin to turn off \"Confirm email\" in Supabase, then try again."
+          : /signups? (not allowed|disabled)/i.test(message) ? "New sign-ups are turned off in Supabase. Ask the admin to allow them."
+          : /fetch|network/i.test(message) ? "Couldn't reach the sign-in service. Check your connection and try again."
+          : `Couldn't create the account: ${message || "unknown error"}`);
     } finally { setBusy(false); }
   }
 

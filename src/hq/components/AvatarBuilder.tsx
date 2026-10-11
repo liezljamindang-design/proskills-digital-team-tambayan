@@ -31,6 +31,7 @@ export function AvatarBuilder({ initial, submitLabel, onSubmit, onCancel, admin 
   function submit(e: FormEvent) {
     e.preventDefault();
     if (!name.trim()) return setError("Enter the username your teammates will see.");
+    if (!batches.length) return setError(admin ? "Pick at least one batch." : "Pick your batch number. Everyone is in the public room, plus their own batch room.");
     if ((month > 0) !== (day > 0)) return setError("Pick both a month and a day for your birthday, or leave both empty.");
     onSubmit(name.trim().slice(0, 24), role.trim().slice(0, 40), look, month && day ? birthdayKey(month, day) : undefined, month && day && year ? year : undefined, firstName.trim().slice(0, 20) || undefined, admin ? [...batches].sort((a, b) => a - b) : batches.slice(0, 1));
   }
@@ -71,9 +72,9 @@ export function AvatarBuilder({ initial, submitLabel, onSubmit, onCancel, admin 
           </div>
 {!admin && (
           <div className="field">
-            <label htmlFor="av-batch">Batch (optional)</label>
+            <label htmlFor="av-batch">Batch (required)</label>
             <select id="av-batch" className="plain-select" value={batches[0] ?? 0} onChange={(e) => setBatches(Number(e.target.value) ? [Number(e.target.value)] : [])}>
-              <option value={0}>No batch: public room only</option>
+              <option value={0}>Choose your batch…</option>
               {Array.from({ length: BATCHES }, (_, i) => <option key={i} value={i + 1}>Batch {i + 1}</option>)}
             </select>
           </div>
@@ -82,7 +83,7 @@ export function AvatarBuilder({ initial, submitLabel, onSubmit, onCancel, admin 
 
         {admin && (
           <fieldset className="field">
-            <legend>Batches (admin: pick as many as you handle)</legend>
+            <legend>Batches (required. Admin: pick as many as you handle)</legend>
             <div className="chips">
               {Array.from({ length: BATCHES }, (_, i) => i + 1).map((n) => (
                 <button key={n} type="button" className="service-chip" aria-pressed={batches.includes(n)}

@@ -6,7 +6,7 @@ import { startRoster } from "../net/roster";
 import { joinOffice, liveMode, updateMyProfile } from "../net/session";
 import { DEFAULT_LOOK } from "../office/Chibi";
 import { useHq } from "../store";
-import type { Look, Profile } from "../types";
+import { batchesOf, type Look, type Profile } from "../types";
 import { AvatarBuilder } from "./AvatarBuilder";
 import { Dialog } from "./Dialog";
 
@@ -73,7 +73,8 @@ export function Welcome() {
   const autoTried = useRef(false);
   const [entering, setEntering] = useState(false);
   useEffect(() => {
-    if (!fromAccount || joined || autoTried.current) return;
+    // No batch yet: the editor opens so they can pick one before walking in.
+    if (!fromAccount || joined || autoTried.current || !batchesOf(fromAccount).length) return;
     autoTried.current = true;
     setEntering(true);
     useHq.getState().setMe(fromAccount);

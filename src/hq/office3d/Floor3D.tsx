@@ -61,7 +61,7 @@ export function Floor3D() {
     const partyLights = ["#ff4fa3", "#35c9ff", "#ffd43b"].map((color) => { const l = new THREE.PointLight(color, 0, 14, 1.4); l.position.y = 3; scene.add(l); return l; });
 
     const camera = new THREE.PerspectiveCamera(30, 1, 0.3, 300);
-    const cam = { az: Math.PI / 4, azGoal: Math.PI / 4, el: 0.62, heading: Math.PI, pos: new THREE.Vector3(20, 14, 20), look: new THREE.Vector3(9, 0, 13), first: true, steerAt: 0, steerClock: 0 };
+    const cam = { az: Math.PI / 4, azGoal: Math.PI / 4, el: 0.62, heading: Math.PI, pos: new THREE.Vector3(20, 14, 20), look: new THREE.Vector3(9, 0, 13), first: true, tilt: 0, steerAt: 0, steerClock: 0 };
     spin.current = (by) => { cam.azGoal += by; };
 
     const actors = new Map<string, Actor>();
@@ -96,20 +96,44 @@ export function Floor3D() {
     const unsubscribe = useHq.subscribe((s, prev) => { if (s.me !== prev.me || s.peers !== prev.peers || s.joined !== prev.joined) sync(); });
     const self = () => { const id = useHq.getState().me?.id; return id ? actors.get(id) : undefined; };
 
-    // Dragging turns the camera in Free look. A drag must not also count as a click to walk.
-    let drag: { x: number; y: number; moved: boolean } | null = null, swallowClick = false;
-    const canvas = renderer.domElement;
-    const onDown = (e: PointerEvent) => { drag = { x: e.clientX, y: e.clientY, moved: false }; };
-    const onMove = (e: PointerEvent) => {
-      if (!drag || useHq.getState().camMode !== "free") return;
-      const dx = e.clientX - drag.x, dy = e.clientY - drag.y;
-      if (!drag.moved && Math.hypot(dx, dy) < 5) return;
-      drag.moved = true; drag.x = e.clientX; drag.y = e.clientY;
-      cam.azGoal -= dx * 0.008; cam.az = cam.azGoal;
-      cam.el = Math.min(1.45, Math.max(0.12, cam.el + dy * 0.006));
+    // Dragging (mouse or one finger) looks around in every view; two fingers pinch to zoom. A drag must not also count as a tap to walk.
+    let drag: { x: number; y: number; moved: boolean } | null = null, swallowAt = 0, pinch = 0;
+    const canvas = renderer.domElement, fingers = new Map<number, { x: number; y: number }>();
+    const spread = () => { const [p, q] = [...fingers.values()]; return Math.hypot(p.x - q.x, p.y - q.y); };
+    const onDown = (e: PointerEvent) => {
+      fingers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+      if (fingers.size === 2) { pinch = spread(); if (drag) drag.moved = true; }
+      else drag = { x: e.clientX, y: e.clientY, moved: false };
     };
-    const onUp = () => { if (drag?.moved) swallowClick = true; drag = null; };
-    canvas.addEventListener("pointerdown", onDown); window.addEventListener("pointermove", onMove); window.addEventListener("pointerup", onUp);
+    const onMove = (e: PointerEvent) => {
+      if (fingers.has(e.pointerId)) fingers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+      if (fingers.size >= 2) {
+        const d = spread();
+        if (pinch > 0 && Math.abs(d - pinch) > 4) { useHq.getState().zoomBy(d / pinch); pinch = d; }
+        return;
+      }
+      if (!drag) return;
+      const dx = e.clientX - drag.x, dy = e.clientY - drag.y;
+      if (!drag.moved && Math.hypot(dx, dy) < 6) return;
+      drag.moved = true; drag.x = e.clientX; drag.y = e.clientY;
+      const mode = useHq.getState().camMode;
+      if (mode === "iso" || mode === "free") {
+        cam.azGoal -= dx * 0.008; cam.az = cam.azGoal;
+        if (mode === "free") cam.el = Math.min(1.45, Math.max(0.12, cam.el + dy * 0.006));
+      } else {
+        // Walking views: sideways turns you, up and down tilts the camera.
+        cam.heading -= dx * 0.008; cam.steerAt = performance.now();
+        const a = self(); if (a) a.facing = cam.heading;
+        cam.tilt = Math.min(1, Math.max(-0.5, cam.tilt + dy * 0.006));
+      }
+    };
+    const onUp = (e: PointerEvent) => {
+      fingers.delete(e.pointerId);
+      if (drag?.moved || pinch) swallowAt = performance.now();
+      if (fingers.size < 2) pinch = 0;
+      if (!fingers.size) drag = null; else if (drag) drag.moved = true;
+    };
+    canvas.addEventListener("pointerdown", onDown); window.addEventListener("pointermove", onMove); window.addEventListener("pointerup", onUp); window.addEventListener("pointercancel", onUp);
 
     const raycaster = new THREE.Raycaster(), ground = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
     const tank = () => { const m = useHq.getState().camMode; return m === "third" || m === "front" || m === "first"; };
@@ -117,7 +141,7 @@ export function Floor3D() {
     viewRef.current = {
       element: canvas,
       pick(e): Hit {
-        if (swallowClick) { swallowClick = false; return null; }
+        if (performance.now() - swallowAt < 400) return null;
         const r = canvas.getBoundingClientRect();
         raycaster.setFromCamera(new THREE.Vector2(((e.clientX - r.left) / r.width) * 2 - 1, -((e.clientY - r.top) / r.height) * 2 + 1), camera);
         const firstPerson = useHq.getState().camMode === "first";
@@ -210,9 +234,9 @@ export function Floor3D() {
       const mx = mine?.x ?? 9, mz = mine?.y ?? 13, fwd = new THREE.Vector3(Math.sin(cam.heading), 0, Math.cos(cam.heading));
       const wantPos = new THREE.Vector3(), wantLook = new THREE.Vector3();
       let fov = 30;
-      if (mode === "third") { fov = 58; wantPos.set(mx, 2.1, mz).addScaledVector(fwd, -3.3 / Math.sqrt(s.zoom)); wantLook.set(mx, 1.0, mz).addScaledVector(fwd, 1.2); }
-      else if (mode === "front") { fov = 50; wantPos.set(mx, 1.5, mz).addScaledVector(fwd, 3.2 / Math.sqrt(s.zoom)); wantLook.set(mx, 0.85, mz); }
-      else if (mode === "first") { fov = 72; wantPos.set(mx, 1.18, mz).addScaledVector(fwd, 0.12); wantLook.copy(wantPos).addScaledVector(fwd, 2); wantLook.y -= 0.12; }
+      if (mode === "third") { fov = 58; wantPos.set(mx, 2.1, mz).addScaledVector(fwd, -3.3 / Math.sqrt(s.zoom)); wantLook.set(mx, 1.0, mz).addScaledVector(fwd, 1.2); wantPos.y += cam.tilt * 2.5; }
+      else if (mode === "front") { fov = 50; wantPos.set(mx, 1.5, mz).addScaledVector(fwd, 3.2 / Math.sqrt(s.zoom)); wantLook.set(mx, 0.85, mz); wantPos.y += cam.tilt * 2.5; }
+      else if (mode === "first") { fov = 72; wantPos.set(mx, 1.18, mz).addScaledVector(fwd, 0.12); wantLook.copy(wantPos).addScaledVector(fwd, 2); wantLook.y += cam.tilt * 2.4 - 0.12; }
       else {
         const whole = s.overview, el = mode === "free" ? cam.el : 0.62, dist = whole ? 48 : 19 / s.zoom;
         wantLook.set(whole ? FLOOR.width / 2 : mx, whole ? 0 : 0.6, whole ? FLOOR.depth / 2 : mz);
@@ -245,7 +269,7 @@ export function Floor3D() {
 
     return () => {
       cancelAnimationFrame(raf); unsubscribe(); observer.disconnect(); viewRef.current = null;
-      canvas.removeEventListener("pointerdown", onDown); window.removeEventListener("pointermove", onMove); window.removeEventListener("pointerup", onUp);
+      canvas.removeEventListener("pointerdown", onDown); window.removeEventListener("pointermove", onMove); window.removeEventListener("pointerup", onUp); window.removeEventListener("pointercancel", onUp);
       for (const a of actors.values()) disposeChibi(a.chibi);
       scene.traverse((o) => { (o as THREE.Mesh).geometry?.dispose(); });
       renderer.dispose(); canvas.remove();
@@ -292,7 +316,7 @@ export function Floor3D() {
         )}
       </div>
       <p className="view-hint">
-        {camMode === "free" ? "Drag to look around." : camMode === "iso" ? "" : "Left and right turn you. Up and down walk."}
+        {camMode === "iso" ? "" : "Drag to look around."}
       </p>
 
       <div className="zoom-controls" role="group" aria-label="Zoom">

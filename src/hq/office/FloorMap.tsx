@@ -62,15 +62,48 @@ export function FloorMap() {
     const mobile = window.matchMedia("(max-width: 900px)"), reduce = window.matchMedia("(prefers-reduced-motion: reduce)");
     const cam = { x: CENTRE.x, y: CENTRE.y, z: 1 };
     let slotNow = -1, first = true;
+    // Dragging (mouse or one finger) slides the view to look around; two fingers pinch to zoom. Walking brings the camera back to you.
+    const off = { x: 0, y: 0 }, fingers = new Map<number, { x: number; y: number }>();
+    let drag: { x: number; y: number; moved: boolean } | null = null, swallowAt = 0, pinch = 0;
+    const spread = () => { const [p, q] = [...fingers.values()]; return Math.hypot(p.x - q.x, p.y - q.y); };
+    const place = () => camera.setAttribute("transform", `translate(${CENTRE.x} ${CENTRE.y}) scale(${cam.z.toFixed(4)}) translate(${(-cam.x).toFixed(2)} ${(-cam.y).toFixed(2)})`);
+    const onDown = (e: PointerEvent) => {
+      fingers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+      if (fingers.size === 2) { pinch = spread(); if (drag) drag.moved = true; } else drag = { x: e.clientX, y: e.clientY, moved: false };
+    };
+    const onMove = (e: PointerEvent) => {
+      if (fingers.has(e.pointerId)) fingers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+      if (fingers.size >= 2) { const d = spread(); if (pinch > 0 && Math.abs(d - pinch) > 4) { useHq.getState().zoomBy(d / pinch); pinch = d; } return; }
+      if (!drag || useHq.getState().overview) return;
+      const dx = e.clientX - drag.x, dy = e.clientY - drag.y;
+      if (!drag.moved && Math.hypot(dx, dy) < 6) return;
+      drag.moved = true; drag.x = e.clientX; drag.y = e.clientY;
+      const scale = camera.getScreenCTM()?.a || 1, mx = dx / scale, my = dy / scale;
+      const nx = Math.min(420, Math.max(-420, off.x - mx)), ny = Math.min(300, Math.max(-300, off.y - my));
+      cam.x += nx - off.x; cam.y += ny - off.y; off.x = nx; off.y = ny;
+      place();
+    };
+    const onUp = (e: PointerEvent) => {
+      fingers.delete(e.pointerId);
+      if (drag?.moved || pinch) swallowAt = performance.now();
+      if (fingers.size < 2) pinch = 0;
+      if (!fingers.size) drag = null; else if (drag) drag.moved = true;
+    };
+    // The office is rebuilt when the view changes, so the old listeners are dropped first.
+    const w = window as unknown as { __flatDrag?: () => void };
+    w.__flatDrag?.();
+    svg.addEventListener("pointerdown", onDown); window.addEventListener("pointermove", onMove); window.addEventListener("pointerup", onUp); window.addEventListener("pointercancel", onUp);
+    w.__flatDrag = () => { svg.removeEventListener("pointerdown", onDown); window.removeEventListener("pointermove", onMove); window.removeEventListener("pointerup", onUp); window.removeEventListener("pointercancel", onUp); };
     const goal = (pos: { x: number; y: number }) => {
       if (useHq.getState().overview) return { x: CENTRE.x, y: CENTRE.y, z: 1 };
       const [sx, sy] = project(pos.x, pos.y), zoom = useHq.getState().zoom;
       // The floor is large, so the camera stays close and follows you. "Whole floor" zooms back out.
-      return mobile.matches ? { x: sx, y: sy - 14, z: 2.1 * zoom } : { x: sx, y: sy - 20, z: 1.55 * zoom };
+      return mobile.matches ? { x: sx + off.x, y: sy - 14 + off.y, z: 2.1 * zoom } : { x: sx + off.x, y: sy - 20 + off.y, z: 1.55 * zoom };
     };
     return {
       element: svg,
       pick(e) {
+        if (performance.now() - swallowAt < 400) return null;
         const target = e.target as Element;
         if (target.closest(".avatar")) return { kind: "self" };
         const person = target.closest<SVGGElement>("[data-peer]");
@@ -84,13 +117,14 @@ export function FloorMap() {
         return { kind: "floor", point: sceneToFloor(p.x, p.y) };
       },
       render(pos, moving, dt) {
+        if (moving) { off.x = 0; off.y = 0; }
         const g = goal(pos), k = first || reduce.matches ? 1 : 1 - Math.exp(-dt * 3.2);
         first = false;
         cam.x += (g.x - cam.x) * k; cam.y += (g.y - cam.y) * k; cam.z += (g.z - cam.z) * k;
         const [sx, sy] = project(pos.x, pos.y);
         avatar.setAttribute("transform", `translate(${sx.toFixed(2)} ${sy.toFixed(2)})`);
         avatar.classList.toggle("is-walking", moving);
-        camera.setAttribute("transform", `translate(${CENTRE.x} ${CENTRE.y}) scale(${cam.z.toFixed(4)}) translate(${(-cam.x).toFixed(2)} ${(-cam.y).toFixed(2)})`);
+        place();
         return Math.abs(g.x - cam.x) < 0.2 && Math.abs(g.y - cam.y) < 0.2 && Math.abs(g.z - cam.z) < 0.002;
       },
       moved(pos) { const next = slotFor(pos, boxesRef.current); if (next !== slotNow) { slotNow = next; onSlot(next); } },

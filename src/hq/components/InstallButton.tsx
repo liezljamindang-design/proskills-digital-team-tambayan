@@ -20,7 +20,7 @@ function useInstall() {
   const [, bump] = useState(0);
   useEffect(() => { const l = () => bump((n) => n + 1); listeners.add(l); return () => { listeners.delete(l); }; }, []);
   // iPhones never offer a prompt: the person adds it from the Share menu instead.
-  const mode: "prompt" | "apple" | null = installed() ? null : offer ? "prompt" : isApple() ? "apple" : null;
+  const mode: "prompt" | "apple" | "menu" | null = installed() ? null : offer ? "prompt" : isApple() ? "apple" : "menu";
   const install = () => { const o = offer; offer = null; tell(); void o?.prompt(); };
   return { mode, install };
 }
@@ -30,6 +30,14 @@ const AppleSteps = () => (
     <li>Open this page in Safari.</li>
     <li>Tap the Share button (the square with an arrow).</li>
     <li>Choose “Add to Home Screen”, then “Add”.</li>
+  </ol>
+);
+
+const MenuSteps = () => (
+  <ol>
+    <li>Open this page in Chrome or Edge.</li>
+    <li>Open the browser menu (the three dots).</li>
+    <li>Choose “Install app” or “Add to Home screen”.</li>
   </ol>
 );
 
@@ -55,10 +63,10 @@ export function InstallBanner() {
   const dismiss = () => { try { localStorage.setItem(KEY, "1"); } catch { /* private mode */ } setGone(true); };
   return (
     <aside className="install-banner" aria-label="Install the app" style={steps ? { flexWrap: "wrap" } : undefined}>
-      <p>📲 Get the Tambayan app on your phone</p>
+      <p>📲 Get the Tambayan app on your phone or computer</p>
       <button type="button" onClick={() => (mode === "prompt" ? install() : setSteps(!steps))}>{mode === "prompt" ? "Install" : "How"}</button>
       <button type="button" className="install-x" aria-label="Hide" onClick={dismiss}>×</button>
-      {steps && mode === "apple" && <div className="install-steps"><AppleSteps /></div>}
+      {steps && mode !== "prompt" && <div className="install-steps">{mode === "apple" ? <AppleSteps /> : <MenuSteps />}</div>}
     </aside>
   );
 }

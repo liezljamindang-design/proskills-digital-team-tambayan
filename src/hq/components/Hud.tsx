@@ -1,7 +1,6 @@
 import { HQ } from "../config";
 import { liveMode } from "../net/session";
 import { useHq } from "../store";
-import { InstallButton } from "./InstallButton";
 import { MusicToggle } from "./MusicToggle";
 
 /** Top bar: the space's name, how many people are in, and the controls. */
@@ -44,7 +43,6 @@ export function Hud() {
             {toast && <span key={toast.n} className="coin-toast" role="status">{toast.text}</span>}
           </button>
         )}
-        <InstallButton />
         <MusicToggle />
         <button type="button" className="icon-btn" onClick={toggleTheme} aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}>
           {theme === "dark" ? (

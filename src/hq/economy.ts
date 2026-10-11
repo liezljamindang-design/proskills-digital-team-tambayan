@@ -27,7 +27,9 @@ export const SHOP: ShopItem[] = [
   { id: "robot", kind: "pet", name: "Robot", emoji: "🤖", price: 200 },
   { id: "ghost", kind: "fx", name: "Halloween Ghost", emoji: "👻", price: 180, until: "2026-11-02", note: "Halloween 2026" },
   { id: "gold", kind: "fx", name: "Golden Founder", emoji: "🏆", price: 300, until: "2026-12-01", note: "Opening season" },
-  { id: "rainbow", kind: "fx", name: "Rainbow", emoji: "🌈", price: 250 },
+  { id: "neon", kind: "fx", name: "Neon Glow", emoji: "💡", price: 220 },
+  { id: "ice", kind: "fx", name: "Frost", emoji: "🧊", price: 200 },
+  { id: "shadow", kind: "fx", name: "Shadow Ninja", emoji: "🥷", price: 240 },
 ];
 export const EARNING = { daily: 20, streakBonus: 5, streakCap: 7, chat: 1, chatCap: 20, win: 10, best: 15, meeting: 5 };
 

@@ -451,9 +451,9 @@ button:hover > .emoji-3d, button:hover > .emoji-flat { transform: translateY(-3p
 .limited { padding: 1px 8px; border-radius: 999px; background: #10141c; color: #ffe14a; font-size: 10.5px; font-weight: 800; letter-spacing: 0.03em; }
 .chibi.fx-gold { filter: sepia(1) saturate(3.4) hue-rotate(-12deg) brightness(1.12) drop-shadow(0 0 2px #ffd43b); }
 .chibi.fx-ghost { filter: grayscale(1) brightness(1.75) contrast(0.8) drop-shadow(0 0 3px #b197fc); opacity: 0.72; }
-.chibi.fx-rainbow { animation: pg-rainbow 4s linear infinite; }
-.chibi.fx-rainbow[class*="mood-"] { animation: none; filter: hue-rotate(140deg) saturate(1.5); }
-@keyframes pg-rainbow { 0% { filter: hue-rotate(0deg) saturate(1.5); } 100% { filter: hue-rotate(360deg) saturate(1.5); } }
+.chibi.fx-neon { filter: saturate(1.9) brightness(1.15) drop-shadow(0 0 2px #35e6ff) drop-shadow(0 0 5px #ff4fd8); }
+.chibi.fx-ice { filter: sepia(0.5) hue-rotate(160deg) saturate(1.8) brightness(1.2) drop-shadow(0 0 2px #a5d8ff); }
+.chibi.fx-shadow { filter: brightness(0.38) contrast(1.25) saturate(0.6) drop-shadow(0 0 2px #7048e8); }
 /* Poking your own chibi */
 .scene .avatar { pointer-events: auto; cursor: pointer; }
 .avatar.is-boing .av-body { animation: pg-boing 0.55s ease-out; }
@@ -461,4 +461,4 @@ button:hover > .emoji-3d, button:hover > .emoji-flat { transform: translateY(-3p
 .avatar.is-dizzy .av-body { animation: pg-dizzy 1.6s ease-in-out; transform-box: fill-box; transform-origin: 50% 100%; }
 @keyframes pg-dizzy { 0%, 100% { transform: rotate(0deg); } 20% { transform: rotate(-14deg); } 40% { transform: rotate(13deg); } 60% { transform: rotate(-9deg); } 80% { transform: rotate(6deg); } }
 .avatar .av-body { transform-box: fill-box; transform-origin: 50% 100%; }
-@media (prefers-reduced-motion: reduce) { .chibi.fx-rainbow, .avatar.is-boing .av-body, .avatar.is-dizzy .av-body { animation: none; } }
+@media (prefers-reduced-motion: reduce) { .avatar.is-boing .av-body, .avatar.is-dizzy .av-body { animation: none; } }

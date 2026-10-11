@@ -50,7 +50,7 @@ export function Shop() {
             <li>Walk into the Collaboration Room: {EARNING.meeting} coins, once a day.</li>
           </ul>
         </details>
-        <h3 className="panel-title">Limited edition skins</h3>
+        <h3 className="panel-title">Skins</h3>
         <ul className="shop-grid">{SHOP.filter((i) => i.kind === "fx").map(row)}</ul>
         <h3 className="panel-title">Hats</h3>
         <ul className="shop-grid">{SHOP.filter((i) => i.kind === "hat").map(row)}</ul>

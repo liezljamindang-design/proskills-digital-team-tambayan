@@ -2,7 +2,7 @@ import { useState, type FormEvent } from "react";
 import { birthdayKey, MONTHS } from "../birthday";
 import { useHq } from "../store";
 import { Chibi3DPreview } from "./Chibi3DPreview";
-import { ACCESSORIES, FITS, ChibiFull, DEFAULT_LOOK, HAIRS, OUTFITS, randomLook, SKINS, STYLES } from "../office/Chibi";
+import { ChibiFull, randomLook } from "../office/Chibi";
 import { BATCHES, batchesOf, type Look, type Profile } from "../types";
 
 interface Props {
@@ -18,7 +18,7 @@ interface Props {
 export function AvatarBuilder({ initial, submitLabel, onSubmit, onCancel, admin }: Props) {
   const [name, setName] = useState(initial?.name ?? "");
   const [role, setRole] = useState(initial?.role ?? "");
-  const [look, setLook] = useState<Look>(initial?.look ?? DEFAULT_LOOK);
+  const [look, setLook] = useState<Look>(() => initial?.look ?? randomLook());
   const [month, setMonth] = useState(initial?.birthday ? Number(initial.birthday.slice(0, 2)) : 0);
   const [day, setDay] = useState(initial?.birthday ? Number(initial.birthday.slice(3)) : 0);
   const [firstName, setFirstName] = useState(initial?.firstName ?? "");
@@ -27,7 +27,6 @@ export function AvatarBuilder({ initial, submitLabel, onSubmit, onCancel, admin 
   const view3d = useHq((s) => s.view3d);
   const [error, setError] = useState("");
   const [showTag, setShowTag] = useState(() => { try { return localStorage.getItem("playground.hideAdmin") !== "1"; } catch { return true; } });
-  const set = <K extends keyof Look>(key: K, value: Look[K]) => setLook((l) => ({ ...l, [key]: value }));
 
   function submit(e: FormEvent) {
     e.preventDefault();
@@ -37,17 +36,6 @@ export function AvatarBuilder({ initial, submitLabel, onSubmit, onCancel, admin 
     if (admin) { try { localStorage.setItem("playground.hideAdmin", showTag ? "0" : "1"); } catch { /* private mode */ } }
     onSubmit(name.trim().slice(0, 24), role.trim().slice(0, 40), look, month && day ? birthdayKey(month, day) : undefined, month && day && year ? year : undefined, firstName.trim().slice(0, 20) || undefined, admin ? [...batches].sort((a, b) => a - b) : batches.slice(0, 1));
   }
-
-  const swatches = (label: string, key: "skin" | "hair" | "outfit", colors: string[]) => (
-    <fieldset className="field">
-      <legend>{label}</legend>
-      <div className="swatches">
-        {colors.map((c) => (
-          <button key={c} type="button" className="swatch" style={{ background: c }} aria-pressed={look[key] === c} aria-label={`${label} colour ${c}`} onClick={() => set(key, c)} />
-        ))}
-      </div>
-    </fieldset>
-  );
 
   return (
     <form className="builder" onSubmit={submit} noValidate>
@@ -114,38 +102,7 @@ export function AvatarBuilder({ initial, submitLabel, onSubmit, onCancel, admin 
           <p className="field-hint">On your day the office puts up a banner with your name. The year is optional and stays private: teammates never see it.</p>
         </fieldset>
 
-        {!onCancel && (<>
-        {swatches("Skin", "skin", SKINS)}
-        <fieldset className="field">
-          <legend>Hairstyle</legend>
-          <div className="chips">
-            {STYLES.map((s) => <button key={s.id} type="button" className="service-chip" aria-pressed={look.style === s.id} onClick={() => set("style", s.id)}>{s.label}</button>)}
-          </div>
-        </fieldset>
-        {swatches("Hair", "hair", HAIRS)}
-        <fieldset className="field">
-          <legend>Clothing style</legend>
-          <div className="chips">
-            {FITS.map((f) => <button key={f.id} type="button" className="service-chip" aria-pressed={(look.fit ?? "basic") === f.id} onClick={() => set("fit", f.id)}>{f.label}</button>)}
-          </div>
-        </fieldset>
-        {swatches("Outfit colour", "outfit", OUTFITS)}
-        <div className="field-row">
-          <fieldset className="field">
-            <legend>Bottoms</legend>
-            <div className="chips">
-              {(["pants", "skirt"] as const).map((b) => <button key={b} type="button" className="service-chip" aria-pressed={look.bottoms === b} onClick={() => set("bottoms", b)}>{b === "pants" ? "Pants" : "Skirt"}</button>)}
-            </div>
-          </fieldset>
-        </div>
-        <fieldset className="field">
-          <legend>Accessory</legend>
-          <div className="chips">
-            {ACCESSORIES.map((a) => <button key={a.id} type="button" className="service-chip" aria-pressed={look.accessory === a.id} onClick={() => set("accessory", a.id)}>{a.label}</button>)}
-          </div>
-        </fieldset>
-        </>)}
-        {onCancel && <p className="field-hint">To change your skin, hair, clothes and accessories, open Wardrobe at the bottom of the office.</p>}
+        <p className="field-hint">{onCancel ? "To change" : "You start with a random chibi. To change"} your skin, hair, clothes and accessories, open Wardrobe at the bottom of the office.</p>
 
         {error && <p className="field-error" role="alert">{error}</p>}
         <div className="builder-actions">

@@ -199,7 +199,7 @@ function classSign() {
     shown = on;
     c.clearRect(0, 0, 1024, 176); c.textAlign = "center"; c.textBaseline = "middle";
     c.fillStyle = "#10141c"; c.font = "800 78px Nunito, system-ui, sans-serif"; c.fillText(HQ.classTitle.slice(0, 26), 512, 50, 1000);
-    const left = `Schedule: ${HQ.classSchedule}`.slice(0, 40), right = on ? "Class ongoing" : "No Class Ongoing";
+    const left = `Mon-Fri ${HQ.classSchedule}`.slice(0, 40), right = on ? "Class ongoing" : "No Class Ongoing";
     c.font = "700 40px Nunito, system-ui, sans-serif";
     const lw = c.measureText(left).width, rw = c.measureText(right).width, gap = 70, start = 512 - (lw + gap + rw) / 2;
     c.textAlign = "left"; c.fillStyle = "#15803d"; c.fillText(left, start, 132);

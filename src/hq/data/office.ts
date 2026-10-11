@@ -19,7 +19,7 @@ export const ARCADE_SPOT = { x: 1.7, y: 11.2 };
 
 export const ZONES: Zone[] = [
   { id: "lobby", key: 1, name: "Lobby", summary: "Where everyone lands. Say hi on your way in.", rect: { x: 6.6, y: 5, w: 4.8, h: 9 } },
-  { id: "focus", key: 2, name: "Classroom", summary: `${HQ.classTitle} · ${HQ.classSchedule}. Live training on Zoom: walk in and the class opens.`, rect: { x: 0, y: 0, w: 6.5, h: 4.2 } },
+  { id: "focus", key: 2, name: "Classroom", summary: `${HQ.classTitle} · Monday to Friday, ${HQ.classSchedule}. Live training on Zoom: walk in and the class opens.`, rect: { x: 0, y: 0, w: 6.5, h: 4.2 } },
   { id: "huddle", key: 3, name: "Collaboration Room", summary: "The glass meeting room. Join the team's live Zoom call from here.", rect: { x: 7, y: 0, w: 4, h: 4 } },
   { id: "cafe", key: 4, name: "Café", summary: "Walk in and order a coffee. Your chibi sips it.", rect: { x: 11.5, y: 0, w: 6.5, h: 4.2 } },
   { id: "lounge", key: 5, name: "Lounge", summary: "Sit on the sofa and scroll your phone.", rect: { x: 0, y: 5, w: 6, h: 4.2 } },

@@ -36,11 +36,13 @@ function minutes(text: string): number | null {
   if (!m) return null;
   return ((Number(m[1]) % 12) + (m[3].toUpperCase() === "P" ? 12 : 0)) * 60 + Number(m[2] ?? 0);
 }
-/** Whether class is on right now, going by Philippine time and the schedule on the sign (1:00 PM to 5:00 PM unless changed). */
+/** Whether class is on right now: Monday to Friday, going by Philippine time and the schedule on the sign (1:00 PM to 5:00 PM unless changed). */
 export function classOngoing(now = new Date()): boolean {
   const [from, to] = HQ.classSchedule.split(/\s[-–—]\s|\sto\s/i);
   const start = minutes(from ?? "") ?? 13 * 60, end = minutes(to ?? "") ?? 17 * 60;
-  const parts = new Intl.DateTimeFormat("en-GB", { timeZone: "Asia/Manila", hour: "2-digit", minute: "2-digit", hour12: false }).formatToParts(now);
+  const parts = new Intl.DateTimeFormat("en-GB", { timeZone: "Asia/Manila", weekday: "short", hour: "2-digit", minute: "2-digit", hour12: false }).formatToParts(now);
+  // Class runs Monday to Friday only.
+  if (/^(Sat|Sun)/.test(parts.find((p) => p.type === "weekday")?.value ?? "")) return false;
   const at = (Number(parts.find((p) => p.type === "hour")?.value) % 24) * 60 + Number(parts.find((p) => p.type === "minute")?.value);
   return at >= start && at < end;
 }

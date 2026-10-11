@@ -258,7 +258,7 @@ export function FloorMap() {
             ) : (
               <g transform={`matrix(0.894 0.447 0 1 ${signX} ${signY})`} textAnchor="middle">
                 <text className="plaque-text" y={-6}>{HQ.classTitle}</text>
-                <text className="plaque-text plaque-sub" y={7}>Schedule: {HQ.classSchedule} · {classOngoing() ? "Class ongoing" : "No Class Ongoing"}</text>
+                <text className="plaque-text plaque-sub" y={7}>Mon-Fri {HQ.classSchedule} · {classOngoing() ? "Class ongoing" : "No Class Ongoing"}</text>
               </g>
             )}
             {party.length > 0 && (

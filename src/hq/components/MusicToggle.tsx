@@ -183,6 +183,7 @@ export function MusicToggle() {
       {open && (
         <div className="music-menu" role="group" aria-label="Music">
           <p className="eyebrow">Music · no ads</p>
+          {!((current && current !== AMBIENT) || song) && <button type="button" className="dj-btn" disabled>🎧 DJ mode: play a station or song first</button>}
           {((current && current !== AMBIENT) || song) && (
             <button type="button" className={`dj-btn${iAmDj ? " is-on" : ""}`} aria-pressed={iAmDj} onClick={() => setAct({ dj: iAmDj ? undefined : song ? SONG + song.id : current ?? undefined })}>
               {iAmDj ? "🎧 You are the DJ · tap to stop" : song ? "🎧 DJ mode: invite everyone to this song" : "🎧 DJ mode: invite everyone to this station"}

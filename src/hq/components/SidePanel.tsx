@@ -96,7 +96,8 @@ function ChatPane() {
           ) : (
             <div key={l.id} className={`chat-line${l.from === me?.id ? " is-mine" : ""}`}>
               <p className="chat-meta">{l.from === me?.id ? "You" : l.name} · {l.time}</p>
-              <p className="chat-text">{l.text}</p>
+              {l.image && <a className="chat-image" href={l.image.startsWith("data:") ? undefined : l.image} target="_blank" rel="noopener noreferrer"><img src={l.image} alt={l.image.startsWith("data:") ? "Photo" : "GIF"} loading="lazy" /></a>}
+              {l.text && <p className="chat-text">{l.text}</p>}
             </div>
           ),
         )}
@@ -105,7 +106,8 @@ function ChatPane() {
       <Composer
         id="side-composer"
         placeholder={isPublic ? "Message everyone" : isBatch ? `Message Batch ${me?.batch}` : `Message ${otherName}`}
-        onSend={(text) => say(text, isPublic ? undefined : active)}
+        attachments
+        onSend={(text, image) => say(text, isPublic ? undefined : active, image)}
       />
     </div>
   );

@@ -1,6 +1,7 @@
 import { START } from "../data/office";
 import { ZONES } from "../data/office";
 import { zoneAt } from "../office/engine";
+import { safeImage } from "../media";
 import { MANUAL } from "../status";
 import { PUBLIC, useHq } from "../store";
 import { displayName, type Profile } from "../types";
@@ -73,24 +74,27 @@ export async function joinOffice(me: Profile): Promise<void> {
     },
     onChat: (msg) => {
       const thread = msg.room ?? (msg.to ? msg.from : PUBLIC); // a private message files under its sender
-      s().addLine(thread, { id: msg.id, from: msg.from, name: msg.name, text: msg.text, time: clock() });
-      s().showBubble(msg.from, msg.text, Boolean(msg.to || msg.room));
+      const image = safeImage(msg.image) ? msg.image : undefined; // never show an image we did not expect
+      const text = typeof msg.text === "string" ? msg.text.slice(0, 280) : "";
+      if (!text && !image) return;
+      s().addLine(thread, { id: msg.id, from: msg.from, name: msg.name, text, time: clock(), image });
+      s().showBubble(msg.from, text || (image?.startsWith("data:") ? "📷 Photo" : "GIF"), Boolean(msg.to || msg.room));
     },
   });
   useHq.getState().setJoined(true);
 }
 
 /** Sends a message to the public room, to a batch room ("batch-7"), or privately when `to` is a person's id. */
-export function say(text: string, to?: string) {
+export function say(text: string, to?: string, image?: string) {
   const me = useHq.getState().me;
   const clean = text.trim().slice(0, 280);
-  if (!me || !clean || !transport) return;
+  if (!me || (!clean && !image) || !transport) return;
   const id = nextId();
   const name = displayName(me);
   const room = to?.startsWith("batch-") ? to : undefined;
-  transport.chat({ id, from: me.id, name, text: clean, to: room ? undefined : to, room });
-  useHq.getState().addLine(to ?? PUBLIC, { id, from: me.id, name, text: clean, time: clock() });
-  useHq.getState().showBubble(me.id, clean, Boolean(to));
+  transport.chat({ id, from: me.id, name, text: clean, to: room ? undefined : to, room, image });
+  useHq.getState().addLine(to ?? PUBLIC, { id, from: me.id, name, text: clean, time: clock(), image });
+  useHq.getState().showBubble(me.id, clean || (image?.startsWith("data:") ? "📷 Photo" : "GIF"), Boolean(to));
 }
 
 /** Called by the movement loop every frame it moves; sends at most about eight updates a second. */

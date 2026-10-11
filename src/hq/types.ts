@@ -98,6 +98,8 @@ export interface ChatLine {
   text: string;
   time: string;
   system?: boolean;
+  /** A photo (small data URL) or a GIF link attached to the message. */
+  image?: string;
 }
 
 export type ThemeChoice = "light" | "dark";

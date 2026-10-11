@@ -14,6 +14,8 @@ export interface WireChat { id: string; from: string; name: string; text: string
   partyOver?: boolean;
   /** Not a message of its own: a ping-pong move or invitation between two players. */
   pong?: PongMsg;
+  /** Not a message of its own: voice-call set-up details passed between two browsers. */
+  rtc?: { t: "offer" | "answer" | "ice"; d: unknown };
   /** Not a message of its own: a friendly gesture aimed at one person, seen by everyone. */
   poke?: { kind: string; to: string; toName: string };
 }

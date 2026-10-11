@@ -93,6 +93,7 @@ export async function joinOffice(me: Profile): Promise<void> {
       const thread = msg.room ?? (msg.to ? msg.from : PUBLIC); // a private message files under its sender
       // Arcade chat is only for people who are inside the arcade right now.
       if (msg.room === ARCADE && s().myZone !== "game") return;
+      if (msg.rtc) { rtcListener?.(msg.from, msg.rtc); return; }
       if (msg.pong) { receivePong(msg.from, msg.name, msg.pong); return; }
       if (msg.poke && POKES[msg.poke.kind]) {
         const poke = POKES[msg.poke.kind], mine = msg.poke.to === s().me?.id;
@@ -313,4 +314,13 @@ export function leavePong() {
   const current = useHq.getState().pong;
   if (current) sendPong(current.opp, { k: "quit" });
   useHq.setState({ pong: null });
+}
+
+// ---- Voice chat set-up messages ----
+type Rtc = NonNullable<import("./transport").WireChat["rtc"]>;
+let rtcListener: ((from: string, msg: Rtc) => void) | null = null;
+export function onRtc(listener: ((from: string, msg: Rtc) => void) | null) { rtcListener = listener; }
+export function sendRtc(to: string, msg: Rtc) {
+  const me = useHq.getState().me;
+  if (me && transport) transport.chat({ id: nextId(), from: me.id, name: me.name, text: "", to, rtc: msg });
 }

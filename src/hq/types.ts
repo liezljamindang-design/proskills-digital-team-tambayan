@@ -105,6 +105,8 @@ export interface Act {
   radio?: string;
   /** They switched party mode on. The party runs while anyone has this set. */
   party?: boolean;
+  /** They have joined the voice chat. */
+  voice?: boolean;
 }
 
 /** Someone else in the office. */

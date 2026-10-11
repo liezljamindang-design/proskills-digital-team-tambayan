@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef } from "react";
 import * as THREE from "three";
 import { isBirthday } from "../birthday";
-import { FLOOR } from "../data/office";
+import { FLOOR, FURNITURE, SEATS } from "../data/office";
 import { useMovement, type Hit, type WalkView } from "../hooks/useMovement";
 import { zoneAt } from "../office/engine";
 import { statusOf } from "../status";
@@ -186,9 +186,18 @@ export function Floor3D() {
           if (d > 2.5) { a.x = a.tx; a.y = a.ty; } // a jump (sitting down, a bed): no sliding across the room
           else if (a.moving) { const k = 1 - Math.exp(-dt * 9); a.x += dx * k; a.y += dy * k; a.facing = turnTo(a.facing, Math.atan2(dx, dy), 0.25); }
         }
-        const pose = a.act?.pose, at = a.act?.at;
+        const pose = a.act?.pose;
         let ox = 0, oy = 0, oz = 0, facing = a.facing;
-        if (pose === "sit") { const back = (at?.dx ?? 0) / 32; oz = -back; oy = -((at?.dy ?? -8) + 16 * back - 3) / UNIT - 0.08; facing = 0; }
+        if (pose === "sit") {
+          // Put the chibi on the actual seat: the walking code only knows a spot just in front of it.
+          const seat = SEATS.find((q) => Math.hypot(q.x - a.x, q.y - a.y) < 0.3), f = seat && FURNITURE.find((q) => q.id === seat.furniture);
+          if (seat && f) {
+            const sofa = f.kind === "sofa";
+            const top = (sofa ? 9 : f.kind === "chair" ? 10 : f.kind === "stool" ? 14 : 12) / UNIT;
+            ox = (sofa ? seat.x : f.x + f.w / 2) - a.x; oz = (sofa ? f.y + 0.16 + (f.h - 0.16) / 2 - 0.05 : f.y + f.h / 2) - a.y; oy = top - 0.21;
+            facing = f.kind === "chair" ? Math.PI : 0; // desk and meeting chairs face the table
+          }
+        }
         if (pose === "sleep") facing = 0;
         a.holder.position.set(a.x + ox, oy, a.y + oz);
         a.holder.rotation.y = facing;

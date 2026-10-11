@@ -15,6 +15,7 @@ export function HelpDialog() {
         <div><dt>Play</dt><dd>Walk into the Recreation Room and the arcade opens, with everyone who is inside. Chat stays open beside it.</dd></div>
         <div><dt>Your look</dt><dd>My avatar changes your name and chibi any time.</dd></div>
         <div><dt>Rooms do things</dt><dd>Order a drink in the Café, sit and scroll in the Lounge, stop in the Sleeping Quarters to nap, set what you are working on in the Work Room, and walk into the Collaboration Room to open the team Zoom.</dd></div>
+        <div><dt>Voice</dt><dd>Press "Join voice" under the reactions to talk with everyone else who has joined. Your browser will ask to use the microphone. You can mute or leave at any time.</dd></div>
         <div><dt>Views</dt><dd>The View menu at the top left of the office switches between Overhead, Free look, 3rd person, Facing you, 1st person and the simple flat drawing. In 1st and 3rd person, left and right turn you.</dd></div>
         <div><dt>Install as an app</dt><dd>On Android or a computer, use "Install app" in the top bar or your browser menu. On iPhone, open the site in Safari, tap Share, then "Add to Home Screen".</dd></div>
         <div><dt>Say hi</dt><dd>Click a teammate on the floor to wave, high-five, hug, cheer, message them or challenge them to ping-pong. Type @ and their name in chat to get their attention.</dd></div>

@@ -8,6 +8,7 @@ import { Shop } from "./components/Shop";
 import { EmoteBar } from "./components/EmoteBar";
 import { SitPrompt } from "./components/SitPrompt";
 import { Party } from "./components/Party";
+import { VoiceBar } from "./components/VoiceBar";
 import { PeerCard } from "./components/PeerCard";
 import { Pong, PongPrompt } from "./components/Pong";
 import { RoomCard } from "./components/RoomCard";
@@ -60,6 +61,7 @@ export function Headquarters() {
           </div>
           <div className="quick-say">
             <EmoteBar />
+            <VoiceBar />
             <Composer id="quick-composer" placeholder="Say something to everyone" onSend={(text) => { say(text); earnForChat(); }} />
           </div>
         </section>

@@ -16,6 +16,13 @@ const isApple = () => /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigato
 const KEY = "tambayan-install-hidden";
 const hidden = () => { try { return localStorage.getItem(KEY) === "1"; } catch { return false; } };
 
+// Chrome hides its install offer once the app is installed, so ask it directly where it can tell us.
+let installedElsewhere = false;
+if (typeof navigator !== "undefined") {
+  const ask = (navigator as { getInstalledRelatedApps?: () => Promise<unknown[]> }).getInstalledRelatedApps;
+  if (ask) void ask.call(navigator).then((apps) => { if (apps.length) { installedElsewhere = true; tell(); } }).catch(() => undefined);
+}
+
 function useInstall() {
   const [, bump] = useState(0);
   useEffect(() => { const l = () => bump((n) => n + 1); listeners.add(l); return () => { listeners.delete(l); }; }, []);
@@ -88,17 +95,18 @@ export function AppPane() {
   return (
     <div className="app-pane">
       <div className="app-top">
-        {!mode ? <p className="app-done">✅ Already installed on this device.</p> : (
+        {!mode ? <p className="app-done">✅ Already installed on this device.</p> : installedElsewhere && mode !== "prompt" ? <p className="app-done">✅ Already installed on this device. Click “Open in app” at the right of the address bar to open it.</p> : (
           <button type="button" className="btn-primary app-download" onClick={() => { if (mode === "prompt") install(); else setHint(true); }}>⬇ Download the app{here === "pc" ? " for PC" : " for mobile"}</button>
         )}
-        {hint && mode && mode !== "prompt" && <p className="app-hint" role="status">{mode === "apple" ? "iPhone and iPad don't allow a one-tap download. Follow the iPhone steps below: Share, then “Add to Home Screen”." : "This browser didn't offer a one-tap download. Use the steps below: browser menu, then “Install app” or “Add to Home screen”. Chrome and Edge work best."}</p>}
+        {hint && mode && mode !== "prompt" && <p className="app-hint" role="status">{mode === "apple" ? "iPhone and iPad don't allow a one-tap download. Follow the iPhone steps below: Share, then “Add to Home Screen”." : here === "pc" ? "No download is needed if you already installed it: look for “Open in app” at the right of the address bar and click it. If it isn't there, open the browser menu (three dots) and choose “Cast, save and share”, then “Install page as app”." : "This browser didn't offer a one-tap download. Open the browser menu (three dots) and choose “Install app” or “Add to Home screen”. Chrome works best."}</p>}
       </div>
       <p className="muted">Free, no app store needed. It opens in its own window with the owl icon.</p>
       <section className="app-card">
         <h3>💻 Download on PC</h3>
         <ol>
           <li>Open this page in Chrome or Edge.</li>
-          <li>Click the install icon at the right of the address bar, or the browser menu → “Install app”.</li>
+          <li>Click the install icon at the right of the address bar, or the browser menu → “Cast, save and share” → “Install page as app”.</li>
+          <li>Already installed? Click “Open in app” in the address bar.</li>
           <li>On a Mac with Safari: File → “Add to Dock”.</li>
         </ol>
         {button("pc")}

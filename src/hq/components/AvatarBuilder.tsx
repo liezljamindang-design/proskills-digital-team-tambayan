@@ -1,24 +1,26 @@
 import { useState, type FormEvent } from "react";
 import { birthdayKey, MONTHS } from "../birthday";
 import { ACCESSORIES, FITS, ChibiFull, DEFAULT_LOOK, HAIRS, OUTFITS, randomLook, SKINS, STYLES } from "../office/Chibi";
-import { BATCHES, type Look, type Profile } from "../types";
+import { BATCHES, batchesOf, type Look, type Profile } from "../types";
 
 interface Props {
   initial: Profile | null;
   submitLabel: string;
-  onSubmit: (name: string, role: string, look: Look, birthday?: string, birthYear?: number, firstName?: string, batch?: number) => void;
+  onSubmit: (name: string, role: string, look: Look, birthday?: string, birthYear?: number, firstName?: string, batches?: number[]) => void;
+  /** Admins may pick several batches; everyone else picks one. */
+  admin?: boolean;
   onCancel?: () => void;
 }
 
 /** Name, role and a chibi you design yourself. Shown when joining and from "My avatar". */
-export function AvatarBuilder({ initial, submitLabel, onSubmit, onCancel }: Props) {
+export function AvatarBuilder({ initial, submitLabel, onSubmit, onCancel, admin }: Props) {
   const [name, setName] = useState(initial?.name ?? "");
   const [role, setRole] = useState(initial?.role ?? "");
   const [look, setLook] = useState<Look>(initial?.look ?? DEFAULT_LOOK);
   const [month, setMonth] = useState(initial?.birthday ? Number(initial.birthday.slice(0, 2)) : 0);
   const [day, setDay] = useState(initial?.birthday ? Number(initial.birthday.slice(3)) : 0);
   const [firstName, setFirstName] = useState(initial?.firstName ?? "");
-  const [batch, setBatch] = useState(initial?.batch ?? 0);
+  const [batches, setBatches] = useState<number[]>(initial ? batchesOf(initial) : []);
   const [year, setYear] = useState(initial?.birthYear ?? 0);
   const [error, setError] = useState("");
   const set = <K extends keyof Look>(key: K, value: Look[K]) => setLook((l) => ({ ...l, [key]: value }));
@@ -27,7 +29,7 @@ export function AvatarBuilder({ initial, submitLabel, onSubmit, onCancel }: Prop
     e.preventDefault();
     if (!name.trim()) return setError("Enter the username your teammates will see.");
     if ((month > 0) !== (day > 0)) return setError("Pick both a month and a day for your birthday, or leave both empty.");
-    onSubmit(name.trim().slice(0, 24), role.trim().slice(0, 40), look, month && day ? birthdayKey(month, day) : undefined, month && day && year ? year : undefined, firstName.trim().slice(0, 20) || undefined, batch || undefined);
+    onSubmit(name.trim().slice(0, 24), role.trim().slice(0, 40), look, month && day ? birthdayKey(month, day) : undefined, month && day && year ? year : undefined, firstName.trim().slice(0, 20) || undefined, admin ? [...batches].sort((a, b) => a - b) : batches.slice(0, 1));
   }
 
   const swatches = (label: string, key: "skin" | "hair" | "outfit", colors: string[]) => (
@@ -64,15 +66,28 @@ export function AvatarBuilder({ initial, submitLabel, onSubmit, onCancel }: Prop
             <label htmlFor="av-role">Role (optional)</label>
             <input id="av-role" type="text" maxLength={40} value={role} onChange={(e) => setRole(e.target.value)} placeholder="e.g. Designer" />
           </div>
+{!admin && (
           <div className="field">
             <label htmlFor="av-batch">Batch (optional)</label>
-            <select id="av-batch" className="plain-select" value={batch} onChange={(e) => setBatch(Number(e.target.value))}>
+            <select id="av-batch" className="plain-select" value={batches[0] ?? 0} onChange={(e) => setBatches(Number(e.target.value) ? [Number(e.target.value)] : [])}>
               <option value={0}>No batch: public room only</option>
               {Array.from({ length: BATCHES }, (_, i) => <option key={i} value={i + 1}>Batch {i + 1}</option>)}
             </select>
           </div>
+          )}
         </div>
 
+        {admin && (
+          <fieldset className="field">
+            <legend>Batches (admin: pick as many as you handle)</legend>
+            <div className="chips">
+              {Array.from({ length: BATCHES }, (_, i) => i + 1).map((n) => (
+                <button key={n} type="button" className="service-chip" aria-pressed={batches.includes(n)}
+                  onClick={() => setBatches((list) => (list.includes(n) ? list.filter((x) => x !== n) : [...list, n]))}>Batch {n}</button>
+              ))}
+            </div>
+          </fieldset>
+        )}
         <fieldset className="field">
           <legend>Birthday (optional)</legend>
           <div className="field-row birthday-row">

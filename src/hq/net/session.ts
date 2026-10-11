@@ -4,7 +4,8 @@ import { zoneAt } from "../office/engine";
 import { safeImage } from "../media";
 import { MANUAL } from "../status";
 import { ARCADE, PUBLIC, useHq } from "../store";
-import { displayName, REACTIONS, type Profile, type Quote } from "../types";
+import { batchesOf, displayName, REACTIONS, type Profile, type Quote } from "../types";
+import { loadHistory, saveMarks, saveMessage } from "./history";
 import { createLocalTransport } from "./localTransport";
 import { createSupabaseTransport } from "./supabaseTransport";
 import { supabaseConfigured } from "./supabase";
@@ -39,7 +40,8 @@ function changes(old: Profile, next: Profile): string[] {
   if (Boolean(a.phone) !== Boolean(b.phone)) out.push(b.phone ? "is on their phone 📱" : "put their phone away");
   if (b.mood && a.mood !== b.mood) out.push(MOOD[b.mood]);
   if (a.radio !== b.radio) out.push(b.radio ? `is listening to ${String(b.radio).slice(0, 40)} 🎧` : "turned the music off");
-  if (old.batch !== next.batch && next.batch) out.push(`joined Batch ${next.batch}`);
+  const joined = batchesOf(next).filter((b) => !batchesOf(old).includes(b));
+  if (joined.length) out.push(`joined Batch ${joined.join(", ")}`);
   if (old.status !== next.status) out.push(next.status ? `is now: ${MANUAL[next.status].emoji} ${MANUAL[next.status].label}` : "cleared their status");
   return out;
 }
@@ -89,6 +91,7 @@ export async function joinOffice(me: Profile): Promise<void> {
     },
   });
   useHq.getState().setJoined(true);
+  void loadHistory(me);
 }
 
 /** Sends a message to the public room, to a batch room ("batch-7"), or privately when `to` is a person's id. */
@@ -100,7 +103,9 @@ export function say(text: string, to?: string, image?: string, reply?: Quote) {
   const name = displayName(me);
   const room = to === ARCADE || to?.startsWith("batch-") ? to : undefined;
   transport.chat({ id, from: me.id, name, text: clean, to: room ? undefined : to, room, image, reply });
-  useHq.getState().addLine(to ?? PUBLIC, { id, from: me.id, name, text: clean, time: clock(), image, reply });
+  const line = { id, from: me.id, name, text: clean, time: clock(), image, reply };
+  useHq.getState().addLine(to ?? PUBLIC, line);
+  saveMessage(to ?? PUBLIC, line, me);
   useHq.getState().showBubble(me.id, clean || (image?.startsWith("data:") ? "📷 Photo" : "GIF"), Boolean(to) && to !== ARCADE);
 }
 
@@ -124,6 +129,7 @@ export function toggleReaction(thread: string, id: string, emoji: string) {
   const on = !line.reactions?.[emoji]?.includes(me.id);
   applyReaction(thread, id, emoji, me.id, on);
   transport.chat({ id: nextId(), from: me.id, name: displayName(me), text: "", ...route(thread), react: { id, emoji, on } });
+  saveMarks(thread, id, me);
 }
 
 /** Pins or unpins a message, for everyone in that conversation. */
@@ -134,6 +140,7 @@ export function togglePin(thread: string, id: string) {
   const on = !line.pinned;
   useHq.getState().patchLine(thread, id, (l) => ({ ...l, pinned: on }));
   transport.chat({ id: nextId(), from: me.id, name: displayName(me), text: "", ...route(thread), pin: { id, on } });
+  saveMarks(thread, id, me);
 }
 
 /** Called by the movement loop every frame it moves; sends at most about eight updates a second. */

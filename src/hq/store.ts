@@ -69,6 +69,8 @@ interface State {
   activeThread: string;
   openThread: (id: string) => void;
   addLine: (thread: string, line: ChatLine) => void;
+  /** Puts saved messages in front of what has arrived live, without duplicates. */
+  mergeHistory: (thread: string, lines: ChatLine[]) => void;
   /** Changes one message in a thread, for reactions and pins. */
   patchLine: (thread: string, id: string, change: (line: ChatLine) => ChatLine) => void;
 
@@ -157,6 +159,11 @@ export const useHq = create<State>((set, get) => ({
     };
   }),
 
+  mergeHistory: (thread, lines) => set((s) => {
+    const live = s.threads[thread] ?? [];
+    const have = new Set(live.map((l) => l.id));
+    return { threads: { ...s.threads, [thread]: [...lines.filter((l) => !have.has(l.id)), ...live].slice(-300) } };
+  }),
   patchLine: (thread, id, change) => set((s) => {
     const lines = s.threads[thread];
     if (!lines?.some((l) => l.id === id)) return s;

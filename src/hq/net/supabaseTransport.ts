@@ -1,5 +1,5 @@
 import type { RealtimeChannel } from "@supabase/supabase-js";
-import type { Peer, Profile } from "../types";
+import { batchesOf, type Peer, type Profile } from "../types";
 import { getSupabase } from "./supabase";
 import type { Handlers, Point, Transport, WireChat } from "./transport";
 
@@ -15,23 +15,23 @@ import type { Handlers, Point, Transport, WireChat } from "./transport";
 export function createSupabaseTransport(): Transport {
   let room: RealtimeChannel | null = null;
   let inbox: RealtimeChannel | null = null;
-  let batchRoom: RealtimeChannel | null = null;
-  let batchNo: number | undefined;
-  let onChat: ((msg: WireChat) => void) | null = null;
-  /** Joins the chat room of the batch this person belongs to, leaving the previous one. */
-  async function syncBatch(batch: number | undefined) {
-    if (batch === batchNo) return;
-    batchNo = batch;
-    void batchRoom?.unsubscribe();
-    batchRoom = null;
-    if (!batch || !onChat) return;
-    const supabase = await getSupabase();
-    const handle = onChat;
-    batchRoom = supabase.channel(`playground-batch-${batch}`, { config: { broadcast: { self: false } } });
-    batchRoom.on("broadcast", { event: "chat" }, ({ payload }) => handle(payload as WireChat)).subscribe();
-  }
   let me: Peer | null = null;
   const known = new Set<string>();
+  const batchRooms = new Map<number, RealtimeChannel>();
+  let onChat: ((msg: WireChat) => void) | null = null;
+  /** Joins the chat room of every batch this person belongs to, and leaves the ones they left. */
+  async function syncBatches(batches: number[]) {
+    for (const [n, channel] of batchRooms) if (!batches.includes(n)) { void channel.unsubscribe(); batchRooms.delete(n); }
+    if (!onChat) return;
+    const supabase = await getSupabase();
+    const handle = onChat;
+    for (const n of batches) {
+      if (batchRooms.has(n)) continue;
+      const channel = supabase.channel(`playground-batch-${n}`, { config: { broadcast: { self: false } } });
+      channel.on("broadcast", { event: "chat" }, ({ payload }) => handle(payload as WireChat)).subscribe();
+      batchRooms.set(n, channel);
+    }
+  }
 
   return {
     mode: "supabase",
@@ -74,12 +74,12 @@ export function createSupabaseTransport(): Transport {
       inbox = supabase.channel(`playground-dm-${myId}`, { config: { broadcast: { self: false } } });
       inbox.on("broadcast", { event: "chat" }, ({ payload }) => handlers.onChat(payload as WireChat)).subscribe();
       onChat = handlers.onChat;
-      void syncBatch(profile.batch);
+      void syncBatches(batchesOf(profile));
     },
     updateProfile(profile, pos) {
       me = { ...profile, ...pos };
       void room?.track(me);
-      void syncBatch(profile.batch);
+      void syncBatches(batchesOf(profile));
     },
     move(pos) {
       if (!me) return;
@@ -87,7 +87,7 @@ export function createSupabaseTransport(): Transport {
       void room?.send({ type: "broadcast", event: "move", payload: { id: me.id, ...pos } });
     },
     chat(msg) {
-      if (msg.room?.startsWith("batch-")) { void batchRoom?.send({ type: "broadcast", event: "chat", payload: msg }); return; }
+      if (msg.room?.startsWith("batch-")) { void batchRooms.get(Number(msg.room.slice(6)))?.send({ type: "broadcast", event: "chat", payload: msg }); return; }
       if (!msg.to) { void room?.send({ type: "broadcast", event: "chat", payload: msg }); return; }
       // A private message goes to the recipient's own channel.
       void getSupabase().then((supabase) => {
@@ -101,8 +101,8 @@ export function createSupabaseTransport(): Transport {
     leave() {
       void room?.unsubscribe();
       void inbox?.unsubscribe();
-      void batchRoom?.unsubscribe();
-      batchRoom = null; batchNo = undefined; onChat = null;
+      for (const channel of batchRooms.values()) void channel.unsubscribe();
+      batchRooms.clear(); onChat = null;
       room = null; inbox = null; me = null; known.clear();
     },
   };

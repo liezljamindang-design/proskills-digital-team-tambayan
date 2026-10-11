@@ -68,7 +68,13 @@ export interface Profile {
   firstName?: string;
   /** Batch 1 to 13, if they picked one. It adds them to that batch's own chat room. */
   batch?: number;
+  /** Admins can sit in several batches at once. When set, this is the full list. */
+  batches?: number[];
+  /** Set from the account, not typed in by the person. */
+  admin?: boolean;
 }
+/** Every batch a person belongs to. */
+export const batchesOf = (p: Pick<Profile, "batch" | "batches">): number[] => (p.batches?.length ? p.batches : p.batch ? [p.batch] : []);
 export const BATCHES = 13;
 /** "username (First name)" when a first name was given. */
 export const displayName = (p: Pick<Profile, "name" | "firstName">) => (p.firstName ? `${p.name} (${p.firstName})` : p.name);

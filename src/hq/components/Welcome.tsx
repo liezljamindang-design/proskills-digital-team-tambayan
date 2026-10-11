@@ -30,6 +30,8 @@ export function Welcome() {
   const [checking, setChecking] = useState(accountsEnabled);
   const [failed, setFailed] = useState("");
   const [guest, setGuest] = useState(false);
+  // Preview builds can switch this on to try the admin form without accounts.
+  const isAdmin = account?.admin ?? (!accountsEnabled && import.meta.env.VITE_PREVIEW_ADMIN === "true");
 
   // Live mode: pick up an existing session, so returning teammates walk straight in.
   useEffect(() => {
@@ -37,12 +39,13 @@ export function Welcome() {
     currentAccount().then(setAccount).catch(() => setFailed("Couldn't reach the sign-in service. Check your connection and reload.")).finally(() => setChecking(false));
   }, []);
 
-  async function enter(name: string, role: string, look: Look, birthday?: string, birthYear?: number, firstName?: string, batch?: number) {
-    const profile: Profile = { id: account?.id ?? guestId(), name, role, look, birthday, birthYear, firstName, batch, best: me?.best ?? account?.saved.best, status: me?.status, act: joined ? me?.act : undefined };
+  async function enter(name: string, role: string, look: Look, birthday?: string, birthYear?: number, firstName?: string, batches: number[] = []) {
+    const batch = batches[0];
+    const profile: Profile = { id: account?.id ?? guestId(), name, role, look, birthday, birthYear, firstName, batch, batches, admin: isAdmin || undefined, best: me?.best ?? account?.saved.best, status: me?.status, act: joined ? me?.act : undefined };
     setFailed("");
     try {
       // Saved to the account first, so the chibi is remembered even if the live connection fails.
-      if (account) void saveToAccount({ name, role, look, birthday: birthday ?? "", birthYear: birthYear ?? null, firstName: firstName ?? "", batch: batch ?? null, best: profile.best });
+      if (account) void saveToAccount({ name, role, look, birthday: birthday ?? "", birthYear: birthYear ?? null, firstName: firstName ?? "", batch: batch ?? null, batches, best: profile.best });
       if (joined) updateMyProfile(profile);
       else { useHq.getState().setMe(profile); await joinOffice(profile); }
       setEditing(false);
@@ -55,7 +58,7 @@ export function Welcome() {
   const open = !joined || editing;
   // Signed in: what is saved on the account wins over whatever this browser remembers.
   const fromAccount: Profile | null = account?.saved.name
-    ? { id: account.id, name: account.saved.name, role: account.saved.role ?? "", look: { ...DEFAULT_LOOK, ...account.saved.look }, best: account.saved.best, birthday: account.saved.birthday || undefined, birthYear: account.saved.birthYear ?? undefined, firstName: account.saved.firstName || undefined, batch: account.saved.batch ?? undefined }
+    ? { id: account.id, name: account.saved.name, role: account.saved.role ?? "", look: { ...DEFAULT_LOOK, ...account.saved.look }, best: account.saved.best, birthday: account.saved.birthday || undefined, birthYear: account.saved.birthYear ?? undefined, firstName: account.saved.firstName || undefined, batch: account.saved.batch ?? undefined, batches: (account.admin ? account.saved.batches : account.saved.batches?.slice(0, 1)) ?? undefined, admin: account.admin || undefined }
     : null;
   const initial: Profile | null = joined ? me : fromAccount ?? (account ? null : me);
 
@@ -95,6 +98,7 @@ export function Welcome() {
             initial={initial}
             submitLabel={joined ? "Save" : "Enter the office"}
             onSubmit={enter}
+            admin={isAdmin}
             onCancel={joined ? () => setEditing(false) : undefined}
           />
         )}

@@ -1,4 +1,4 @@
-import type { Peer, Profile } from "../types";
+import { batchesOf, type Peer, type Profile } from "../types";
 import type { Handlers, Point, Transport, WireChat } from "./transport";
 
 type Msg =
@@ -40,7 +40,7 @@ export function createLocalTransport(): Transport {
           seen.set(m.id, Date.now());
           handlers.onMove(m.id, { x: m.x, y: m.y });
         } else if (m.t === "chat") {
-          if (m.msg.room?.startsWith("batch-") ? m.msg.room === `batch-${me.batch}` : !m.msg.to || m.msg.to === me.id) handlers.onChat(m.msg);
+          if (m.msg.room?.startsWith("batch-") ? batchesOf(me).some((b) => m.msg.room === `batch-${b}`) : !m.msg.to || m.msg.to === me.id) handlers.onChat(m.msg);
         } else if (m.t === "bye") {
           seen.delete(m.id);
           handlers.onPeerLeft(m.id);

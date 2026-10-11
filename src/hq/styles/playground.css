@@ -349,3 +349,5 @@ h1, h2 { font-weight: 800; letter-spacing: -0.01em; }
 .pins li { display: flex; align-items: center; gap: 4px; }
 .pin-row { flex: 1; min-width: 0; min-height: 36px; padding: 0 8px; border: 0; border-radius: 8px; background: none; color: var(--ink); font: inherit; font-size: 13px; text-align: left; cursor: pointer; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .pin-row:hover { background: var(--surface-2); }
+
+.admin-tag { padding: 1px 7px; border-radius: 999px; background: var(--gold-soft); color: #10141c; font-size: 10.5px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; }

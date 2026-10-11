@@ -1,5 +1,5 @@
 import { invitePong, poke, POKES } from "../net/session";
-import { ChibiPortrait } from "../office/Chibi";
+import { PersonFace } from "../office/Chibi";
 import { useHq } from "../store";
 import { displayName } from "../types";
 
@@ -13,7 +13,7 @@ export function PeerCard() {
   return (
     <div className="peer-card" role="region" aria-label={`Actions for ${peer.name}`}>
       <header>
-        <ChibiPortrait look={peer.look} size={36} />
+        <PersonFace look={peer.look} photo={peer.photo} size={36} />
         <strong>{displayName(peer)}</strong>
         <button type="button" className="icon-btn" onClick={close} aria-label="Close">✕</button>
       </header>

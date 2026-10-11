@@ -51,7 +51,7 @@ export function Welcome() {
   const hidesTag = () => { try { return localStorage.getItem("playground.hideAdmin") === "1"; } catch { return false; } };
   async function enter(name: string, role: string, look: Look, birthday?: string, birthYear?: number, firstName?: string, batches: number[] = []) {
     const batch = batches[0];
-    const profile: Profile = { id: account?.id ?? guestId(), name, role, look, birthday, birthYear, firstName, batch, batches, admin: isAdmin || undefined, hideAdmin: (isAdmin && hidesTag()) || undefined, coins: me?.coins ?? fromAccount?.coins, streak: me?.streak ?? fromAccount?.streak, lastDay: me?.lastDay ?? fromAccount?.lastDay, owned: me?.owned ?? fromAccount?.owned, best: me?.best ?? account?.saved.best, status: me?.status, act: joined ? me?.act : undefined };
+    const profile: Profile = { id: account?.id ?? guestId(), name, role, look, photo: account?.photo, birthday, birthYear, firstName, batch, batches, admin: isAdmin || undefined, hideAdmin: (isAdmin && hidesTag()) || undefined, coins: me?.coins ?? fromAccount?.coins, streak: me?.streak ?? fromAccount?.streak, lastDay: me?.lastDay ?? fromAccount?.lastDay, owned: me?.owned ?? fromAccount?.owned, best: me?.best ?? account?.saved.best, status: me?.status, act: joined ? me?.act : undefined };
     setFailed("");
     try {
       // Saved to the account first, so the chibi is remembered even if the live connection fails.
@@ -68,7 +68,7 @@ export function Welcome() {
   const open = !joined || editing;
   // Signed in: what is saved on the account wins over whatever this browser remembers.
   const fromAccount: Profile | null = account?.saved.name
-    ? { id: account.id, name: account.saved.name, role: account.saved.role ?? "", look: { ...DEFAULT_LOOK, ...account.saved.look }, best: account.saved.best, birthday: account.saved.birthday || undefined, birthYear: account.saved.birthYear ?? undefined, firstName: account.saved.firstName || undefined, batch: account.saved.batch ?? undefined, batches: (account.admin ? account.saved.batches : account.saved.batches?.slice(0, 1)) ?? undefined, admin: account.admin || undefined, hideAdmin: (account.admin && (account.saved.hideAdmin ?? hidesTag())) || undefined, coins: account.saved.coins, streak: account.saved.streak, lastDay: account.saved.lastDay, owned: account.saved.owned }
+    ? { id: account.id, name: account.saved.name, role: account.saved.role ?? "", look: { ...DEFAULT_LOOK, ...account.saved.look }, photo: account.photo, best: account.saved.best, birthday: account.saved.birthday || undefined, birthYear: account.saved.birthYear ?? undefined, firstName: account.saved.firstName || undefined, batch: account.saved.batch ?? undefined, batches: (account.admin ? account.saved.batches : account.saved.batches?.slice(0, 1)) ?? undefined, admin: account.admin || undefined, hideAdmin: (account.admin && (account.saved.hideAdmin ?? hidesTag())) || undefined, coins: account.saved.coins, streak: account.saved.streak, lastDay: account.saved.lastDay, owned: account.saved.owned }
     : null;
   const initial: Profile | null = joined ? me : fromAccount ?? (account ? null : me);
 

@@ -3,7 +3,7 @@ import { HQ } from "../config";
 import { earnForChat } from "../economy";
 import { ZONES } from "../data/office";
 import { markSeen, myPosition, say, toggleReaction, togglePin } from "../net/session";
-import { ChibiPortrait } from "../office/Chibi";
+import { PersonFace } from "../office/Chibi";
 import { zoneAt } from "../office/engine";
 import { presenceOf, statusOf } from "../status";
 import { StatusPicker } from "./StatusPicker";
@@ -242,21 +242,21 @@ function PeoplePane() {
     <ul className="people">
       {me && (
         <li>
-          <ChibiPortrait look={me.look} size={44} />
+          <PersonFace look={me.look} photo={me.photo} size={44} />
           <div className="person-id"><strong><i className={`pip pip-${presenceOf(me).tone}`} aria-hidden="true" />{displayName(me)} (you) <span className={`presence is-${presenceOf(me).tone}`}>{presenceOf(me).label}</span>{me.admin && !me.hideAdmin && <span className="admin-tag">Admin</span>}</strong><span>{me.role || "Team member"}{batchesOf(me).length ? ` · Batch ${batchesOf(me).join(", ")}` : ""} · {roomName(mine.x, mine.y)}</span><StatusTag status={statusOf(me, myZone)} /></div>
           <button type="button" className="btn-secondary" onClick={() => setEditing(true)}>Edit</button>
         </li>
       )}
       {list.map((p) => (
         <li key={p.id}>
-          <ChibiPortrait look={p.look} size={44} />
+          <PersonFace look={p.look} photo={p.photo} size={44} />
           <div className="person-id"><strong><i className={`pip pip-${presenceOf(p).tone}`} aria-hidden="true" />{displayName(p)} <span className={`presence is-${presenceOf(p).tone}`}>{presenceOf(p).label}</span>{p.admin && !("hideAdmin" in p && p.hideAdmin) && <span className="admin-tag">Admin</span>}</strong><span>{p.role || "Team member"}{batchesOf(p).length ? ` · Batch ${batchesOf(p).join(", ")}` : ""} · {roomName(p.x, p.y)}{p.act?.voice ? " · 🎙️ in voice" : ""}{p.act?.radio ? ` · 🎧 ${String(p.act.radio).slice(0, 30)}` : ""}{p.streak ? ` · 🔥 ${p.streak}` : ""}</span><StatusTag status={statusOf(p, zoneAt(p.x, p.y))} /></div>
           <button type="button" className="btn-secondary" onClick={() => openThread(p.id)}>Message</button>
         </li>
       ))}
       {gone.map((p) => (
         <li key={p.id} className="is-offline">
-          <ChibiPortrait look={p.look} size={44} />
+          <PersonFace look={p.look} photo={p.photo} size={44} />
           <div className="person-id">
             <strong><i className="pip pip-off" aria-hidden="true" />{displayName(p)} <span className="presence is-off">Offline</span>{p.admin && !("hideAdmin" in p && p.hideAdmin) && <span className="admin-tag">Admin</span>}</strong>
             <span>{p.role || "Team member"}{p.batches?.length ? ` · Batch ${p.batches.join(", ")}` : ""} · last seen {new Date(p.leftAt).toLocaleString([], { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })}</span>

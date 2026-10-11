@@ -792,3 +792,5 @@ select option, select optgroup { background-color: var(--surface); color: var(--
 .me-btn img { width: 100%; height: 100%; object-fit: cover; display: block; }
 
 .builder-photo { width: 96px; height: 96px; border-radius: 50%; object-fit: cover; border: 3px solid var(--green); display: block; margin: 0 auto 8px; }
+
+.face-photo { border-radius: 50%; object-fit: cover; flex: none; display: block; background: var(--line, #ddd); }

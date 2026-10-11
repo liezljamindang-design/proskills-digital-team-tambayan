@@ -2,7 +2,7 @@ import { useState } from "react";
 import { classOngoing, HQ } from "../config";
 import { ZONES } from "../data/office";
 import { openMeeting, setAct, shoot } from "../net/session";
-import { ChibiPortrait } from "../office/Chibi";
+import { PersonFace } from "../office/Chibi";
 import { zoneAt } from "../office/engine";
 import { useHq } from "../store";
 import { FOODS, type Drink } from "../types";
@@ -123,8 +123,8 @@ export function RoomCard() {
           <>
             <p className="roster-title">In the meeting room · {inside.length + 1}</p>
             <ul className="roster">
-              <li><ChibiPortrait look={me.look} size={28} /> {me.name} (you)</li>
-              {inside.map((p) => <li key={p.id}><ChibiPortrait look={p.look} size={28} /> {p.name}</li>)}
+              <li><PersonFace look={me.look} photo={me.photo} size={28} /> {me.name} (you)</li>
+              {inside.map((p) => <li key={p.id}><PersonFace look={p.look} photo={p.photo} size={28} /> {p.name}</li>)}
             </ul>
           </>
         );
@@ -146,8 +146,8 @@ export function RoomCard() {
           <>
             <p className="roster-title">In class · {inside.length + 1}</p>
             <ul className="roster">
-              <li><ChibiPortrait look={me.look} size={28} /> {me.name} (you)</li>
-              {inside.map((p) => <li key={p.id}><ChibiPortrait look={p.look} size={28} /> {p.name}</li>)}
+              <li><PersonFace look={me.look} photo={me.photo} size={28} /> {me.name} (you)</li>
+              {inside.map((p) => <li key={p.id}><PersonFace look={p.look} photo={p.photo} size={28} /> {p.name}</li>)}
             </ul>
           </>
         );

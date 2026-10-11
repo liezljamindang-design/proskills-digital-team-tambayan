@@ -17,7 +17,7 @@ function initialTheme(): ThemeChoice {
   return theme;
 }
 
-export interface Away { id: string; name: string; firstName?: string; role: string; look: Profile["look"]; leftAt: number; batches?: number[]; admin?: boolean }
+export interface Away { id: string; name: string; firstName?: string; role: string; look: Profile["look"]; leftAt: number; batches?: number[]; admin?: boolean; photo?: string }
 function savedAway(): Record<string, Away> {
   try { const a = JSON.parse(read("playground.away") ?? "{}"); return a && typeof a === "object" ? a : {}; } catch { return {}; }
 }
@@ -230,7 +230,7 @@ export const useHq = create<State>((set, get) => ({
     const gone = s.peers[id];
     const peers = { ...s.peers };
     delete peers[id];
-    const away = gone ? keepAway({ ...s.away, [id]: { id, name: gone.name, firstName: gone.firstName, role: gone.role, look: gone.look, leftAt: Date.now(), batches: gone.batches ?? (gone.batch ? [gone.batch] : undefined), admin: gone.admin } }) : s.away;
+    const away = gone ? keepAway({ ...s.away, [id]: { id, name: gone.name, firstName: gone.firstName, role: gone.role, look: gone.look, photo: gone.photo, leftAt: Date.now(), batches: gone.batches ?? (gone.batch ? [gone.batch] : undefined), admin: gone.admin } }) : s.away;
     return { peers, away };
   }),
 

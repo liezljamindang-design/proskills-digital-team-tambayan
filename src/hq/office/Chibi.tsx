@@ -1,4 +1,4 @@
-import { memo } from "react";
+import { memo, useState } from "react";
 import type { Act, Accessory, Fit, HairStyle, Look, Mood } from "../types";
 
 /**
@@ -351,6 +351,13 @@ export function ChibiPortrait({ look, size = 40 }: { look: Look; size?: number }
       <ChibiArt look={look} />
     </svg>
   );
+}
+
+/** A person's Google photo when they have one, otherwise their chibi's face. */
+export function PersonFace({ look, photo, size = 40 }: { look: Look; photo?: string; size?: number }) {
+  const [broken, setBroken] = useState(false);
+  if (photo && !broken && photo.startsWith("https://")) return <img className="face-photo" src={photo} width={size} height={size} alt="" loading="lazy" referrerPolicy="no-referrer" onError={() => setBroken(true)} />;
+  return <ChibiPortrait look={look} size={size} />;
 }
 
 /** Whole character, standing. Used large in the avatar builder. */

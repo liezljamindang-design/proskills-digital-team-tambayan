@@ -60,6 +60,8 @@ export interface Profile {
   name: string;
   role: string;
   look: Look;
+  /** Their Google sign-in photo, shown in lists instead of the chibi face. */
+  photo?: string;
   /** Fewest moves this person has finished Memory Match in. */
   best?: number;
   /** A status the person picked themselves. Unset means it follows the room they are in. */

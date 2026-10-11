@@ -3,7 +3,13 @@ import { getSupabase, supabaseConfigured } from "./supabase";
 
 /** What is stored on a person's account, so their name and chibi follow them between devices. */
 export interface SavedProfile { name?: string; role?: string; look?: Look; best?: number; birthday?: string; birthYear?: number | null; firstName?: string; batch?: number | null; batches?: number[]; hideAdmin?: boolean; coins?: number; streak?: number; lastDay?: string; owned?: string[] }
-export interface Account { id: string; email: string; saved: SavedProfile; admin: boolean }
+export interface Account { id: string; email: string; saved: SavedProfile; admin: boolean; photo?: string }
+/** The picture that comes with a Google sign-in, if there is one. */
+const photoOf = (user: { user_metadata?: Record<string, unknown> }) => {
+  const m = user.user_metadata ?? {};
+  const url = typeof m.avatar_url === "string" ? m.avatar_url : typeof m.picture === "string" ? m.picture : "";
+  return /^https:\/\//.test(url) ? url.slice(0, 400) : undefined;
+};
 /** Admins are marked on the account in Supabase (app_metadata.role = "admin"), which people cannot edit themselves. */
 const isAdmin = (user: { app_metadata?: Record<string, unknown> }) => user.app_metadata?.role === "admin";
 
@@ -18,7 +24,7 @@ export async function currentAccount(): Promise<Account | null> {
   const supabase = await getSupabase();
   const { data } = await supabase.auth.getSession();
   const user = data.session?.user;
-  return user ? { id: user.id, email: user.email ?? "", saved: (user.user_metadata ?? {}) as SavedProfile, admin: isAdmin(user) } : null;
+  return user ? { id: user.id, email: user.email ?? "", saved: (user.user_metadata ?? {}) as SavedProfile, admin: isAdmin(user), photo: photoOf(user) } : null;
 }
 
 /** Signs in with an email and password created for this person in the Supabase dashboard. */
@@ -26,7 +32,7 @@ export async function signIn(email: string, password: string): Promise<Account> 
   const supabase = await getSupabase();
   const { data, error } = await supabase.auth.signInWithPassword({ email, password });
   if (error || !data.user) throw new Error(error?.message ?? "Sign-in failed");
-  return { id: data.user.id, email: data.user.email ?? email, saved: (data.user.user_metadata ?? {}) as SavedProfile, admin: isAdmin(data.user) };
+  return { id: data.user.id, email: data.user.email ?? email, saved: (data.user.user_metadata ?? {}) as SavedProfile, admin: isAdmin(data.user), photo: photoOf(data.user) };
 }
 
 /**
@@ -37,7 +43,7 @@ export async function signUp(email: string, password: string): Promise<Account |
   const supabase = await getSupabase();
   const { data, error } = await supabase.auth.signUp({ email, password });
   if (error || !data.user) throw new Error(error?.message ?? "Sign-up failed");
-  return data.session ? { id: data.user.id, email: data.user.email ?? email, saved: {}, admin: isAdmin(data.user) } : null;
+  return data.session ? { id: data.user.id, email: data.user.email ?? email, saved: {}, admin: isAdmin(data.user), photo: photoOf(data.user) } : null;
 }
 
 export async function saveToAccount(saved: SavedProfile): Promise<void> {
@@ -73,7 +79,7 @@ export async function onSignedIn(callback: (account: Account) => void): Promise<
   const supabase = await getSupabase();
   supabase.auth.onAuthStateChange((_event, session) => {
     const user = session?.user;
-    if (user) callback({ id: user.id, email: user.email ?? "", saved: (user.user_metadata ?? {}) as SavedProfile, admin: isAdmin(user) });
+    if (user) callback({ id: user.id, email: user.email ?? "", saved: (user.user_metadata ?? {}) as SavedProfile, admin: isAdmin(user), photo: photoOf(user) });
   });
 }
 

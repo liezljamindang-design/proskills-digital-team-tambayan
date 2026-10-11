@@ -110,6 +110,8 @@ function PeoplePane() {
   const setEditing = useHq((s) => s.setEditingAvatar);
   const list = Object.values(peers).sort((a, b) => a.name.localeCompare(b.name));
   const myZone = useHq((s) => s.myZone);
+  const away = useHq((s) => s.away);
+  const gone = Object.values(away).filter((a) => a.id !== me?.id && !peers[a.id]).sort((a, b) => b.leftAt - a.leftAt);
   const mine = myPosition();
 
   return (
@@ -119,18 +121,27 @@ function PeoplePane() {
       {me && (
         <li>
           <ChibiPortrait look={me.look} size={44} />
-          <div className="person-id"><strong>{me.name} (you)</strong><span>{me.role || "Team member"} · {roomName(mine.x, mine.y)}</span><StatusTag status={statusOf(me, myZone)} /></div>
+          <div className="person-id"><strong><i className="pip pip-ok" aria-hidden="true" />{me.name} (you) <span className="presence">Online</span></strong><span>{me.role || "Team member"} · {roomName(mine.x, mine.y)}</span><StatusTag status={statusOf(me, myZone)} /></div>
           <button type="button" className="btn-secondary" onClick={() => setEditing(true)}>Edit</button>
         </li>
       )}
       {list.map((p) => (
         <li key={p.id}>
           <ChibiPortrait look={p.look} size={44} />
-          <div className="person-id"><strong>{p.name}</strong><span>{p.role || "Team member"} · {roomName(p.x, p.y)}</span><StatusTag status={statusOf(p, zoneAt(p.x, p.y))} /></div>
+          <div className="person-id"><strong><i className="pip pip-ok" aria-hidden="true" />{p.name} <span className="presence">Online</span></strong><span>{p.role || "Team member"} · {roomName(p.x, p.y)}</span><StatusTag status={statusOf(p, zoneAt(p.x, p.y))} /></div>
           <button type="button" className="btn-secondary" onClick={() => openThread(p.id)}>Message</button>
         </li>
       ))}
-      {list.length === 0 && <li className="people-empty"><p className="muted">Nobody else is here yet. Invite a teammate, or open this page in a second tab to see how it looks with two people.</p></li>}
+      {gone.map((p) => (
+        <li key={p.id} className="is-offline">
+          <ChibiPortrait look={p.look} size={44} />
+          <div className="person-id">
+            <strong><i className="pip pip-off" aria-hidden="true" />{p.name} <span className="presence">Offline</span></strong>
+            <span>{p.role || "Team member"} · left {new Date(p.leftAt).toLocaleString([], { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })}</span>
+          </div>
+        </li>
+      ))}
+      {list.length === 0 && gone.length === 0 && <li className="people-empty"><p className="muted">Nobody else is here yet. Invite a teammate, or open this page in a second tab to see how it looks with two people.</p></li>}
     </ul>
     </>
   );

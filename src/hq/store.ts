@@ -17,6 +17,17 @@ function initialTheme(): ThemeChoice {
   return theme;
 }
 
+export interface Away { id: string; name: string; role: string; look: Profile["look"]; leftAt: number }
+function savedAway(): Record<string, Away> {
+  try { const a = JSON.parse(read("playground.away") ?? "{}"); return a && typeof a === "object" ? a : {}; } catch { return {}; }
+}
+const keepAway = (away: Record<string, Away>) => {
+  // Remember the fifty most recent, so the list cannot grow without end.
+  const kept = Object.fromEntries(Object.values(away).sort((a, b) => b.leftAt - a.leftAt).slice(0, 50).map((a) => [a.id, a]));
+  write("playground.away", JSON.stringify(kept));
+  return kept;
+};
+
 export type SideTab = "chat" | "people" | "rooms";
 /** "all" is the public room; any other thread id is the other person's id. */
 export const PUBLIC = "all";
@@ -37,6 +48,8 @@ interface State {
   setHelpOpen: (open: boolean) => void;
 
   peers: Record<string, Peer>;
+  /** People this browser has seen who are not in the office right now, with when they left. */
+  away: Record<string, Away>;
   upsertPeer: (peer: Peer) => void;
   movePeer: (id: string, x: number, y: number) => void;
   removePeer: (id: string) => void;
@@ -99,18 +112,23 @@ export const useHq = create<State>((set, get) => ({
   setHelpOpen: (helpOpen) => set({ helpOpen }),
 
   peers: {},
+  away: savedAway(),
   upsertPeer: (peer) => set((s) => {
     const old = s.peers[peer.id];
     // A profile update may arrive without a position: keep where they already are.
     const x = Number.isFinite(peer.x) ? peer.x : old?.x ?? 6.25;
     const y = Number.isFinite(peer.y) ? peer.y : old?.y ?? 9.45;
-    return { peers: { ...s.peers, [peer.id]: { ...peer, x, y } } };
+    let away = s.away;
+    if (away[peer.id]) { away = { ...away }; delete away[peer.id]; away = keepAway(away); }
+    return { away, peers: { ...s.peers, [peer.id]: { ...peer, x, y } } };
   }),
   movePeer: (id, x, y) => set((s) => (s.peers[id] ? { peers: { ...s.peers, [id]: { ...s.peers[id], x, y } } } : s)),
   removePeer: (id) => set((s) => {
+    const gone = s.peers[id];
     const peers = { ...s.peers };
     delete peers[id];
-    return { peers };
+    const away = gone ? keepAway({ ...s.away, [id]: { id, name: gone.name, role: gone.role, look: gone.look, leftAt: Date.now() } }) : s.away;
+    return { peers, away };
   }),
 
   tab: "chat",

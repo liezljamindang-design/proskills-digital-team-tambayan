@@ -275,3 +275,10 @@ h1, h2 { font-weight: 800; letter-spacing: -0.01em; }
 .zoom-controls button + button { border-top: 1px solid var(--line); }
 .zoom-controls button:hover:not(:disabled) { background: var(--surface-2); }
 .zoom-controls button:disabled { opacity: 0.35; cursor: default; }
+
+/* Online / offline in the People list */
+.person-id strong { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.presence { font-size: 11px !important; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--ok) !important; }
+.pip-off { background: var(--off); }
+.is-offline .chibi-portrait { filter: grayscale(1); opacity: 0.6; }
+.is-offline .presence { color: var(--ink-2) !important; }

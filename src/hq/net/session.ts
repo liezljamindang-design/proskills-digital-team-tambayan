@@ -40,8 +40,11 @@ function changes(old: Profile, next: Profile): string[] {
   return out;
 }
 function noteZone(id: string, name: string, from: string | null, to: string | null) {
-  if (!to || to === from) return;
-  note(id, name, to === "game" ? "entered the arcade 🎮" : `entered the ${ZONES.find((z) => z.id === to)!.name}`);
+  if (to === from) return;
+  const room = (z: string) => (z === "game" ? "arcade 🎮" : ZONES.find((r) => r.id === z)!.name);
+  if (from && to) note(id, name, `left the ${room(from)} and entered the ${room(to)}`);
+  else if (to) note(id, name, `entered the ${room(to)}`);
+  else if (from) note(id, name, `left the ${room(from)}`);
 }
 
 export async function joinOffice(me: Profile): Promise<void> {
@@ -54,13 +57,13 @@ export async function joinOffice(me: Profile): Promise<void> {
       const isNew = !old;
       s().upsertPeer(peer);
       if (old) changes(old, peer).forEach((text) => note(peer.id, peer.name, text));
-      if (isNew) s().addLine(PUBLIC, { id: nextId(), from: peer.id, name: peer.name, text: `${peer.name} walked in.`, time: clock(), system: true });
+      if (isNew) s().addLine(PUBLIC, { id: nextId(), from: peer.id, name: peer.name, text: `${peer.name} is online and walked in.`, time: clock(), system: true });
     },
     onPeerLeft: (id) => {
       const peer = s().peers[id];
       if (!peer) return;
       s().removePeer(id);
-      s().addLine(PUBLIC, { id: nextId(), from: id, name: peer.name, text: `${peer.name} left.`, time: clock(), system: true });
+      s().addLine(PUBLIC, { id: nextId(), from: id, name: peer.name, text: `${peer.name} went offline.`, time: clock(), system: true });
     },
     onMove: (id, pos) => {
       const peer = s().peers[id];

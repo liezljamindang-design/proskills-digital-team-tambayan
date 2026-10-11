@@ -217,6 +217,25 @@ export function Floor3D() {
       if (m) m.visible = on;
       return m;
     }
+    // Food from the canteen: the emoji floats in the chibi's hand and is lifted for each bite.
+    const foodTextures = new Map<string, THREE.CanvasTexture>();
+    function foodTexture(emoji: string) {
+      let tex = foodTextures.get(emoji);
+      if (!tex) {
+        const cv = document.createElement("canvas"); cv.width = cv.height = 96;
+        const c = cv.getContext("2d")!; c.font = '72px "Segoe UI Emoji", "Apple Color Emoji", "Noto Color Emoji", sans-serif'; c.textAlign = "center"; c.textBaseline = "middle"; c.fillText(emoji, 48, 54);
+        tex = new THREE.CanvasTexture(cv); tex.colorSpace = THREE.SRGBColorSpace; foodTextures.set(emoji, tex);
+      }
+      return tex;
+    }
+    function plate(a: Actor, emoji: string | undefined, t: number) {
+      let sp = a.holder.getObjectByName("food") as THREE.Sprite | undefined;
+      if (!emoji) { if (sp) sp.visible = false; return; }
+      if (!sp) { sp = new THREE.Sprite(new THREE.SpriteMaterial({ transparent: true, depthWrite: false })); sp.name = "food"; sp.scale.setScalar(0.26); a.holder.add(sp); }
+      if (sp.userData.emoji !== emoji) { sp.material.map = foodTexture(emoji); sp.material.needsUpdate = true; sp.userData.emoji = emoji; }
+      const bite = Math.max(0, Math.sin(t * 1.8)) ** 4;
+      sp.visible = true; sp.position.set(0.2 - bite * 0.14, 0.4 + bite * 0.2, 0.26);
+    }
     let raf = 0, last = performance.now(), lastMode: CamMode | null = null;
     const head = new THREE.Vector3();
     function frame(now: number) {
@@ -282,6 +301,7 @@ export function Floor3D() {
         if (gym === "run") { facing = Math.PI; oy = 4.6 / UNIT; }
         if (gym === "lift") facing = 0;
         prop(a, "ball", Boolean(a.act?.ball) && !shooting.has([...actors].find(([, v]) => v === a)?.[0] ?? ""));
+        plate(a, pose === "sleep" ? undefined : a.act?.food, t);
         const bar = prop(a, "barbell", gym === "lift");
         const liftK = Math.sin(t * 2.6) * 0.5 + 0.5;
         if (bar && gym === "lift") bar.position.set(0, 0.52 + liftK * 0.42, 0.12);

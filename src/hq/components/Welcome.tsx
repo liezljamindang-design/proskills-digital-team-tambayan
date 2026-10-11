@@ -34,7 +34,7 @@ export function Welcome() {
   const [failed, setFailed] = useState("");
   const [guest, setGuest] = useState(false);
   // Preview builds can switch this on to try the admin form without accounts.
-  const isAdmin = account?.admin ?? (!accountsEnabled && import.meta.env.VITE_PREVIEW_ADMIN === "true");
+  const isAdmin = account?.admin ?? (!accountsEnabled && (import.meta.env.VITE_PREVIEW_ADMIN === "true" || new URLSearchParams(window.location.search).has("admin")));
 
   // Live mode: pick up an existing session, so returning teammates walk straight in.
   useEffect(() => {

@@ -322,6 +322,7 @@ export function ChibiArt({ look, act }: { look: Look; act?: Act }) {
             : <path d="M7.4 -12 L8.4 -15.4" fill="none" stroke="#e03131" strokeWidth={0.6} strokeLinecap="round" />}
         </g>
       )}
+      {act?.food && !asleep && <text className="sip" x={7} y={-7.5} fontSize={7} textAnchor="middle" stroke="none">{act.food}</text>}
       {act?.ball && !asleep && <circle cx={7.5} cy={-10} r={3.6} fill="#ff922b" stroke="#b85c00" strokeWidth={0.7} />}
       {act?.gym === "lift" && <g className="float-up" stroke="none"><rect x={-13} y={-43} width={26} height={1.6} rx={0.8} fill="#3a4150" /><rect x={-15} y={-46} width={3} height={7.6} rx={1} fill="#e03131" /><rect x={12} y={-46} width={3} height={7.6} rx={1} fill="#e03131" /></g>}
       {act?.phone && !asleep && (

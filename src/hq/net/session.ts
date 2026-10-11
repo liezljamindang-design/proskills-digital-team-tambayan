@@ -5,7 +5,8 @@ import { zoneAt } from "../office/engine";
 import { safeImage } from "../media";
 import { MANUAL } from "../status";
 import { ARCADE, PUBLIC, useHq } from "../store";
-import { batchesOf, displayName, REACTIONS, type Profile, type Quote } from "../types";
+import { batchesOf, displayName, FOODS, REACTIONS, type Profile, type Quote } from "../types";
+import { loadAssignment, saveAssignment } from "./assign";
 import { loadHistory, saveMarks, saveMessage } from "./history";
 import { startRoster } from "./roster";
 import { createLocalTransport } from "./localTransport";
@@ -35,6 +36,7 @@ function changes(old: Profile, next: Profile): string[] {
   // Kept short on purpose: faces, sitting, phones and music show on the chibi itself and are not announced.
   const a = old.act ?? {}, b = next.act ?? {}, out: string[] = [];
   if (b.drink && a.drink !== b.drink) out.push(`bought ${DRINK[b.drink]}`);
+  if (b.food && a.food !== b.food && FOODS[b.food]) out.push(`is eating ${b.food} ${FOODS[b.food].toLowerCase()}`);
   if (b.party && !a.party) out.push("started a party 🎉");
   const bought = (next.owned ?? []).filter((id) => !(old.owned ?? []).includes(id));
   if (bought.length) out.push("bought something new in the shop 🛍️");
@@ -120,6 +122,7 @@ export async function joinOffice(joining: Profile): Promise<void> {
         else { announceTakeover(); window.setTimeout(() => { const mine = s().me; if (mine) transport?.updateProfile(mine, myPos); }, 1500); } // the other one is older: tell it again, then show up again once it has left
         return;
       }
+      if (msg.assign) { void applyAssignment(); return; }
       if (msg.rtc) { rtcListener?.(msg.from, msg.rtc); return; }
       if (msg.pong) { receivePong(msg.from, msg.name, msg.pong); return; }
       if (msg.hoop) {
@@ -151,6 +154,7 @@ export async function joinOffice(joining: Profile): Promise<void> {
     },
   });
   useHq.getState().setJoined(true);
+  void applyAssignment();
   announceTakeover();
   window.setTimeout(() => { const mine = useHq.getState().me; if (mine) transport?.updateProfile(mine, myPos); }, 1500); // in case an older device of yours just left
   window.clearInterval(takeoverTimer);
@@ -277,6 +281,31 @@ export const POKES: Record<string, { label: string; verb: string; emoji: string 
   hug: { label: "Hug", verb: "hugged", emoji: "🤗" },
   cheer: { label: "Cheer", verb: "cheered for", emoji: "🎉" },
 };
+/** Looks up the batch an admin gave me, and moves me into it. */
+export async function applyAssignment() {
+  const me = useHq.getState().me;
+  if (!me || me.admin) return;
+  const batches = await loadAssignment(me.id);
+  const now = useHq.getState().me;
+  if (!now) return;
+  useHq.setState({ lockedBatch: batches });
+  if (batches && JSON.stringify(batchesOf(now)) !== JSON.stringify(batches)) {
+    updateMyProfile({ ...now, batch: batches[0], batches });
+    useHq.setState({ toast: { text: `An admin moved you to Batch ${batches.join(", ")}`, n: Date.now() } });
+  }
+}
+/** Admin only: puts a member in a batch (0 lets them choose for themselves again). */
+export async function assignBatch(id: string, batch: number): Promise<string | null> {
+  const state = useHq.getState(), me = state.me;
+  if (!me?.admin) return "Only admins can assign batches.";
+  const problem = await saveAssignment(id, batch);
+  if (problem) return problem;
+  if (transport) transport.chat({ id: nextId(), from: me.id, name: displayName(me), text: "", to: id, assign: true });
+  const away = state.away[id];
+  if (away && batch) useHq.setState({ away: { ...state.away, [id]: { ...away, batches: [batch] } } });
+  return null;
+}
+
 /** Picks up a basketball. Only on the court. */
 export function pickUpBall() {
   if (useHq.getState().myZone === "court") setAct({ ball: true });

@@ -52,6 +52,8 @@ interface State {
   joined: boolean;
   /** This account was opened on another device, so this one stepped out. */
   kicked: boolean;
+  /** The batch an admin assigned to me. While set, I cannot change my own batch. */
+  lockedBatch: number[] | null;
   setJoined: (joined: boolean) => void;
   editingAvatar: boolean;
   setEditingAvatar: (open: boolean) => void;
@@ -145,6 +147,7 @@ export const useHq = create<State>((set, get) => ({
   setMe: (me) => { write("playground.profile", JSON.stringify(me)); set({ me }); },
   joined: false,
   kicked: false,
+  lockedBatch: null,
   setJoined: (joined) => set({ joined }),
   editingAvatar: false,
   setEditingAvatar: (editingAvatar) => set({ editingAvatar }),

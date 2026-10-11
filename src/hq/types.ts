@@ -93,12 +93,20 @@ export const displayName = (p: Pick<Profile, "name" | "firstName">) => (p.firstN
 export type ManualStatus = "offline" | "dnd" | "brb" | "meeting" | "working" | "client" | "interview" | "call";
 export type Mood = "happy" | "laugh" | "love" | "wow" | "cool" | "shy" | "think" | "sleepy" | "cry" | "angry" | "dance" | "blink";
 export type Drink = "coffee" | "iced" | "tea";
+/** The canteen menu. The key is what is shown in the chibi's hand. */
+export const FOODS: Record<string, string> = {
+  "🍛": "Adobo rice", "🍜": "Pancit", "🍗": "Fried chicken", "🍲": "Sinigang", "🥟": "Siomai", "🌯": "Lumpia wrap",
+  "🍔": "Burger", "🍕": "Pizza", "🍟": "Fries", "🍝": "Spaghetti", "🍣": "Sushi", "🥗": "Salad",
+  "🥪": "Sandwich", "🍩": "Donut", "🍧": "Halo-halo", "🍦": "Ice cream", "🍌": "Banana cue", "🥭": "Mango",
+};
 /** What a person is doing right now. Shared live with everyone, never saved. */
 export interface Act {
   pose?: "sit" | "sleep";
   /** While sitting: how far the chibi is nudged on screen to land on the seat. */
   at?: { dx: number; dy: number };
   drink?: Drink;
+  /** Food from the canteen: one of the FOODS keys. */
+  food?: string;
   phone?: boolean;
   mood?: Mood;
   /** The radio station they are listening to, by name. */

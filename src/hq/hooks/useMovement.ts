@@ -110,6 +110,7 @@ export function useMovement(makeView: () => WalkView | null) {
           const me = useHq.getState().me;
           if (zone === "focus" && me?.status && WORK_STATUSES.includes(me.status)) updateMyProfile({ ...me, status: undefined });
           if (zone === "court" && me?.act?.ball) setAct({ ball: undefined });
+          if (zone === "canteen" && z !== "canteen" && me?.act?.food) setAct({ food: undefined });
           if (z === "huddle") { openMeeting(HQ.meetingUrl); earnForMeeting(); }
           zone = z;
           useHq.getState().setMyZone(z);

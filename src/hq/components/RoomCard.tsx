@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { HQ } from "../config";
 import { ZONES } from "../data/office";
 import { openMeeting, setAct, shoot, updateMyProfile } from "../net/session";
@@ -5,7 +6,7 @@ import { ChibiPortrait } from "../office/Chibi";
 import { zoneAt } from "../office/engine";
 import { MANUAL, statusOf, WORK_STATUSES } from "../status";
 import { useHq } from "../store";
-import type { Drink } from "../types";
+import { FOODS, type Drink } from "../types";
 
 const MENU: { id: Drink; label: string }[] = [
   { id: "coffee", label: "☕ Hot coffee" },
@@ -21,7 +22,8 @@ export function RoomCard() {
   const blocked = useHq((s) => s.meetingBlocked);
   const requestPose = useHq((s) => s.requestPose);
   const hoopScore = useHq((s) => s.hoopScore);
-  if (!me || !zone || !["cafe", "lounge", "nap", "huddle", "focus", "court", "gym"].includes(zone)) return null;
+  const [menuOpen, setMenuOpen] = useState(false);
+  if (!me || !zone || !["cafe", "lounge", "nap", "huddle", "focus", "court", "gym", "canteen"].includes(zone)) return null;
   const act = me.act ?? {};
   const name = ZONES.find((z) => z.id === zone)!.name;
 
@@ -38,6 +40,20 @@ export function RoomCard() {
             ))}
             {act.drink && <button type="button" className="btn-secondary" onClick={() => setAct({ drink: undefined })}>Finish drink</button>}
           </div>
+        </>
+      )}
+
+      {zone === "canteen" && (
+        <>
+          <p>{act.food && FOODS[act.food] ? `${act.food} Enjoy your ${FOODS[act.food].toLowerCase()}!` : "What would you like to eat?"}</p>
+          {(!act.food || menuOpen) && (
+            <div className="room-actions food-menu">
+              {Object.entries(FOODS).map(([emoji, label]) => (
+                <button key={emoji} type="button" className="service-chip" aria-pressed={act.food === emoji} onClick={() => { setAct({ food: emoji }); setMenuOpen(false); }}>{emoji} {label}</button>
+              ))}
+            </div>
+          )}
+          {act.food && !menuOpen && <div className="room-actions"><button type="button" className="btn-primary" onClick={() => setMenuOpen(true)}>Order something else</button><button type="button" className="btn-secondary" onClick={() => setAct({ food: undefined })}>Finish eating</button></div>}
         </>
       )}
 

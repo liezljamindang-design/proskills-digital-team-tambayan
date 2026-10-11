@@ -29,24 +29,21 @@ function note(id: string, name: string, text: string) {
   useHq.getState().addLine(PUBLIC, { id: nextId(), from: id, name, text: `${name} ${text}`, time: clock(), system: true });
 }
 const DRINK = { coffee: "a hot coffee ☕", iced: "an iced coffee 🧊", tea: "a milk tea 🧋" } as const;
-const MOOD = {
-  happy: "is happy 😊", laugh: "is laughing 😆", love: "is in love 😍", wow: "is amazed 😮", cool: "is feeling cool 😎", shy: "is feeling shy ☺️",
-  think: "is thinking 🤔", sleepy: "is sleepy 🥱", cry: "is crying 😢", angry: "is angry 😠", dance: "is dancing 💃", blink: "blinked 😉",
-} as const;
 /** Everything that changed between two versions of a person, as short activity lines. */
 function changes(old: Profile, next: Profile): string[] {
+  // Kept short on purpose: faces, sitting, phones and music show on the chibi itself and are not announced.
   const a = old.act ?? {}, b = next.act ?? {}, out: string[] = [];
-  if (a.pose !== b.pose) out.push(b.pose === "sleep" ? "is sleeping 💤" : b.pose === "sit" ? "sat down" : a.pose === "sleep" ? "woke up" : "stood up");
-  if (a.drink !== b.drink) out.push(b.drink ? `bought ${DRINK[b.drink]}` : "finished their drink");
-  if (Boolean(a.phone) !== Boolean(b.phone)) out.push(b.phone ? "is on their phone 📱" : "put their phone away");
-  if (b.mood && a.mood !== b.mood) out.push(MOOD[b.mood]);
-  if (Boolean(a.party) !== Boolean(b.party)) out.push(b.party ? "started a party 🎉" : "stopped partying");
+  if (b.drink && a.drink !== b.drink) out.push(`bought ${DRINK[b.drink]}`);
+  if (b.party && !a.party) out.push("started a party 🎉");
   const bought = (next.owned ?? []).filter((id) => !(old.owned ?? []).includes(id));
-  if (bought.length) out.push(`bought something new in the shop 🛍️`);
-  if (a.radio !== b.radio) out.push(b.radio ? `is listening to ${String(b.radio).slice(0, 40)} 🎧` : "turned the music off");
-  const joined = batchesOf(next).filter((b) => !batchesOf(old).includes(b));
+  if (bought.length) out.push("bought something new in the shop 🛍️");
+  const joined = batchesOf(next).filter((n) => !batchesOf(old).includes(n));
   if (joined.length) out.push(`joined Batch ${joined.join(", ")}`);
-  if (old.status !== next.status) out.push(next.status === "offline" ? "went offline" : old.status === "offline" && !next.status ? "is back online" : next.status ? `is now: ${MANUAL[next.status].emoji} ${MANUAL[next.status].label}` : "cleared their status");
+  if (old.status !== next.status) {
+    if (next.status === "offline") out.push("went offline");
+    else if (old.status === "offline") out.push("is back online");
+    else if (next.status) out.push(`is now: ${MANUAL[next.status].emoji} ${MANUAL[next.status].label}`);
+  }
   return out;
 }
 const leaving = new Map<string, number>();

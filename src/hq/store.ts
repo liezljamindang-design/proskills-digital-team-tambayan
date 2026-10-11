@@ -98,6 +98,8 @@ interface State {
   unread: Record<string, number>;
   activeThread: string;
   openThread: (id: string) => void;
+  /** Closes a private conversation. It comes back if they message you again. */
+  closeThread: (id: string) => void;
   addLine: (thread: string, line: ChatLine) => void;
   /** Puts saved messages in front of what has arrived live, without duplicates. */
   mergeHistory: (thread: string, lines: ChatLine[]) => void;
@@ -204,6 +206,12 @@ export const useHq = create<State>((set, get) => ({
     threads: s.threads[id] ? s.threads : { ...s.threads, [id]: [] },
     unread: { ...s.unread, [id]: 0 },
   })),
+  closeThread: (id) => set((s) => {
+    if (id === PUBLIC || id === ARCADE || id.startsWith("batch-")) return s;
+    const threads = { ...s.threads }, unread = { ...s.unread };
+    delete threads[id]; delete unread[id];
+    return { threads, unread, activeThread: s.activeThread === id ? PUBLIC : s.activeThread };
+  }),
   addLine: (thread, line) => set((s) => {
     const watching = thread === ARCADE || (s.activeThread === thread && s.tab === "chat");
     return {

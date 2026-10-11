@@ -95,11 +95,14 @@ function ChatPane() {
         {ids.map((id) => {
           const name = id === PUBLIC ? "Everyone" : batchIds.includes(id) ? `Batch ${id.slice(6)}` : peers[id] ? displayName(peers[id]) : threads[id]?.find((l) => l.from === id)?.name ?? "Someone";
           return (
-            <button key={id} type="button" className="thread-chip" aria-pressed={active === id} onClick={() => openThread(id)}>
-              {id !== PUBLIC && <span className="lock" aria-hidden="true">●</span>}
-              {name}
-              {unread[id] > 0 && <span className="badge">{unread[id]}</span>}
-            </button>
+            <span key={id} className={`thread-wrap${id !== PUBLIC && !batchIds.includes(id) ? " can-close" : ""}`}>
+              <button type="button" className="thread-chip" aria-pressed={active === id} onClick={() => openThread(id)}>
+                {id !== PUBLIC && <span className="lock" aria-hidden="true">●</span>}
+                {name}
+                {unread[id] > 0 && <span className="badge">{unread[id]}</span>}
+              </button>
+              {id !== PUBLIC && !batchIds.includes(id) && <button type="button" className="thread-close" aria-label={`Close the conversation with ${name}`} title="Close conversation" onClick={() => useHq.getState().closeThread(id)}>×</button>}
+            </span>
           );
         })}
       </div>

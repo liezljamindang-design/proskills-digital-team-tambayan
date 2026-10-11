@@ -635,3 +635,9 @@ button:hover > .emoji-3d, button:hover > .emoji-flat { transform: translateY(-3p
 .camera-shot { display: grid; gap: 8px; padding: 10px; margin-bottom: 8px; border: 1px solid var(--line); border-radius: 14px; background: var(--surface); }
 .camera-shot video { width: 100%; max-height: 260px; border-radius: 10px; background: #000; transform: scaleX(-1); }
 .band-mute { justify-self: start; min-height: 34px; padding: 0 4px; font-size: 13px; color: var(--lav); font-weight: 700; }
+
+.thread-wrap { display: inline-flex; align-items: stretch; }
+.thread-wrap.can-close .thread-chip { border-top-right-radius: 0; border-bottom-right-radius: 0; border-right: 0; padding-right: 8px; }
+.thread-close { min-width: 34px; border: 1px solid var(--line); border-left: 0; border-radius: 0 999px 999px 0; background: none; color: var(--ink-2); font-size: 17px; line-height: 1; cursor: pointer; }
+.thread-close:hover { background: var(--surface-2); color: var(--ink); }
+.thread-wrap:has(.thread-chip[aria-pressed="true"]) .thread-close { background: var(--lav); border-color: var(--lav); color: var(--on-accent); }

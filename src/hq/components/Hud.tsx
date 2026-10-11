@@ -10,6 +10,11 @@ export function Hud() {
   const online = useHq((s) => Object.keys(s.peers).length + (s.joined ? 1 : 0));
   const setEditing = useHq((s) => s.setEditingAvatar);
   const setHelpOpen = useHq((s) => s.setHelpOpen);
+  const joined = useHq((s) => s.joined);
+  const coins = useHq((s) => s.me?.coins ?? 0);
+  const streak = useHq((s) => s.me?.streak ?? 0);
+  const toast = useHq((s) => s.toast);
+  const setShopOpen = useHq((s) => s.setShopOpen);
 
   return (
     <header className="hud">
@@ -32,6 +37,12 @@ export function Hud() {
       </ul>
 
       <div className="hud-actions">
+        {joined && (
+          <button type="button" className="coin-btn" onClick={() => setShopOpen(true)} aria-label={`${coins} coins, ${streak} day streak. Open the shop`}>
+            <span aria-hidden="true">🪙</span> {coins} <span className="coin-streak" aria-hidden="true">🔥 {streak}</span>
+            {toast && <span key={toast.n} className="coin-toast" role="status">{toast.text}</span>}
+          </button>
+        )}
         <MusicToggle />
         <button type="button" className="icon-btn" onClick={toggleTheme} aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}>
           {theme === "dark" ? (

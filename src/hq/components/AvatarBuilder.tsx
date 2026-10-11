@@ -47,7 +47,7 @@ export function AvatarBuilder({ initial, submitLabel, onSubmit, onCancel, admin 
     <form className="builder" onSubmit={submit} noValidate>
       <div className="builder-preview">
         <ChibiFull look={look} size={170} />
-        <button type="button" className="btn-secondary" onClick={() => setLook(randomLook())}>Surprise me</button>
+        <button type="button" className="btn-secondary" onClick={() => setLook((l) => ({ ...randomLook(), hat: l.hat, pet: l.pet }))}>Surprise me</button>
       </div>
 
       <div className="builder-fields">

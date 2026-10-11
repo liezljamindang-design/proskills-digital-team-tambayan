@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { earn, EARNING } from "../economy";
 import { accountsEnabled, saveToAccount } from "../net/auth";
 import { say, updateMyProfile } from "../net/session";
 import { ChibiFull, ChibiPortrait } from "../office/Chibi";
@@ -41,7 +42,10 @@ export function Arcade() {
   // Record a new personal best once, when the last pair is found.
   useEffect(() => {
     if (!won || !me) return;
-    if (me.best === undefined || moves < me.best) {
+    const record = me.best === undefined || moves < me.best;
+    // Coins are paid a moment later, after the new best score has been stored.
+    window.setTimeout(() => earn(EARNING.win + (record ? EARNING.best : 0), record ? "new best score" : "finishing Memory Match"), 50);
+    if (record) {
       updateMyProfile({ ...me, best: moves });
       if (accountsEnabled) void saveToAccount({ best: moves }).catch(() => undefined);
       say(`I finished Memory Match in ${moves} moves! 🎉`, ARCADE);

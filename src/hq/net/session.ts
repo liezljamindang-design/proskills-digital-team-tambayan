@@ -41,6 +41,8 @@ function changes(old: Profile, next: Profile): string[] {
   if (Boolean(a.phone) !== Boolean(b.phone)) out.push(b.phone ? "is on their phone 📱" : "put their phone away");
   if (b.mood && a.mood !== b.mood) out.push(MOOD[b.mood]);
   if (Boolean(a.party) !== Boolean(b.party)) out.push(b.party ? "started a party 🎉" : "stopped partying");
+  const bought = (next.owned ?? []).filter((id) => !(old.owned ?? []).includes(id));
+  if (bought.length) out.push(`bought something new in the shop 🛍️`);
   if (a.radio !== b.radio) out.push(b.radio ? `is listening to ${String(b.radio).slice(0, 40)} 🎧` : "turned the music off");
   const joined = batchesOf(next).filter((b) => !batchesOf(old).includes(b));
   if (joined.length) out.push(`joined Batch ${joined.join(", ")}`);

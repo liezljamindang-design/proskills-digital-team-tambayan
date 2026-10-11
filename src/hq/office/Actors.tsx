@@ -1,7 +1,7 @@
 import type { Bubble } from "../store";
 import type { Status } from "../status";
 import type { Act, Look } from "../types";
-import { ChibiArt } from "./Chibi";
+import { ChibiArt, PetArt } from "./Chibi";
 
 /** Breaks a message into short lines for a speech bubble, trimming long ones. */
 function wrap(text: string): string[] {
@@ -64,6 +64,7 @@ export function Figure({ look, name, bubble, self, status, act, party }: FigureP
           {party && <path className="party-hat" d="M-4.6 -33.4 L0.6 -45 L5.4 -33.2 Z" />}
         </g>
         {pose === "sleep" && <text className="zzz" x={40} y={-44}>z Z z</text>}
+        {look.pet && pose !== "sleep" && <g transform="translate(17 1) scale(1.25)"><PetArt id={look.pet} /></g>}
         <g transform="translate(0 -61)">
           <rect className={`ag-tag-bg${self ? " is-self" : ""}`} x={-tagW / 2} y={-8} width={tagW} height={12} rx={6} />
           <text className="ag-name" x={0} y={1} textAnchor="middle">{label}</text>

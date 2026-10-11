@@ -258,6 +258,31 @@ function HeadGear({ fit, cool }: { fit: Fit; cool: boolean }) {
   );
 }
 
+/** Hats from the shop. Drawn last, on top of the hair. */
+function Hat({ id }: { id?: string }) {
+  switch (id) {
+    case "party": return <g stroke="none"><path d="M-4.6 -33.4 L0.6 -46 L5.4 -33.2 Z" fill="#ff4fa3" /><circle cx={0.6} cy={-46} r={1.3} fill="#ffd43b" /><circle cx={-0.6} cy={-37} r={0.8} fill="#ffffff" /><circle cx={2.2} cy={-40} r={0.7} fill="#35c9ff" /></g>;
+    case "cap": return <g stroke="none"><path d="M-9.6 -29.2 Q0 -41 9.6 -29.2 Q0 -32 -9.6 -29.2 Z" fill="#1565c0" /><path d="M1.5 -30.4 Q9.5 -31.6 14.6 -27.6 Q8 -27.4 1.5 -28.8 Z" fill="#0d4a94" /><circle cx={0} cy={-36.6} r={0.9} fill="#ffffff" /></g>;
+    case "beanie": return <g stroke="none"><path d="M-9.8 -28.6 Q0 -42 9.8 -28.6 Q0 -31.6 -9.8 -28.6 Z" fill="#e03131" /><path d="M-9.8 -28.6 Q0 -31.6 9.8 -28.6 L9.6 -26.6 Q0 -29.8 -9.6 -26.6 Z" fill="#ffffff" /><circle cx={0} cy={-39.6} r={2} fill="#ffffff" /></g>;
+    case "ears": return <g stroke="none"><path d="M-8.8 -31.4 L-7.4 -40 L-2.8 -34.6 Z M8.8 -31.4 L7.4 -40 L2.8 -34.6 Z" fill="#2a2230" /><path d="M-7.6 -33 L-7 -37.4 L-4.6 -34.6 Z M7.6 -33 L7 -37.4 L4.6 -34.6 Z" fill="#f29bb0" /></g>;
+    case "flowers": return <g stroke="none">{[[-7.4, -30.6, "#ff4fa3"], [-3.8, -32.8, "#ffd43b"], [0, -33.6, "#ffffff"], [3.8, -32.8, "#b197fc"], [7.4, -30.6, "#ff922b"]].map(([x, y, c]) => <g key={String(x)}><circle cx={Number(x)} cy={Number(y)} r={1.9} fill={String(c)} /><circle cx={Number(x)} cy={Number(y)} r={0.7} fill="#f08c00" /></g>)}</g>;
+    case "wizard": return <g stroke="none"><path d="M-7.6 -31.6 L1.4 -51 L8.4 -31.6 Z" fill="#6741d9" /><ellipse cx={0} cy={-31.4} rx={12.4} ry={2.6} fill="#5f3dc4" /><path d="M0.8 -41 l0.6 1.3 l1.4 0.1 l-1.1 0.9 l0.4 1.4 l-1.3 -0.8 l-1.3 0.8 l0.4 -1.4 l-1.1 -0.9 l1.4 -0.1 Z" fill="#ffd43b" /></g>;
+    case "halo": return <ellipse className="halo" cx={0} cy={-39.6} rx={6.4} ry={1.9} fill="none" stroke="#ffd43b" strokeWidth={1.3} />;
+    default: return null;
+  }
+}
+
+/** Pets from the shop. Small, and drawn standing beside the chibi. */
+export function PetArt({ id }: { id?: string }) {
+  switch (id) {
+    case "duck": return <g className="pet" stroke="rgba(43,34,51,0.3)" strokeWidth={0.35}><ellipse cx={0} cy={-3.4} rx={4.4} ry={3.4} fill="#ffd43b" /><circle cx={3.4} cy={-7.6} r={2.6} fill="#ffd43b" /><path d="M5.6 -7.8 L8.4 -7 L5.6 -6.2 Z" fill="#f08c00" /><circle cx={4.2} cy={-8.2} r={0.5} fill="#1b1d26" stroke="none" /></g>;
+    case "cat": return <g className="pet" stroke="rgba(43,34,51,0.3)" strokeWidth={0.35}><path d="M-4.6 -3 Q-8.6 -5 -7 -9" fill="none" stroke="#f08c00" strokeWidth={1.3} strokeLinecap="round" /><ellipse cx={0} cy={-3.2} rx={4.6} ry={3.2} fill="#f59f00" /><circle cx={3.2} cy={-7.6} r={3} fill="#f59f00" /><path d="M1 -9.6 L1.4 -12.6 L3.2 -10.4 Z M5.4 -9.6 L5.2 -12.6 L3.4 -10.4 Z" fill="#f59f00" /><circle cx={2.3} cy={-7.8} r={0.5} fill="#1b1d26" stroke="none" /><circle cx={4.4} cy={-7.8} r={0.5} fill="#1b1d26" stroke="none" /></g>;
+    case "dog": return <g className="pet" stroke="rgba(43,34,51,0.3)" strokeWidth={0.35}><path d="M-4.4 -4 Q-7.6 -7 -6.4 -9.4" fill="none" stroke="#8d5b3e" strokeWidth={1.4} strokeLinecap="round" /><ellipse cx={0} cy={-3.4} rx={4.8} ry={3.4} fill="#c98f6a" /><circle cx={3.4} cy={-7.8} r={3.1} fill="#c98f6a" /><ellipse cx={0.8} cy={-7.4} rx={1.2} ry={2.4} fill="#8d5b3e" /><ellipse cx={6} cy={-7.4} rx={1.2} ry={2.4} fill="#8d5b3e" /><circle cx={2.6} cy={-8.2} r={0.5} fill="#1b1d26" stroke="none" /><circle cx={4.4} cy={-8.2} r={0.5} fill="#1b1d26" stroke="none" /><circle cx={3.5} cy={-6.6} r={0.6} fill="#1b1d26" stroke="none" /></g>;
+    case "robot": return <g className="pet" stroke="rgba(43,34,51,0.3)" strokeWidth={0.35}><rect x={-3.6} y={-6.4} width={7.2} height={6} rx={1.2} fill="#adb5bd" /><rect x={-3} y={-12} width={6} height={5} rx={1.2} fill="#ced4da" /><path d="M0 -12 V-14.4" stroke="#868e96" strokeWidth={0.7} /><circle cx={0} cy={-14.8} r={0.9} fill="#e03131" stroke="none" /><circle cx={-1.3} cy={-9.6} r={0.8} fill="#35c9ff" stroke="none" /><circle cx={1.3} cy={-9.6} r={0.8} fill="#35c9ff" stroke="none" /></g>;
+    default: return null;
+  }
+}
+
 const DRINKS = { coffee: ["#ffffff", "#6b4226"], iced: ["#cfeaff", "#8a5a3a"], tea: ["#f1d9b5", "#c79a63"] } as const;
 
 /** One character, full body. `act` changes the face, what is in the hands, and the pose. */
@@ -287,6 +312,7 @@ export function ChibiArt({ look, act }: { look: Look; act?: Act }) {
       <Face mood={mood} asleep={asleep} />
       <AccessoryArt kind={look.accessory} />
       <HeadGear fit={fit} cool={mood === "cool"} />
+      <Hat id={look.hat} />
       {act?.drink && !asleep && (
         <g className="sip">
           <rect x={5.2} y={-12} width={3.6} height={4.4} rx={0.7} fill={DRINKS[act.drink][0]} />

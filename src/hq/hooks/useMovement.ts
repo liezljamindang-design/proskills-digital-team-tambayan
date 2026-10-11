@@ -1,5 +1,6 @@
 import { useEffect, type RefObject } from "react";
 import { HQ } from "../config";
+import { earnForMeeting } from "../economy";
 import { ARCADE_SPOT, BED_FEET, FLOOR, SEATS, START, type Seat } from "../data/office";
 import { openMeeting, reportMove, setAct, updateMyProfile } from "../net/session";
 import { WORK_STATUSES } from "../status";
@@ -114,7 +115,7 @@ export function useMovement({ svgRef, cameraRef, avatarRef, boxesRef, onSlot }: 
           // Work statuses belong to the Work Room, so they are dropped on the way out.
           const me = useHq.getState().me;
           if (zone === "focus" && me?.status && WORK_STATUSES.includes(me.status)) updateMyProfile({ ...me, status: undefined });
-          if (z === "huddle") openMeeting(HQ.meetingUrl);
+          if (z === "huddle") { openMeeting(HQ.meetingUrl); earnForMeeting(); }
           zone = z;
           useHq.getState().setMyZone(z);
           if (z) useHq.getState().selectZone(z);

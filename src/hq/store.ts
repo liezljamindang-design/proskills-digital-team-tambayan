@@ -46,6 +46,10 @@ interface State {
   setJoined: (joined: boolean) => void;
   editingAvatar: boolean;
   setEditingAvatar: (open: boolean) => void;
+  shopOpen: boolean;
+  setShopOpen: (open: boolean) => void;
+  /** A short "+10 coins" style message beside the coin counter. */
+  toast: { text: string; n: number } | null;
   helpOpen: boolean;
   setHelpOpen: (open: boolean) => void;
 
@@ -116,6 +120,9 @@ export const useHq = create<State>((set, get) => ({
   setJoined: (joined) => set({ joined }),
   editingAvatar: false,
   setEditingAvatar: (editingAvatar) => set({ editingAvatar }),
+  shopOpen: false,
+  setShopOpen: (shopOpen) => set({ shopOpen }),
+  toast: null,
   helpOpen: false,
   setHelpOpen: (helpOpen) => set({ helpOpen }),
 

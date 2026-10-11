@@ -394,3 +394,26 @@ button:hover > .emoji-3d, button:hover > .emoji-flat { transform: translateY(-3p
 .social-btn:hover { background: var(--surface-2); }
 .social-btn.is-facebook { background: #1877f2; border-color: #1877f2; color: #fff; }
 .social-or { margin: 4px 0 0; text-align: center; font-size: 12.5px; color: var(--ink-2); }
+
+/* Coins and the shop */
+.coin-btn { position: relative; display: inline-flex; align-items: center; gap: 6px; min-height: 36px; padding: 0 12px; border-radius: 999px; border: 1px solid var(--gold-soft); background: color-mix(in srgb, var(--gold-soft) 22%, var(--surface)); color: var(--ink); font: inherit; font-weight: 800; font-size: 13.5px; cursor: pointer; font-variant-numeric: tabular-nums; }
+.coin-btn:hover { background: color-mix(in srgb, var(--gold-soft) 40%, var(--surface)); }
+.coin-streak { padding-left: 6px; border-left: 1px solid var(--line); }
+.coin-toast { position: absolute; top: calc(100% + 6px); right: 0; z-index: 40; padding: 5px 12px; border-radius: 999px; background: #10141c; color: #fff; font-size: 12.5px; white-space: nowrap; pointer-events: none; animation: pg-toast 3.2s ease forwards; }
+@keyframes pg-toast { 0% { opacity: 0; transform: translateY(-6px); } 12%, 80% { opacity: 1; transform: translateY(0); } 100% { opacity: 0; transform: translateY(-4px); } }
+.dialog:has(.shop) { width: min(44rem, calc(100% - 24px)); }
+.shop { display: grid; gap: 12px; }
+.shop-balance { display: flex; flex-wrap: wrap; gap: 8px 20px; margin: 0; padding: 10px 14px; border-radius: 12px; background: var(--surface-2); font-size: 15px; }
+.shop-how { font-size: 14px; }
+.shop-how summary { cursor: pointer; font-weight: 700; color: var(--lav); min-height: 32px; }
+.shop-how ul { margin: 6px 0 0; padding-left: 20px; display: grid; gap: 4px; }
+.shop-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(128px, 1fr)); gap: 10px; margin: 0; padding: 0; list-style: none; }
+.shop-item { display: grid; justify-items: center; gap: 6px; padding: 10px 8px; border: 1px solid var(--line); border-radius: 14px; background: var(--surface); text-align: center; font-size: 13.5px; }
+.shop-item.is-on { border-color: var(--lav); box-shadow: 0 0 0 2px var(--lav-soft); }
+.shop-preview { height: 88px; display: grid; place-items: center; }
+.shop-item button { min-height: 38px; width: 100%; padding: 0 8px; font-size: 13.5px; }
+.shop-item .btn-primary:disabled { opacity: 0.45; cursor: not-allowed; }
+.pet { animation: pg-phone 1.6s ease-in-out infinite; transform-box: fill-box; }
+.halo { filter: drop-shadow(0 0 2px #ffd43b); }
+@media (max-width: 900px) { .coin-streak { display: none; } }
+@media (prefers-reduced-motion: reduce) { .pet, .coin-toast { animation: none; } }

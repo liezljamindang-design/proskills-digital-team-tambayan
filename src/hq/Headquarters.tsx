@@ -2,6 +2,8 @@ import { BottomNav } from "./components/BottomNav";
 import { Composer } from "./components/Composer";
 import { Arcade } from "./components/Arcade";
 import { celebrants } from "./birthday";
+import { earnForChat } from "./economy";
+import { Shop } from "./components/Shop";
 import { EmoteBar } from "./components/EmoteBar";
 import { SitPrompt } from "./components/SitPrompt";
 import { Party } from "./components/Party";
@@ -50,7 +52,7 @@ export function Headquarters() {
           </div>
           <div className="quick-say">
             <EmoteBar />
-            <Composer id="quick-composer" placeholder="Say something to everyone" onSend={(text) => say(text)} />
+            <Composer id="quick-composer" placeholder="Say something to everyone" onSend={(text) => { say(text); earnForChat(); }} />
           </div>
         </section>
         <SidePanel />
@@ -58,6 +60,7 @@ export function Headquarters() {
       <BottomNav />
       <Welcome />
       <HelpDialog />
+      <Shop />
     </div>
   );
 }

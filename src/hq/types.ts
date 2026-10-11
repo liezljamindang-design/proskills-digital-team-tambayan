@@ -45,6 +45,9 @@ export interface Look {
   bottoms: "pants" | "skirt";
   /** The clothing style worn on top. */
   fit: Fit;
+  /** Bought in the shop. */
+  hat?: string;
+  pet?: string;
 }
 export type Fit = "basic" | "nerd" | "funk" | "cool" | "sporty" | "formal" | "hoodie" | "punk" | "royal";
 export type HairStyle = "short" | "swept" | "bob" | "long-straight" | "long-wavy" | "bun" | "ponytail" | "pigtails";
@@ -64,6 +67,13 @@ export interface Profile {
   birthday?: string;
   /** Kept on your own account and device only. It is never sent to other people. */
   birthYear?: number;
+  /** Coins earned by showing up, chatting and playing. Spent in the shop. */
+  coins?: number;
+  /** Days in a row this person has come in, and the last day counted (YYYY-MM-DD). */
+  streak?: number;
+  lastDay?: string;
+  /** Shop items this person has bought. */
+  owned?: string[];
   /** Shown in brackets beside the username. */
   firstName?: string;
   /** Batch 1 to 13, if they picked one. It adds them to that batch's own chat room. */

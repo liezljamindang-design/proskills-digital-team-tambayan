@@ -17,7 +17,7 @@ function initialTheme(): ThemeChoice {
   return theme;
 }
 
-export interface Away { id: string; name: string; role: string; look: Profile["look"]; leftAt: number }
+export interface Away { id: string; name: string; firstName?: string; role: string; look: Profile["look"]; leftAt: number; batches?: number[]; admin?: boolean }
 function savedAway(): Record<string, Away> {
   try { const a = JSON.parse(read("playground.away") ?? "{}"); return a && typeof a === "object" ? a : {}; } catch { return {}; }
 }
@@ -52,6 +52,8 @@ interface State {
   peers: Record<string, Peer>;
   /** People this browser has seen who are not in the office right now, with when they left. */
   away: Record<string, Away>;
+  /** Adds members from the saved team list, so people who are not here still show as offline. */
+  mergeAway: (members: Away[]) => void;
   upsertPeer: (peer: Peer) => void;
   movePeer: (id: string, x: number, y: number) => void;
   removePeer: (id: string) => void;
@@ -119,6 +121,11 @@ export const useHq = create<State>((set, get) => ({
 
   peers: {},
   away: savedAway(),
+  mergeAway: (members) => set((s) => {
+    const away = { ...s.away };
+    for (const m of members) if (m.id !== s.me?.id && !s.peers[m.id]) away[m.id] = { ...m, leftAt: Math.max(m.leftAt, away[m.id]?.leftAt ?? 0) };
+    return { away };
+  }),
   upsertPeer: (peer) => set((s) => {
     const old = s.peers[peer.id];
     // A profile update may arrive without a position: keep where they already are.
@@ -133,7 +140,7 @@ export const useHq = create<State>((set, get) => ({
     const gone = s.peers[id];
     const peers = { ...s.peers };
     delete peers[id];
-    const away = gone ? keepAway({ ...s.away, [id]: { id, name: gone.name, role: gone.role, look: gone.look, leftAt: Date.now() } }) : s.away;
+    const away = gone ? keepAway({ ...s.away, [id]: { id, name: gone.name, firstName: gone.firstName, role: gone.role, look: gone.look, leftAt: Date.now(), batches: gone.batches ?? (gone.batch ? [gone.batch] : undefined), admin: gone.admin } }) : s.away;
     return { peers, away };
   }),
 

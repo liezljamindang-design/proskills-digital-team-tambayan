@@ -23,6 +23,7 @@ const AVAILABLE: Status = BY_ZONE.lobby;
 
 /** Statuses a person can pin, whichever room they are in. */
 export const MANUAL: Record<ManualStatus, Status> = {
+  offline: { id: "offline", label: "Appear offline", emoji: "⚫", tone: "rest" },
   dnd: { id: "dnd", label: "Do not disturb", emoji: "⛔", tone: "busy" },
   brb: { id: "brb", label: "Be right back", emoji: "⏳", tone: "rest" },
   meeting: BY_ZONE.huddle,
@@ -40,3 +41,10 @@ export function statusOf(person: Pick<Profile, "status">, zone: ZoneId | null): 
 
 /** Statuses offered in the Work Room. They are dropped again when you walk out. */
 export const WORK_STATUSES: ManualStatus[] = ["working", "client", "interview", "call"];
+
+/** The one-word presence shown beside a name in the People list. */
+export function presenceOf(p: Pick<Profile, "status">): { label: "Online" | "Offline" | "DND"; tone: "ok" | "off" | "busy" } {
+  if (p.status === "offline") return { label: "Offline", tone: "off" };
+  if (p.status === "dnd") return { label: "DND", tone: "busy" };
+  return { label: "Online", tone: "ok" };
+}

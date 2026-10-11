@@ -6,6 +6,7 @@ import { MANUAL } from "../status";
 import { ARCADE, PUBLIC, useHq } from "../store";
 import { batchesOf, displayName, REACTIONS, type Profile, type Quote } from "../types";
 import { loadHistory, saveMarks, saveMessage } from "./history";
+import { startRoster } from "./roster";
 import { createLocalTransport } from "./localTransport";
 import { createSupabaseTransport } from "./supabaseTransport";
 import { supabaseConfigured } from "./supabase";
@@ -36,21 +37,33 @@ const MOOD = {
 function changes(old: Profile, next: Profile): string[] {
   const a = old.act ?? {}, b = next.act ?? {}, out: string[] = [];
   if (a.pose !== b.pose) out.push(b.pose === "sleep" ? "is sleeping 💤" : b.pose === "sit" ? "sat down" : a.pose === "sleep" ? "woke up" : "stood up");
-  if (a.drink !== b.drink) out.push(b.drink ? `ordered ${DRINK[b.drink]}` : "finished their drink");
+  if (a.drink !== b.drink) out.push(b.drink ? `bought ${DRINK[b.drink]}` : "finished their drink");
   if (Boolean(a.phone) !== Boolean(b.phone)) out.push(b.phone ? "is on their phone 📱" : "put their phone away");
   if (b.mood && a.mood !== b.mood) out.push(MOOD[b.mood]);
   if (a.radio !== b.radio) out.push(b.radio ? `is listening to ${String(b.radio).slice(0, 40)} 🎧` : "turned the music off");
   const joined = batchesOf(next).filter((b) => !batchesOf(old).includes(b));
   if (joined.length) out.push(`joined Batch ${joined.join(", ")}`);
-  if (old.status !== next.status) out.push(next.status ? `is now: ${MANUAL[next.status].emoji} ${MANUAL[next.status].label}` : "cleared their status");
+  if (old.status !== next.status) out.push(next.status === "offline" ? "went offline" : old.status === "offline" && !next.status ? "is back online" : next.status ? `is now: ${MANUAL[next.status].emoji} ${MANUAL[next.status].label}` : "cleared their status");
   return out;
 }
+const leaving = new Map<string, number>();
+const lastRoom = new Map<string, string>();
+/**
+ * Room changes, kept short: entering a room is announced; leaving is only announced
+ * when the person has not walked into another room a few seconds later.
+ */
 function noteZone(id: string, name: string, from: string | null, to: string | null) {
   if (to === from) return;
   const room = (z: string) => (z === "game" ? "arcade 🎮" : ZONES.find((r) => r.id === z)!.name);
-  if (from && to) note(id, name, `left the ${room(from)} and entered the ${room(to)}`);
-  else if (to) note(id, name, `entered the ${room(to)}`);
-  else if (from) note(id, name, `left the ${room(from)}`);
+  window.clearTimeout(leaving.get(id));
+  leaving.delete(id);
+  if (to) {
+    if (lastRoom.get(id) !== to) note(id, name, `entered the ${room(to)}`);
+    lastRoom.set(id, to);
+  } else if (from) {
+    lastRoom.set(id, from);
+    leaving.set(id, window.setTimeout(() => { leaving.delete(id); lastRoom.delete(id); note(id, name, `left the ${room(from)}`); }, 6000));
+  }
 }
 
 export async function joinOffice(me: Profile): Promise<void> {
@@ -92,6 +105,7 @@ export async function joinOffice(me: Profile): Promise<void> {
   });
   useHq.getState().setJoined(true);
   void loadHistory(me);
+  startRoster(me);
 }
 
 /** Sends a message to the public room, to a batch room ("batch-7"), or privately when `to` is a person's id. */

@@ -1,6 +1,7 @@
 import { useEffect, useState, type FormEvent, useRef } from "react";
 import { HQ } from "../config";
 import { accountsEnabled, changePassword, currentAccount, saveToAccount, signIn, signOut, signUp, type Account } from "../net/auth";
+import { startRoster } from "../net/roster";
 import { joinOffice, liveMode, updateMyProfile } from "../net/session";
 import { DEFAULT_LOOK } from "../office/Chibi";
 import { useHq } from "../store";
@@ -46,7 +47,7 @@ export function Welcome() {
     try {
       // Saved to the account first, so the chibi is remembered even if the live connection fails.
       if (account) void saveToAccount({ name, role, look, birthday: birthday ?? "", birthYear: birthYear ?? null, firstName: firstName ?? "", batch: batch ?? null, batches, best: profile.best });
-      if (joined) updateMyProfile(profile);
+      if (joined) { updateMyProfile(profile); startRoster(profile); }
       else { useHq.getState().setMe(profile); await joinOffice(profile); }
       setEditing(false);
     } catch (err) {

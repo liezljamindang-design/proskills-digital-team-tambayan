@@ -78,7 +78,7 @@ export const batchesOf = (p: Pick<Profile, "batch" | "batches">): number[] => (p
 export const BATCHES = 13;
 /** "username (First name)" when a first name was given. */
 export const displayName = (p: Pick<Profile, "name" | "firstName">) => (p.firstName ? `${p.name} (${p.firstName})` : p.name);
-export type ManualStatus = "dnd" | "brb" | "meeting" | "working" | "client" | "interview" | "call";
+export type ManualStatus = "offline" | "dnd" | "brb" | "meeting" | "working" | "client" | "interview" | "call";
 export type Mood = "happy" | "laugh" | "love" | "wow" | "cool" | "shy" | "think" | "sleepy" | "cry" | "angry" | "dance" | "blink";
 export type Drink = "coffee" | "iced" | "tea";
 /** What a person is doing right now. Shared live with everyone, never saved. */

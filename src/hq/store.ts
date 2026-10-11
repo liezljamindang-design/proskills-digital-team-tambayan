@@ -31,6 +31,8 @@ const keepAway = (away: Record<string, Away>) => {
 export type SideTab = "chat" | "people" | "rooms";
 /** "all" is the public room; any other thread id is the other person's id. */
 export const PUBLIC = "all";
+/** The chat that only people inside the arcade see. */
+export const ARCADE = "arcade";
 export interface Bubble { text: string; private: boolean; until: number }
 
 interface State {
@@ -67,6 +69,8 @@ interface State {
   activeThread: string;
   openThread: (id: string) => void;
   addLine: (thread: string, line: ChatLine) => void;
+  /** Changes one message in a thread, for reactions and pins. */
+  patchLine: (thread: string, id: string, change: (line: ChatLine) => ChatLine) => void;
 
   /** Speech bubbles currently showing, by person id. */
   bubbles: Record<string, Bubble>;
@@ -146,11 +150,17 @@ export const useHq = create<State>((set, get) => ({
     unread: { ...s.unread, [id]: 0 },
   })),
   addLine: (thread, line) => set((s) => {
-    const watching = s.activeThread === thread && s.tab === "chat";
+    const watching = thread === ARCADE || (s.activeThread === thread && s.tab === "chat");
     return {
       threads: { ...s.threads, [thread]: [...(s.threads[thread] ?? []), line].slice(-200) },
       unread: watching || line.from === s.me?.id || line.system ? s.unread : { ...s.unread, [thread]: (s.unread[thread] ?? 0) + 1 },
     };
+  }),
+
+  patchLine: (thread, id, change) => set((s) => {
+    const lines = s.threads[thread];
+    if (!lines?.some((l) => l.id === id)) return s;
+    return { threads: { ...s.threads, [thread]: lines.map((l) => (l.id === id ? change(l) : l)) } };
   }),
 
   bubbles: {},

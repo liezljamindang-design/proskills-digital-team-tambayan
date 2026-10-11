@@ -1,13 +1,13 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { HQ } from "../config";
 import { ZONES } from "../data/office";
-import { myPosition, say } from "../net/session";
+import { myPosition, say, toggleReaction, togglePin } from "../net/session";
 import { ChibiPortrait } from "../office/Chibi";
 import { zoneAt } from "../office/engine";
 import { statusOf } from "../status";
 import { StatusPicker } from "./StatusPicker";
-import { PUBLIC, useHq, type SideTab } from "../store";
-import { displayName } from "../types";
+import { ARCADE, PUBLIC, useHq, type SideTab } from "../store";
+import { displayName, REACTIONS, type Quote } from "../types";
 import { Composer } from "./Composer";
 
 const TABS: { id: SideTab; label: string }[] = [{ id: "chat", label: "Chat" }, { id: "people", label: "People" }, { id: "rooms", label: "Rooms" }];
@@ -53,7 +53,7 @@ function ChatPane() {
   const logRef = useRef<HTMLDivElement>(null);
   // Rooms first (everyone, then your batch), then private chats. Other batches' rooms are never listed.
   const batchId = me?.batch ? `batch-${me.batch}` : null;
-  const ids = [PUBLIC, ...(batchId ? [batchId] : []), ...Object.keys(threads).filter((id) => id !== PUBLIC && !id.startsWith("batch-"))];
+  const ids = [PUBLIC, ...(batchId ? [batchId] : []), ...Object.keys(threads).filter((id) => id !== PUBLIC && id !== ARCADE && !id.startsWith("batch-"))];
   const active = rawActive.startsWith("batch-") && rawActive !== batchId ? PUBLIC : rawActive;
   const isBatch = active === batchId;
   const lines = threads[active] ?? [];
@@ -62,6 +62,18 @@ function ChatPane() {
   const otherName = (other ? displayName(other) : undefined) ?? lines.find((l) => l.from === active)?.name ?? "Someone";
 
   useEffect(() => { const el = logRef.current; if (el) el.scrollTop = el.scrollHeight; }, [lines.length, active]);
+  const [menuFor, setMenuFor] = useState<string | null>(null);
+  const [replyTo, setReplyTo] = useState<Quote | null>(null);
+  const [pinsOpen, setPinsOpen] = useState(false);
+  useEffect(() => { setReplyTo(null); setMenuFor(null); }, [active]);
+  const pinned = lines.filter((l) => l.pinned);
+  function jumpTo(id: string) {
+    const el = document.getElementById(`msg-${id}`);
+    if (!el) return;
+    el.scrollIntoView({ block: "center", behavior: "smooth" });
+    el.classList.add("is-flash");
+    window.setTimeout(() => el.classList.remove("is-flash"), 1600);
+  }
 
   return (
     <div className="chatpane">
@@ -88,26 +100,70 @@ function ChatPane() {
             : `${otherName} has left. They won't see new messages.`}
       </p>
 
+      {pinned.length > 0 && (
+        <div className="pins">
+          <button type="button" className="pins-head" aria-expanded={pinsOpen} onClick={() => setPinsOpen((o) => !o)}>📌 {pinned.length} pinned {pinned.length === 1 ? "message" : "messages"} <span aria-hidden="true">{pinsOpen ? "▴" : "▾"}</span></button>
+          {pinsOpen && (
+            <ul>
+              {pinned.map((l) => (
+                <li key={l.id}>
+                  <button type="button" className="pin-row" onClick={() => jumpTo(l.id)}><strong>{l.from === me?.id ? "You" : l.name}</strong> {l.text || "Photo"}</button>
+                  <button type="button" className="text-btn" onClick={() => togglePin(active, l.id)} aria-label="Unpin this message">Unpin</button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      )}
+
       <div className="chat-log" ref={logRef} role="log" aria-live="polite" aria-label={isPublic ? "Public room" : isBatch ? "Batch room" : `Private chat with ${otherName}`}>
         {lines.length === 0 && <p className="muted">{isPublic ? "No messages yet. Say hi!" : isBatch ? "No messages yet. Say hi to your batch!" : `Say hi to ${otherName}.`}</p>}
         {lines.map((l) =>
           l.system ? (
             <p key={l.id} className="chat-system">{l.text}</p>
           ) : (
-            <div key={l.id} className={`chat-line${l.from === me?.id ? " is-mine" : ""}`}>
-              <p className="chat-meta">{l.from === me?.id ? "You" : l.name} · {l.time}</p>
+            <div key={l.id} id={`msg-${l.id}`} className={`chat-line${l.from === me?.id ? " is-mine" : ""}${menuFor === l.id ? " is-open" : ""}`}>
+              <p className="chat-meta">{l.pinned && <span title="Pinned">📌 </span>}{l.from === me?.id ? "You" : l.name} · {l.time}</p>
+              {l.reply && (
+                <button type="button" className="chat-quote" onClick={() => jumpTo(l.reply!.id)} aria-label={`In reply to ${l.reply.name}: ${l.reply.text}`}>
+                  <strong>{l.reply.name}</strong> {l.reply.text}
+                </button>
+              )}
               {l.image && <a className="chat-image" href={l.image.startsWith("data:") ? undefined : l.image} target="_blank" rel="noopener noreferrer"><img src={l.image} alt={l.image.startsWith("data:") ? "Photo" : "GIF"} loading="lazy" /></a>}
-              {l.text && <p className="chat-text">{l.text}</p>}
+              {l.text && <p className="chat-text" onClick={() => setMenuFor((m) => (m === l.id ? null : l.id))}>{l.text}</p>}
+              {l.reactions && Object.keys(l.reactions).length > 0 && (
+                <div className="chat-reacts">
+                  {Object.entries(l.reactions).map(([emoji, who]) => (
+                    <button key={emoji} type="button" className="react-chip" aria-pressed={who.includes(me?.id ?? "")} onClick={() => toggleReaction(active, l.id, emoji)}
+                      title={who.map((id) => (id === me?.id ? "You" : peers[id] ? displayName(peers[id]) : "Someone")).join(", ")}>
+                      {emoji} {who.length}
+                    </button>
+                  ))}
+                </div>
+              )}
+              <div className="chat-actions" role="group" aria-label="Message actions">
+                {REACTIONS.map((emoji) => (
+                  <button key={emoji} type="button" onClick={() => { toggleReaction(active, l.id, emoji); setMenuFor(null); }} aria-label={`React ${emoji}`}>{emoji}</button>
+                ))}
+                <button type="button" className="act-text" onClick={() => { setReplyTo({ id: l.id, name: l.from === me?.id ? "You" : l.name, text: (l.text || (l.image ? "Photo" : "")).slice(0, 90) }); setMenuFor(null); document.getElementById("side-composer")?.focus(); }}>Reply</button>
+                <button type="button" className="act-text" onClick={() => { togglePin(active, l.id); setMenuFor(null); }}>{l.pinned ? "Unpin" : "Pin"}</button>
+              </div>
             </div>
           ),
         )}
       </div>
 
+      {replyTo && (
+        <div className="reply-banner">
+          <span>Replying to <strong>{replyTo.name}</strong>: {replyTo.text}</span>
+          <button type="button" className="text-btn" onClick={() => setReplyTo(null)} aria-label="Cancel reply">✕</button>
+        </div>
+      )}
       <Composer
         id="side-composer"
         placeholder={isPublic ? "Message everyone" : isBatch ? `Message Batch ${me?.batch}` : `Message ${otherName}`}
         attachments
-        onSend={(text, image) => say(text, isPublic ? undefined : active, image)}
+        onSend={(text, image) => { say(text, isPublic ? undefined : active, image, replyTo ?? undefined); setReplyTo(null); }}
       />
     </div>
   );

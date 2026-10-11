@@ -102,6 +102,13 @@ export interface ChatLine {
   system?: boolean;
   /** A photo (small data URL) or a GIF link attached to the message. */
   image?: string;
+  /** The message this one answers, as a short quote. */
+  reply?: Quote;
+  /** Who reacted, by emoji. */
+  reactions?: Record<string, string[]>;
+  pinned?: boolean;
 }
+export interface Quote { id: string; name: string; text: string }
+export const REACTIONS = ["👍", "❤️", "😂", "😮", "😢", "🙏"];
 
 export type ThemeChoice = "light" | "dark";

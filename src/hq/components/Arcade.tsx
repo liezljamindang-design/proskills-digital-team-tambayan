@@ -1,9 +1,10 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { accountsEnabled, saveToAccount } from "../net/auth";
 import { say, updateMyProfile } from "../net/session";
 import { ChibiFull, ChibiPortrait } from "../office/Chibi";
 import { zoneAt } from "../office/engine";
-import { useHq } from "../store";
+import { ARCADE, useHq } from "../store";
+import { Composer } from "./Composer";
 
 const ICONS = ["🎯", "☕", "🎮", "🏓", "💡", "🚀", "🎧", "🦉"];
 const shuffle = () => [...ICONS, ...ICONS].map((icon, i) => ({ id: i, icon, r: Math.random() })).sort((a, b) => a.r - b.r);
@@ -18,6 +19,9 @@ export function Arcade() {
   const peers = useHq((s) => s.peers);
   const bubbles = useHq((s) => s.bubbles);
   const openThread = useHq((s) => s.openThread);
+  const lines = useHq((s) => s.threads[ARCADE]) ?? [];
+  const logRef = useRef<HTMLDivElement>(null);
+  useEffect(() => { const el = logRef.current; if (el) el.scrollTop = el.scrollHeight; }, [lines.length]);
   const leave = () => useHq.getState().walkToZone("lobby");
   const [cards, setCards] = useState(shuffle);
   const [open, setOpen] = useState<number[]>([]);
@@ -40,7 +44,7 @@ export function Arcade() {
     if (me.best === undefined || moves < me.best) {
       updateMyProfile({ ...me, best: moves });
       if (accountsEnabled) void saveToAccount({ best: moves }).catch(() => undefined);
-      say(`I finished Memory Match in ${moves} moves! 🎉`);
+      say(`I finished Memory Match in ${moves} moves! 🎉`, ARCADE);
     }
     // Only when the game is won; `me` and `moves` are read at that moment.
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -120,6 +124,7 @@ export function Arcade() {
           <button type="button" className="arcade-btn" onClick={restart}>{won ? "Play again" : "Shuffle and restart"}</button>
         </div>
 
+        <div className="arcade-side">
         <div className="arcade-board">
           <p className="arcade-label">High scores</p>
           {board.length === 0 ? (
@@ -136,6 +141,22 @@ export function Arcade() {
               ))}
             </ol>
           )}
+        </div>
+
+        <div className="arcade-chat">
+          <p className="arcade-label">Arcade chat</p>
+          <p className="arcade-hint">Only players inside the arcade see this. It stays out of the Everyone room.</p>
+          <div className="arcade-log" ref={logRef} role="log" aria-live="polite" aria-label="Arcade chat">
+            {lines.length === 0 && <p className="arcade-hint">No messages yet. Say gg!</p>}
+            {lines.map((l) => (
+              <p key={l.id} className={`arcade-line${l.from === me?.id ? " is-mine" : ""}`}>
+                <strong>{l.from === me?.id ? "You" : l.name}</strong> {l.text}
+                {l.image && <img src={l.image} alt={l.image.startsWith("data:") ? "Photo" : "GIF"} loading="lazy" />}
+              </p>
+            ))}
+          </div>
+          <Composer id="arcade-composer" placeholder="Message players in the arcade" attachments onSend={(text, image) => say(text, ARCADE, image)} />
+        </div>
         </div>
       </div>
     </section>

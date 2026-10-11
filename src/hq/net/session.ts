@@ -3,8 +3,8 @@ import { ZONES } from "../data/office";
 import { zoneAt } from "../office/engine";
 import { safeImage } from "../media";
 import { MANUAL } from "../status";
-import { PUBLIC, useHq } from "../store";
-import { displayName, type Profile } from "../types";
+import { ARCADE, PUBLIC, useHq } from "../store";
+import { displayName, REACTIONS, type Profile, type Quote } from "../types";
 import { createLocalTransport } from "./localTransport";
 import { createSupabaseTransport } from "./supabaseTransport";
 import { supabaseConfigured } from "./supabase";
@@ -19,7 +19,8 @@ let lineId = 0;
 
 export const liveMode = supabaseConfigured;
 const clock = () => new Date().toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
-const nextId = () => `${Date.now().toString(36)}-${++lineId}`;
+// Random part included so two people never produce the same message id.
+const nextId = () => `${Date.now().toString(36)}-${++lineId}-${Math.random().toString(36).slice(2, 7)}`;
 
 /** Adds a line about what someone just did to the public room, for this viewer only. */
 function note(id: string, name: string, text: string) {
@@ -75,27 +76,64 @@ export async function joinOffice(me: Profile): Promise<void> {
     },
     onChat: (msg) => {
       const thread = msg.room ?? (msg.to ? msg.from : PUBLIC); // a private message files under its sender
+      // Arcade chat is only for people who are inside the arcade right now.
+      if (msg.room === ARCADE && s().myZone !== "game") return;
+      if (msg.react && typeof msg.react.id === "string" && REACTIONS.includes(msg.react.emoji)) return applyReaction(thread, msg.react.id, msg.react.emoji, msg.from, Boolean(msg.react.on));
+      if (msg.pin && typeof msg.pin.id === "string") return s().patchLine(thread, msg.pin.id, (l) => ({ ...l, pinned: Boolean(msg.pin!.on) }));
+      const reply = msg.reply && typeof msg.reply.id === "string" ? { id: msg.reply.id, name: String(msg.reply.name).slice(0, 50), text: String(msg.reply.text).slice(0, 90) } : undefined;
       const image = safeImage(msg.image) ? msg.image : undefined; // never show an image we did not expect
       const text = typeof msg.text === "string" ? msg.text.slice(0, 280) : "";
       if (!text && !image) return;
-      s().addLine(thread, { id: msg.id, from: msg.from, name: msg.name, text, time: clock(), image });
-      s().showBubble(msg.from, text || (image?.startsWith("data:") ? "📷 Photo" : "GIF"), Boolean(msg.to || msg.room));
+      s().addLine(thread, { id: msg.id, from: msg.from, name: msg.name, text, time: clock(), image, reply });
+      s().showBubble(msg.from, text || (image?.startsWith("data:") ? "📷 Photo" : "GIF"), Boolean(msg.to || (msg.room && msg.room !== ARCADE)));
     },
   });
   useHq.getState().setJoined(true);
 }
 
 /** Sends a message to the public room, to a batch room ("batch-7"), or privately when `to` is a person's id. */
-export function say(text: string, to?: string, image?: string) {
+export function say(text: string, to?: string, image?: string, reply?: Quote) {
   const me = useHq.getState().me;
   const clean = text.trim().slice(0, 280);
   if (!me || (!clean && !image) || !transport) return;
   const id = nextId();
   const name = displayName(me);
-  const room = to?.startsWith("batch-") ? to : undefined;
-  transport.chat({ id, from: me.id, name, text: clean, to: room ? undefined : to, room, image });
-  useHq.getState().addLine(to ?? PUBLIC, { id, from: me.id, name, text: clean, time: clock(), image });
-  useHq.getState().showBubble(me.id, clean || (image?.startsWith("data:") ? "📷 Photo" : "GIF"), Boolean(to));
+  const room = to === ARCADE || to?.startsWith("batch-") ? to : undefined;
+  transport.chat({ id, from: me.id, name, text: clean, to: room ? undefined : to, room, image, reply });
+  useHq.getState().addLine(to ?? PUBLIC, { id, from: me.id, name, text: clean, time: clock(), image, reply });
+  useHq.getState().showBubble(me.id, clean || (image?.startsWith("data:") ? "📷 Photo" : "GIF"), Boolean(to) && to !== ARCADE);
+}
+
+function applyReaction(thread: string, id: string, emoji: string, who: string, on: boolean) {
+  useHq.getState().patchLine(thread, id, (l) => {
+    const people = (l.reactions?.[emoji] ?? []).filter((p) => p !== who);
+    if (on) people.push(who);
+    const reactions = { ...l.reactions, [emoji]: people };
+    if (!people.length) delete reactions[emoji];
+    return { ...l, reactions };
+  });
+}
+/** Where a thread's messages are sent: everyone, a room, or one person. */
+const route = (thread: string) => (thread === PUBLIC ? {} : thread === ARCADE || thread.startsWith("batch-") ? { room: thread } : { to: thread });
+
+/** Adds or removes my reaction on a message, for everyone in that conversation. */
+export function toggleReaction(thread: string, id: string, emoji: string) {
+  const me = useHq.getState().me;
+  const line = useHq.getState().threads[thread]?.find((l) => l.id === id);
+  if (!me || !line || !transport) return;
+  const on = !line.reactions?.[emoji]?.includes(me.id);
+  applyReaction(thread, id, emoji, me.id, on);
+  transport.chat({ id: nextId(), from: me.id, name: displayName(me), text: "", ...route(thread), react: { id, emoji, on } });
+}
+
+/** Pins or unpins a message, for everyone in that conversation. */
+export function togglePin(thread: string, id: string) {
+  const me = useHq.getState().me;
+  const line = useHq.getState().threads[thread]?.find((l) => l.id === id);
+  if (!me || !line || !transport) return;
+  const on = !line.pinned;
+  useHq.getState().patchLine(thread, id, (l) => ({ ...l, pinned: on }));
+  transport.chat({ id: nextId(), from: me.id, name: displayName(me), text: "", ...route(thread), pin: { id, on } });
 }
 
 /** Called by the movement loop every frame it moves; sends at most about eight updates a second. */

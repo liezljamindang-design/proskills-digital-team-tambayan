@@ -87,7 +87,7 @@ export function createSupabaseTransport(): Transport {
       void room?.send({ type: "broadcast", event: "move", payload: { id: me.id, ...pos } });
     },
     chat(msg) {
-      if (msg.room) { void batchRoom?.send({ type: "broadcast", event: "chat", payload: msg }); return; }
+      if (msg.room?.startsWith("batch-")) { void batchRoom?.send({ type: "broadcast", event: "chat", payload: msg }); return; }
       if (!msg.to) { void room?.send({ type: "broadcast", event: "chat", payload: msg }); return; }
       // A private message goes to the recipient's own channel.
       void getSupabase().then((supabase) => {

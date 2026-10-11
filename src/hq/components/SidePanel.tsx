@@ -78,6 +78,7 @@ function ChatPane() {
   useEffect(() => { const el = logRef.current; if (el) el.scrollTop = el.scrollHeight; }, [lines.length, active]);
   const [menuFor, setMenuFor] = useState<string | null>(null);
   const [whoFor, setWhoFor] = useState<string | null>(null);
+  const [moreFor, setMoreFor] = useState<string | null>(null);
   // Read receipts: tap a message to see who has seen it.
   const [seenFor, setSeenFor] = useState<string | null>(null);
   const seen = useHq((s) => s.seen[active]);
@@ -89,7 +90,7 @@ function ChatPane() {
   const nameOf = (id: string) => (id === me?.id ? "You" : peers[id] ? displayName(peers[id]) : away[id] ? displayName(away[id]) : names[id] ?? Object.values(threads).flat().find((l) => l.from === id && l.name)?.name ?? "A teammate who is offline");
   const [replyTo, setReplyTo] = useState<Quote | null>(null);
   const [pinsOpen, setPinsOpen] = useState(false);
-  useEffect(() => { setReplyTo(null); setMenuFor(null); setSeenFor(null); }, [active]);
+  useEffect(() => { setReplyTo(null); setMenuFor(null); setMoreFor(null); setSeenFor(null); }, [active]);
   const pinned = lines.filter((l) => l.pinned);
   function jumpTo(id: string) {
     const el = document.getElementById(`msg-${id}`);
@@ -172,7 +173,8 @@ function ChatPane() {
               {l.image && <a className="chat-image" onClick={() => setSeenFor((m) => (m === l.id ? null : l.id))} href={l.image.startsWith("data:") ? undefined : l.image} target="_blank" rel="noopener noreferrer"><img src={l.image} alt={l.image.startsWith("data:") ? "Photo" : "GIF"} loading="lazy" /></a>}
               <div className="chat-bubble-row">
                 {l.text && <p className="chat-text" onClick={() => setSeenFor((m) => (m === l.id ? null : l.id))}>{l.text}</p>}
-                <button type="button" className="chat-more" aria-expanded={menuFor === l.id} aria-label="React, reply or pin" title="React, reply or pin" onClick={() => setMenuFor((m) => (m === l.id ? null : l.id))}><Emoji char="🙂" size={16} /></button>
+                <button type="button" className="chat-more" aria-expanded={menuFor === l.id} aria-label="React" title="React" onClick={() => { setMoreFor(null); setMenuFor((m) => (m === l.id ? null : l.id)); }}><Emoji char="🙂" size={16} /></button>
+                <button type="button" className="chat-more chat-dots" aria-expanded={moreFor === l.id} aria-label="Reply or pin" title="Reply or pin" onClick={() => { setMenuFor(null); setMoreFor((m) => (m === l.id ? null : l.id)); }}>⋯</button>
               </div>
               {seenFor === l.id && (() => { const who = seenBy(l); return <p className="chat-seen">👁 {who.length ? `Seen by ${who.join(", ")}` : "Not seen by anyone else yet"}</p>; })()}
               {l.reactions && Object.keys(l.reactions).length > 0 && (
@@ -191,13 +193,17 @@ function ChatPane() {
                   {Object.entries(l.reactions).map(([emoji, who]) => <li key={emoji}><Emoji char={emoji} size={15} /> {who.map(nameOf).join(", ")}</li>)}
                 </ul>
               )}
-              <div className="chat-actions" role="group" aria-label="Message actions">
+              <div className="chat-actions" role="group" aria-label="Reactions">
                 {REACTIONS.map((emoji) => (
                   <button key={emoji} type="button" onClick={() => { toggleReaction(active, l.id, emoji); setMenuFor(null); }} aria-label={`React ${emoji}`}><Emoji char={emoji} size={22} /></button>
                 ))}
-                <button type="button" className="act-text" onClick={() => { setReplyTo({ id: l.id, name: l.from === me?.id ? "You" : l.name, text: (l.text || (l.image ? "Photo" : "")).slice(0, 90) }); setMenuFor(null); document.getElementById("side-composer")?.focus(); }}>Reply</button>
-                <button type="button" className="act-text" onClick={() => { togglePin(active, l.id); setMenuFor(null); }}>{l.pinned ? "Unpin" : "Pin"}</button>
               </div>
+              {moreFor === l.id && (
+                <div className="chat-actions is-shown" role="group" aria-label="Reply or pin">
+                  <button type="button" className="act-text" onClick={() => { setReplyTo({ id: l.id, name: l.from === me?.id ? "You" : l.name, text: (l.text || (l.image ? "Photo" : "")).slice(0, 90) }); setMoreFor(null); document.getElementById("side-composer")?.focus(); }}>↩ Reply</button>
+                  <button type="button" className="act-text" onClick={() => { togglePin(active, l.id); setMoreFor(null); }}>📌 {l.pinned ? "Unpin" : "Pin"}</button>
+                </div>
+              )}
             </div>
           ),
         )}

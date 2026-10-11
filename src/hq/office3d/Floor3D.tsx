@@ -227,6 +227,7 @@ export function Floor3D() {
       if (mode !== lastMode) { cam.tilt = 0; if (mine && (mode === "third" || mode === "first")) cam.heading = mine.facing; if (mine && mode === "front") cam.heading = mine.facing; lastMode = mode; }
       const partyOn = Boolean(s.me?.act?.party) || Object.values(s.peers).some((p) => p.act?.party);
 
+      office.animate(t);
       // Start any new shot, and move the ones already in the air.
       for (const shot of s.shots) {
         if (flying.has(shot.id) || Date.now() - shot.at > 600) continue;

@@ -156,7 +156,47 @@ function label(text: string, color: string, size = 46): THREE.CanvasTexture {
   return texture;
 }
 
-export interface Office { root: THREE.Group; wallX: THREE.Object3D; wallZ: THREE.Object3D }
+export interface Office { root: THREE.Group; wallX: THREE.Object3D; wallZ: THREE.Object3D; /** Draws the next frame of the cinema's cartoon. */ animate: (t: number) => void }
+
+/** An original little cartoon for the cinema screen: an owl chases a bouncing ball past hills and clouds, on a loop. */
+function cartoon() {
+  const canvas = document.createElement("canvas"); canvas.width = 336; canvas.height = 80;
+  const c = canvas.getContext("2d")!, texture = new THREE.CanvasTexture(canvas);
+  texture.colorSpace = THREE.SRGBColorSpace;
+  let lastDraw = -1;
+  function draw(t: number) {
+    if (t - lastDraw < 1 / 15) return; // a cartoon frame rate, and light on phones
+    lastDraw = t;
+    const W = canvas.width, H = canvas.height, night = Math.sin(t * 0.12) < -0.6;
+    const sky = c.createLinearGradient(0, 0, 0, H); sky.addColorStop(0, night ? "#1b2a55" : "#7fd0ff"); sky.addColorStop(1, night ? "#3c4f8f" : "#d9f3ff");
+    c.fillStyle = sky; c.fillRect(0, 0, W, H);
+    c.fillStyle = night ? "#f4f0c8" : "#ffd43b"; c.beginPath(); c.arc(W - 40, 16, 9, 0, 7); c.fill();
+    c.fillStyle = night ? "rgba(255,255,255,0.35)" : "#ffffff";
+    for (let i = 0; i < 4; i++) { const x = ((i * 110 - t * 9) % (W + 60) + W + 60) % (W + 60) - 30, y = 12 + (i % 2) * 9; c.beginPath(); c.arc(x, y, 7, 0, 7); c.arc(x + 9, y + 2, 9, 0, 7); c.arc(x + 20, y, 6, 0, 7); c.fill(); }
+    for (const [speed, color, base, amp] of [[14, night ? "#2f6b4a" : "#8fd18a", 58, 9], [30, night ? "#1f5a3a" : "#4fb866", 66, 6]] as const) {
+      c.fillStyle = color; c.beginPath(); c.moveTo(0, H);
+      for (let x = 0; x <= W; x += 6) c.lineTo(x, base + Math.sin((x + t * speed) * 0.035) * amp);
+      c.lineTo(W, H); c.fill();
+    }
+    const loop = (t * 0.16) % 1, ox = -30 + loop * (W + 60), hop = Math.abs(Math.sin(t * 7)) * 5, gy = 66;
+    const bx = ox + 44 + Math.sin(t * 2) * 6, by = gy - 6 - Math.abs(Math.sin(t * 4.2)) * 26;
+    c.fillStyle = "rgba(0,0,0,0.18)"; c.beginPath(); c.ellipse(bx, gy + 2, 6, 2, 0, 0, 7); c.ellipse(ox, gy + 2, 9, 2.5, 0, 0, 7); c.fill();
+    c.fillStyle = "#ff5a5f"; c.beginPath(); c.arc(bx, by, 6, 0, 7); c.fill(); c.fillStyle = "#ffffff"; c.beginPath(); c.arc(bx - 2, by - 2, 1.8, 0, 7); c.fill();
+    const y = gy - 12 - hop, flap = Math.sin(t * 14) * 5;
+    c.fillStyle = "#15803d"; c.beginPath(); c.ellipse(ox, y, 10, 12, 0, 0, 7); c.fill();
+    c.beginPath(); c.moveTo(ox - 8, y - 9); c.lineTo(ox - 10, y - 17); c.lineTo(ox - 3, y - 11); c.moveTo(ox + 8, y - 9); c.lineTo(ox + 10, y - 17); c.lineTo(ox + 3, y - 11); c.fill();
+    c.beginPath(); c.ellipse(ox - 11, y + 1 - flap * 0.4, 4, 8 + flap * 0.3, -0.4, 0, 7); c.ellipse(ox + 11, y + 1 + flap * 0.4, 4, 8 - flap * 0.3, 0.4, 0, 7); c.fill();
+    c.fillStyle = "#e6f6ea"; c.beginPath(); c.ellipse(ox, y + 4, 6, 7, 0, 0, 7); c.fill();
+    c.fillStyle = "#ffffff"; c.beginPath(); c.arc(ox - 4, y - 3, 4, 0, 7); c.arc(ox + 4, y - 3, 4, 0, 7); c.fill();
+    const blink = (t % 3) < 0.12;
+    c.fillStyle = "#10141c"; if (blink) { c.fillRect(ox - 7, y - 3.5, 6, 1.2); c.fillRect(ox + 1, y - 3.5, 6, 1.2); } else { c.beginPath(); c.arc(ox - 3, y - 3, 1.8, 0, 7); c.arc(ox + 5, y - 3, 1.8, 0, 7); c.fill(); }
+    c.fillStyle = "#f4c21f"; c.beginPath(); c.moveTo(ox - 2, y + 0.5); c.lineTo(ox + 2, y + 0.5); c.lineTo(ox, y + 4); c.fill();
+    c.fillRect(ox - 5, gy - 1 - (hop > 2 ? 2 : 0), 3, 3); c.fillRect(ox + 2, gy - 1 - (hop > 2 ? 0 : 2), 3, 3);
+    texture.needsUpdate = true;
+  }
+  draw(0);
+  return { texture, draw };
+}
 
 export function buildOffice(): Office {
   const root = new THREE.Group();
@@ -195,7 +235,9 @@ export function buildOffice(): Office {
   }
   // Cinema screen on the back wall, and the light-up dance floor with a disco ball.
   box(root, 27.3, 7.06, 5.9, 0.06, 16, 72, "screen").castShadow = false;
-  box(root, 27.45, 7.12, 5.6, 0.02, 20, 68, "#16324f", { emissive: "#6fb4ff", emissiveIntensity: 0.75 }).castShadow = false;
+  const film = cartoon();
+  const picture = new THREE.Mesh(new THREE.PlaneGeometry(5.6, 48 / UNIT), new THREE.MeshBasicMaterial({ map: film.texture }));
+  picture.position.set(30.25, 44 / UNIT, 7.14); root.add(picture);
   { const d = DANCE_FLOOR, tints = ["#ff4fa3", "#35c9ff", "#ffd43b", "#7ee08f"], n = 6, m = 5;
     for (let i = 0; i < n; i++) for (let j = 0; j < m; j++) { const c = tints[(i * 3 + j * 5) % 4]; box(root, d.x + (d.w / n) * i + 0.03, d.y + (d.h / m) * j + 0.03, d.w / n - 0.06, d.h / m - 0.06, 0.5, 1, c, { emissive: c, emissiveIntensity: 0.55 }).castShadow = false; }
     const disco = new THREE.Mesh(new THREE.IcosahedronGeometry(0.3, 1), material("#e9edf4", { metalness: 0.9, roughness: 0.15, flatShading: true })); disco.position.set(d.x + d.w / 2, 2.1, d.y + d.h / 2); root.add(disco);
@@ -272,5 +314,5 @@ export function buildOffice(): Office {
   box(wallZ, 11.69, 0.08, 0.02, 0.01, 58, 67, "dark").castShadow = false; box(wallZ, 11.7, 0.08, 0.18, 0.01, 57.5, 58.5, "dark").castShadow = false;
   const neon = new THREE.Mesh(new THREE.PlaneGeometry(2.4, 0.6), new THREE.MeshBasicMaterial({ map: label("★ ARCADE ★", "#ff4fd8", 60), transparent: true }));
   neon.rotation.y = Math.PI / 2; neon.position.set(0.06, 78 / UNIT - 0.1, 11.9); wallX.add(neon);
-  return { root, wallX, wallZ };
+  return { root, wallX, wallZ, animate: film.draw };
 }

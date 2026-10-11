@@ -1,10 +1,9 @@
 import { useState } from "react";
 import { HQ } from "../config";
 import { ZONES } from "../data/office";
-import { openMeeting, setAct, shoot, updateMyProfile } from "../net/session";
+import { openMeeting, setAct, shoot } from "../net/session";
 import { ChibiPortrait } from "../office/Chibi";
 import { zoneAt } from "../office/engine";
-import { MANUAL, statusOf, WORK_STATUSES } from "../status";
 import { useHq } from "../store";
 import { FOODS, type Drink } from "../types";
 
@@ -125,23 +124,25 @@ export function RoomCard() {
       })()}
 
       {zone === "focus" && (
-        <>
-          <p>What are you on right now?</p>
-          <div className="room-actions">
-            {WORK_STATUSES.map((id) => (
-              <button key={id} type="button" className="service-chip" aria-pressed={(me.status ?? "working") === id}
-                onClick={() => updateMyProfile({ ...me, status: id === "working" ? undefined : id })}>
-                {MANUAL[id].emoji} {MANUAL[id].label}
-              </button>
-            ))}
-          </div>
-          <ul className="room-people">
-            {Object.values(peers).filter((p) => zoneAt(p.x, p.y) === "focus").map((p) => (
-              <li key={p.id}><strong>{p.name}</strong> {statusOf(p, "focus").emoji} {statusOf(p, "focus").label}</li>
-            ))}
-          </ul>
-        </>
+        HQ.classroomUrl ? (
+          <>
+            <p>{blocked ? "Your browser stopped Zoom from opening by itself. Use the button instead." : "🎓 Live training. The class Zoom opens when you walk in. Use the button if it did not."}</p>
+            <button type="button" className="btn-primary" onClick={() => openMeeting(HQ.classroomUrl)}>Join the live training</button>
+          </>
+        ) : <p>🎓 This is the Classroom. The training Zoom link has not been added yet.</p>
       )}
+      {zone === "focus" && (() => {
+        const inside = Object.values(peers).filter((p) => zoneAt(p.x, p.y) === "focus").sort((a, b) => a.name.localeCompare(b.name));
+        return (
+          <>
+            <p className="roster-title">In class · {inside.length + 1}</p>
+            <ul className="roster">
+              <li><ChibiPortrait look={me.look} size={28} /> {me.name} (you)</li>
+              {inside.map((p) => <li key={p.id}><ChibiPortrait look={p.look} size={28} /> {p.name}</li>)}
+            </ul>
+          </>
+        );
+      })()}
     </div>
   );
 }

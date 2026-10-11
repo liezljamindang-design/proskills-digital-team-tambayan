@@ -11,7 +11,7 @@ export interface Status {
 /** The status each room gives you just by standing in it. */
 const BY_ZONE: Record<ZoneId, Status> = {
   lobby: { id: "available", label: "Available", emoji: "🟢", tone: "ok" },
-  focus: { id: "working", label: "Working now", emoji: "💻", tone: "busy" },
+  focus: { id: "training", label: "In training", emoji: "🎓", tone: "busy" },
   huddle: { id: "meeting", label: "In a meeting", emoji: "🗓️", tone: "busy" },
   cafe: { id: "break", label: "On a coffee break", emoji: "☕", tone: "rest" },
   lounge: { id: "chilling", label: "Chilling", emoji: "🛋️", tone: "rest" },
@@ -36,7 +36,7 @@ export const MANUAL: Record<ManualStatus, Status> = {
   dnd: { id: "dnd", label: "Do not disturb", emoji: "⛔", tone: "busy" },
   brb: { id: "brb", label: "Be right back", emoji: "⏳", tone: "rest" },
   meeting: BY_ZONE.huddle,
-  working: BY_ZONE.focus,
+  working: { id: "working", label: "Working now", emoji: "💻", tone: "busy" },
   client: { id: "client", label: "In a client meeting", emoji: "🤝", tone: "busy" },
   interview: { id: "interview", label: "In an interview", emoji: "🎙️", tone: "busy" },
   call: { id: "call", label: "On a call", emoji: "📞", tone: "busy" },

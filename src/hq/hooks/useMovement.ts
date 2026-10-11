@@ -2,8 +2,7 @@ import { useEffect } from "react";
 import { HQ } from "../config";
 import { earnForMeeting } from "../economy";
 import { ARCADE_SPOT, BALL_SPOT, BED_FEET, FLOOR, FURNITURE, SEATS, START, type Seat } from "../data/office";
-import { myPosition, openMeeting, pickUpBall, react, reportMove, setAct, shoot, updateMyProfile } from "../net/session";
-import { WORK_STATUSES } from "../status";
+import { myPosition, openMeeting, pickUpBall, react, reportMove, setAct, shoot } from "../net/session";
 import { canStand, findPath, SPEED, zoneAt, zoneEntry, type Point } from "../office/engine";
 import { useHq } from "../store";
 
@@ -109,10 +108,10 @@ export function useMovement(makeView: () => WalkView | null) {
           else if (zone === "game") useHq.getState().setGameOpen(false);
           // Work statuses belong to the Work Room, so they are dropped on the way out.
           const me = useHq.getState().me;
-          if (zone === "focus" && me?.status && WORK_STATUSES.includes(me.status)) updateMyProfile({ ...me, status: undefined });
           if (zone === "court" && me?.act?.ball) setAct({ ball: undefined });
           if (zone === "canteen" && z !== "canteen" && me?.act?.food) setAct({ food: undefined });
           if (z === "huddle") { openMeeting(HQ.meetingUrl); earnForMeeting(); }
+          if (z === "focus") { openMeeting(HQ.classroomUrl); earnForMeeting(); }
           zone = z;
           useHq.getState().setMyZone(z);
           if (z) useHq.getState().selectZone(z);

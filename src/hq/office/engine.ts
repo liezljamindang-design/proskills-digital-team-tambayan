@@ -1,4 +1,4 @@
-import { ENTRANCE, FLOOR, FURNITURE, WALLS, WORLD, ZONES } from "../data/office";
+import { ENTRANCE, FLOOR, FURNITURE, PLAYGROUND, WALLS, WORLD, ZONES } from "../data/office";
 import type { WallSegment, ZoneId } from "../types";
 
 /** Movement rules: collisions against furniture and glass, and A* pathfinding for tap-to-move. */
@@ -18,7 +18,9 @@ const EDGES: Rect[] = [
   { x: 0, y: FLOOR.depth - 0.04, w: ENTRANCE.from, h: 0.08 }, { x: ENTRANCE.to, y: FLOOR.depth - 0.04, w: FLOOR.width - ENTRANCE.to, h: 0.08 },
   { x: FLOOR.width - 0.04, y: 0, w: 0.08, h: FLOOR.depth },
 ];
-const OBSTACLES: Rect[] = [...FURNITURE, ...WALLS.map(wallRect), ...EDGES];
+const OBSTACLES: Rect[] = [...FURNITURE, ...WALLS.map(wallRect), ...EDGES, PLAYGROUND.slide];
+/** Inside the ball pit. */
+export const inPit = (x: number, y: number) => { const p = PLAYGROUND.pit; return x > p.x && x < p.x + p.w && y > p.y && y < p.y + p.h; };
 
 export function canStand(x: number, y: number): boolean {
   const r = PLAYER_RADIUS;

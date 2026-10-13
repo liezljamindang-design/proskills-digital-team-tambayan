@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { HQ } from "../config";
 import { earnForMeeting } from "../economy";
-import { ARCADE_SPOT, BALL_SPOT, BED_FEET, FURNITURE, SEATS, START, WORLD, type Seat } from "../data/office";
+import { ARCADE_SPOT, BALL_SPOT, BED_FEET, FURNITURE, SEATS, START, WORLD, type Seat, PLAYGROUND } from "../data/office";
 import { myPosition, openMeeting, pickUpBall, react, reportMove, setAct, shoot } from "../net/session";
 import { canStand, findPath, SPEED, zoneAt, zoneEntry, type Point } from "../office/engine";
 import { rideInfo } from "../rides";
@@ -13,7 +13,7 @@ const KEY_DIRS: Record<string, [number, number]> = {
 };
 
 /** What a click landed on. */
-export type Hit = { kind: "self" } | { kind: "peer"; id: string } | { kind: "seat"; id: string } | { kind: "arcade" } | { kind: "pingpong" } | { kind: "pickle" } | { kind: "ball" } | { kind: "hoop" } | { kind: "gym"; id: string } | { kind: "floor"; point: Point } | null;
+export type Hit = { kind: "self" } | { kind: "peer"; id: string } | { kind: "seat"; id: string } | { kind: "arcade" } | { kind: "pingpong" } | { kind: "pickle" } | { kind: "ball" } | { kind: "hoop" } | { kind: "gym"; id: string } | { kind: "slide" } | { kind: "floor"; point: Point } | null;
 
 /** How the office is drawn. The walking rules are the same whether it is the flat drawing or the 3D scene. */
 export interface WalkView {
@@ -178,6 +178,15 @@ export function useMovement(makeView: () => WalkView | null) {
         updateSlot(); reportMove({ ...pos }); setAct({ gym: undefined, band: undefined, ride: undefined, ...act });
       });
     }
+    /** Climb the ladder, whoosh down the slide and land in the ball pit. Everyone sees the slide. */
+    let landing = 0;
+    function slideDown() {
+      approach(PLAYGROUND.ladder, () => {
+        setAct({ slide: Date.now(), ride: undefined, pose: undefined, gym: undefined, band: undefined });
+        window.clearTimeout(landing);
+        landing = window.setTimeout(() => { pos.x = PLAYGROUND.land.x; pos.y = PLAYGROUND.land.y; path = []; updateSlot(); reportMove({ ...pos }); kick(); }, 1500);
+      });
+    }
     function walkTo(target: Point) { pendingSeat = null; pendingDo = null; leaveOverview(); getUp(); path = findPath(pos, target); kick(); }
 
     const blocked = () => { const s = useHq.getState(); return !s.joined || s.editingAvatar || s.helpOpen || s.gameOpen; };
@@ -214,6 +223,7 @@ export function useMovement(makeView: () => WalkView | null) {
       if (hit.kind === "pickle") { useHq.setState({ pongGame: "pickle", pongMenu: true }); return; }
       if (hit.kind === "seat") { goSit(hit.id); return; }
       if (hit.kind === "gym") { workout(hit.id); return; }
+      if (hit.kind === "slide") { slideDown(); return; }
       // Basketball: take a ball first, then tap a hoop to shoot from where you stand.
       if (hit.kind === "ball" || hit.kind === "hoop") {
         const st = useHq.getState();
@@ -229,7 +239,7 @@ export function useMovement(makeView: () => WalkView | null) {
       if (s.walkRequest && s.walkRequest !== prev.walkRequest) walkTo(zoneEntry(s.walkRequest.zone));
       if (s.overview !== prev.overview || s.zoom !== prev.zoom) { view.refresh?.(); kick(); }
       if (s.poseRequest && s.poseRequest !== prev.poseRequest) {
-        if (s.poseRequest.pose === "sit") { const want = s.poseRequest.seat ?? "lounge-sofa"; if (/^(treadmill|weights|drums|guitar|bass|band-mic)/.test(want)) workout(want); else if (want === "ball") approach(BALL_SPOT, pickUpBall); else goSit(want); } else { pendingSeat = null; getUp(); }
+        if (s.poseRequest.pose === "sit") { const want = s.poseRequest.seat ?? "lounge-sofa"; if (/^(treadmill|weights|drums|guitar|bass|band-mic)/.test(want)) workout(want); else if (want === "ball") approach(BALL_SPOT, pickUpBall); else if (want === "slide") slideDown(); else goSit(want); } else { pendingSeat = null; getUp(); }
         kick();
       }
     });

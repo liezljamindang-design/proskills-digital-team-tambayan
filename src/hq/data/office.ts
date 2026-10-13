@@ -36,6 +36,7 @@ export const ZONES: Zone[] = [
   { id: "pool", key: 13, name: "Pickleball Court", summary: "Tap the court to play pickleball against a teammate or the robot.", rect: { x: 7.4, y: 14.6, w: 5, h: 7.4 } },
   { id: "plaza", key: 14, name: "Main Entrance", summary: "The front door. Everyone arrives here.", rect: { x: 12.8, y: 14.6, w: 8.4, h: 7.4 } },
   { id: "canteen", key: 15, name: "Canteen", summary: "Filipino food, juices, sago't gulaman and an inuman corner.", rect: { x: 21.6, y: 14.6, w: 6, h: 7.4 } },
+  { id: "play", key: 18, name: "Playground", summary: "Outside the front door: go down the slide into the ball pit!", rect: { x: 21.5, y: 23, w: 9, h: 6.5 } },
   { id: "music", key: 16, name: "Music Room", summary: "A full band set: drums, guitar, bass, a mic and a piano.", rect: { x: 28, y: 14.6, w: 6, h: 7.4 } },
 ];
 
@@ -238,3 +239,15 @@ export const SEATS: Seat[] = FURNITURE.flatMap((f): Seat[] => {
 export const SEAT_IDS = new Set(SEATS.map((s) => s.furniture));
 /** The foot of each bed, where a sleeping chibi is placed. */
 export const BED_FEET = FURNITURE.filter((f) => f.kind === "bed").map((b) => ({ x: b.x + b.w / 2, y: b.y + b.h + 0.03 }));
+
+/** The playground on the front lawn: a slide tower whose chute drops into a ball pit. */
+export const PLAYGROUND = {
+  pit: { x: 25.7, y: 23.7, w: 4.4, h: 4.4 },
+  /** The tower and chute, which you cannot walk through. */
+  slide: { x: 22.2, y: 24.9, w: 3.5, h: 1.2 },
+  /** Where you stand to climb the ladder, the top of the slide, and where you land. */
+  ladder: { x: 22.8, y: 26.55 },
+  top: { x: 22.8, y: 25.5 },
+  land: { x: 26.6, y: 25.5 },
+  height: 1.15,
+};

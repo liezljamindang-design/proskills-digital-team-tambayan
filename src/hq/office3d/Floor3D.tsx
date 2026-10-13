@@ -2,9 +2,9 @@ import { daylight, skyAt, skyLabel, useSky } from "../sky";
 import { useCallback, useEffect, useRef } from "react";
 import * as THREE from "three";
 import { isBirthday } from "../birthday";
-import { FLOOR, FURNITURE, HOOPS, SEATS, START } from "../data/office";
+import { FLOOR, FURNITURE, HOOPS, SEATS, START, PLAYGROUND } from "../data/office";
 import { useMovement, type Hit, type WalkView } from "../hooks/useMovement";
-import { zoneAt } from "../office/engine";
+import { inPit, zoneAt } from "../office/engine";
 import { myPosition } from "../net/session";
 import { statusOf } from "../status";
 import { useHq, type CamMode } from "../store";
@@ -17,7 +17,7 @@ import { buildOffice, UNIT } from "./scene";
 interface Actor {
   holder: THREE.Group; chibi: THREE.Group; sig: string;
   x: number; y: number; tx: number; ty: number; facing: number; moving: boolean;
-  act?: Act; boing?: number; dizzy?: number; self: boolean; trickSeen?: number; trickFrom?: number; trickSeen0?: boolean;
+  act?: Act; boing?: number; dizzy?: number; self: boolean; trickSeen?: number; trickFrom?: number; trickSeen0?: boolean; slideSeen?: number; slideFrom?: number;
 }
 const VIEWS: { id: CamMode; label: string }[] = [
   { id: "iso", label: "Overhead" }, { id: "free", label: "Free look" }, { id: "third", label: "3rd person" },
@@ -176,6 +176,7 @@ export function Floor3D() {
             if (d.ball) return { kind: "ball" };
             if (d.hoop) return { kind: "hoop" };
             if (d.gym) return { kind: "gym", id: d.gym };
+            if (d.slide) return { kind: "slide" };
           }
           return { kind: "floor", point: { x: hit.point.x, y: hit.point.z } };
         }
@@ -357,7 +358,7 @@ export function Floor3D() {
         const axeOn = band === "guitar" || band === "bass", old = a.holder.getObjectByName("axe");
         if (old && old.userData.kind !== band) a.holder.remove(old);
         const axe = prop(a, "axe", axeOn, band === "bass" ? "#1c7ed6" : "#e8590c"); if (axe && axeOn) axe.userData.kind = band;
-        note(a, band || piano ? "🎵" : undefined, t);
+        note(a, band || piano ? "🎵" : a.act?.tipsy && !pose ? (a.act.tipsy > 1 ? "🥴" : "🍺") : undefined, t);
         if (gym === "run") { facing = Math.PI; oy = 4.6 / UNIT; }
         if (gym === "lift") facing = 0;
         prop(a, "ball", Boolean(a.act?.ball) && !shooting.has([...actors].find(([, v]) => v === a)?.[0] ?? ""));
@@ -368,8 +369,26 @@ export function Floor3D() {
         // Out on the lawn the ground is a step lower than the office floor.
         const out = Math.max(a.y - FLOOR.depth, a.x - FLOOR.width);
         if (out > 0) oy -= 0.39 * Math.min(1, out / 0.5);
-        a.holder.position.set(a.x + ox, oy, a.y + oz);
+        // In the ball pit you sink up to your waist.
+        const pitDepth = !ride && inPit(a.x, a.y) ? 0.22 : 0;
+        oy -= pitDepth;
+        let px = a.x + ox, pz = a.y + oz;
+        // The slide: up the ladder, whoosh down the chute, plop into the balls. Played once per slide.
+        const slid = a.act?.slide;
+        if (slid && slid !== a.slideSeen) { a.slideFrom = a.slideSeen === undefined && Date.now() - slid > 3000 ? -10 : t; a.slideSeen = slid; }
+        let sliding = false;
+        if (a.slideFrom !== undefined && t - a.slideFrom < 1.5) {
+          const s = t - a.slideFrom, P = PLAYGROUND, ground = -0.39, high = ground + P.height;
+          sliding = true;
+          if (s < 0.45) { const k = s / 0.45; px = P.ladder.x; pz = P.ladder.y + (P.top.y - P.ladder.y) * k; oy = ground + (high - ground) * k; facing = Math.PI; }
+          else if (s < 1.25) { const k = (s - 0.45) / 0.8, e = k * k; px = P.top.x + 0.6 + (P.land.x - 0.4 - P.top.x - 0.6) * e; pz = P.top.y; oy = high + 0.05 - (high - ground - 0.1) * e; facing = Math.PI / 2; pitch = 0.35; }
+          else { const k = (s - 1.25) / 0.25; px = P.land.x; pz = P.land.y; oy = ground - 0.22 * k + Math.sin(k * Math.PI) * 0.25; facing = Math.PI / 2; }
+        }
+        a.holder.position.set(px, oy, pz);
         a.holder.rotation.order = "YXZ"; a.holder.rotation.y = facing; a.holder.rotation.x = pitch;
+        // Tipsy: a gentle sway. Lasing: a big wobble, more so while walking.
+        const tipsy = a.act?.tipsy ?? 0;
+        a.holder.rotation.z = tipsy && !pose && !sliding ? Math.sin(t * (tipsy > 1 ? 2.6 : 1.8)) * (tipsy > 1 ? 0.16 : 0.07) * (a.moving ? 1.4 : 1) : 0;
         a.holder.visible = !(a.self && mode === "first");
         animateChibi(a.chibi, t, { moving: (a.moving && !ride) || gym === "run" || swimming, grip: ride ? (isCar(ride.kind) ? 0.75 : 1) : undefined, eat: a.act?.food && !pose ? Math.max(0, Math.sin(t * 1.8)) ** 4 : undefined, lift: gym === "lift" ? liftK : undefined, play: piano || band === "drums", strum: band === "guitar" || band === "bass", sing: band === "mic", dance: partyOn || a.act?.mood === "dance" || (!pose && !gym && !band && zoneAt(a.x, a.y) === "dance"), boing: a.boing, dizzy: a.dizzy });
       }

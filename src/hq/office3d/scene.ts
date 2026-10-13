@@ -1,6 +1,6 @@
 import * as THREE from "three";
 import { classOngoing, HQ } from "../config";
-import { BALL_SPOT, COURT, DANCE_FLOOR, ENTRANCE, FLOOR, FURNITURE, PICKLE, RUGS, SEAT_IDS, WALL_HEIGHT, WALLS, ZONES } from "../data/office";
+import { BALL_SPOT, COURT, DANCE_FLOOR, ENTRANCE, FLOOR, FURNITURE, PICKLE, PLAYGROUND, RUGS, SEAT_IDS, WALL_HEIGHT, WALLS, ZONES } from "../data/office";
 import type { FurnitureItem } from "../types";
 
 /** The office as a 3D model: floor, rooms, walls and every piece of furniture. Floor (x, y) maps to 3D (x, z). */
@@ -170,7 +170,7 @@ function furniture(parent: THREE.Object3D, f: FurnitureItem) {
   parent.add(g);
 }
 
-const ZONE_TINT: Record<string, string> = { focus: "#dbe8ff", huddle: "#e2ebf8", cafe: "#ffeccf", lounge: "#ecd3b4", deck: "#c6e9c2", nap: "#e4defb", game: "#22203f", lobby: "#ffffff", gym: "#d9dee8", library: "#f0e2c8", dance: "#2b1f4a", cinema: "#3a3552", court: "#d98a4e", pool: "#d9ecd6", plaza: "#f6f1e4", canteen: "#ffe3c2", music: "#f7d6e6" };
+const ZONE_TINT: Record<string, string> = { focus: "#dbe8ff", huddle: "#e2ebf8", cafe: "#ffeccf", lounge: "#ecd3b4", deck: "#c6e9c2", nap: "#e4defb", game: "#22203f", lobby: "#ffffff", gym: "#d9dee8", library: "#f0e2c8", dance: "#2b1f4a", cinema: "#3a3552", court: "#d98a4e", pool: "#d9ecd6", plaza: "#f6f1e4", canteen: "#ffe3c2", music: "#f7d6e6", play: "#bfe3a8" };
 
 function label(text: string, color: string, size = 46): THREE.CanvasTexture {
   const canvas = document.createElement("canvas");
@@ -261,9 +261,10 @@ export function buildOffice(): Office {
   // Room floors and their names.
   for (const zone of ZONES) {
     const { x, y, w, h } = zone.rect;
-    const plate = box(root, x + 0.06, y + 0.06, w - 0.12, h - 0.12, 0, 0.5, ZONE_TINT[zone.id] ?? "#ffffff"); plate.castShadow = false;
+    const lawnLevel = zone.id === "play" ? -13.9 : 0; // the playground is outside, down on the lawn
+    if (!lawnLevel) { const plate = box(root, x + 0.06, y + 0.06, w - 0.12, h - 0.12, 0, 0.5, ZONE_TINT[zone.id] ?? "#ffffff"); plate.castShadow = false; }
     const name = new THREE.Mesh(new THREE.PlaneGeometry(2.6, 0.5), new THREE.MeshBasicMaterial({ map: label(`${zone.key}  ${zone.name}`, ["game", "dance", "cinema"].includes(zone.id) ? "#f4f0ff" : "#4a5568"), transparent: true, depthWrite: false }));
-    name.rotation.x = -Math.PI / 2; name.position.set(x + 1.55, 0.03, y + h - 0.38);
+    name.rotation.x = -Math.PI / 2; name.position.set(x + 1.55, 0.03 + lawnLevel / UNIT, y + h - 0.38);
     root.add(name);
   }
   // Lounge planks, deck boards and café tiles.
@@ -378,6 +379,38 @@ export function buildOffice(): Office {
   { const track = new THREE.Mesh(new THREE.RingGeometry(1.9, 2.9, 56), material("#d9b382")); track.rotation.x = -Math.PI / 2; track.scale.set(2.3, 1, 1); track.position.set(W / 2 - 9, -0.385, D + 4.7); track.receiveShadow = true; root.add(track);
     const infield = new THREE.Mesh(new THREE.RingGeometry(1.86, 1.9, 56), material("#ffffff")); infield.rotation.x = -Math.PI / 2; infield.scale.set(2.3, 1, 1); infield.position.set(W / 2 - 9, -0.38, D + 4.7); root.add(infield);
     box(root, W / 2 - 9 - 0.05, D + 1.75, 0.1, 1.05, -13.6, -13.3, "#ffffff").castShadow = false;
+  }
+  // The playground: a slide tower whose chute drops into a ball pit full of coloured balls.
+  {
+    const G = -14, P = PLAYGROUND, top = G + P.height * UNIT;
+    const pit = P.pit;
+    // A soft, padded rim around the pit (you can step over it).
+    for (const [x, y, w, h] of [[pit.x, pit.y, pit.w, 0.18], [pit.x, pit.y + pit.h - 0.18, pit.w, 0.18], [pit.x, pit.y, 0.18, pit.h], [pit.x + pit.w - 0.18, pit.y, 0.18, pit.h]] as const) box(root, x, y, w, h, G, G + 8, "#4dabf7").castShadow = false;
+    box(root, pit.x + 0.18, pit.y + 0.18, pit.w - 0.36, pit.h - 0.36, G, G + 1, "#e7f5ff").castShadow = false;
+    const colours = ["#ff4fa3", "#ffd43b", "#4dabf7", "#51cf66", "#ff922b", "#cc5de8"].map((c) => material(c));
+    const geo = new THREE.SphereGeometry(0.075, 10, 8);
+    const per = 70, m4 = new THREE.Matrix4();
+    colours.forEach((mat, ci) => {
+      const balls = new THREE.InstancedMesh(geo, mat, per);
+      for (let i = 0; i < per; i++) {
+        const n = ci * per + i, rnd = (k: number) => { const v = Math.sin(k * 12.9898) * 43758.5453; return v - Math.floor(v); }, rx = rnd(n * 3 + 1), ry = rnd(n * 3 + 2), rz = rnd(n * 3 + 3);
+        m4.makeTranslation(pit.x + 0.28 + rx * (pit.w - 0.56), (G + 3 + rz * 4.5) / UNIT, pit.y + 0.28 + ry * (pit.h - 0.56));
+        balls.setMatrixAt(i, m4);
+      }
+      balls.castShadow = false; root.add(balls);
+    });
+    const slide = new THREE.Group(); slide.userData.slide = true; root.add(slide);
+    const s = P.slide, tx = s.x, ty = s.y, tw = 1.2, th = s.h;
+    // Tower: four posts, a deck, a little roof and a ladder at the front.
+    for (const [px, py] of [[tx, ty], [tx + tw - 0.1, ty], [tx, ty + th - 0.1], [tx + tw - 0.1, ty + th - 0.1]] as const) box(slide, px, py, 0.1, 0.1, G, top + 22, "#ffd43b");
+    box(slide, tx, ty, tw, th, top - 2, top, "#ff922b");
+    { const roof = new THREE.Mesh(new THREE.ConeGeometry(0.95, 0.5, 4), material("#ff4fa3")); roof.rotation.y = Math.PI / 4; roof.position.set(tx + tw / 2, (top + 22) / UNIT + 0.25, ty + th / 2); roof.castShadow = true; slide.add(roof); }
+    for (const side of [0, 1]) box(slide, tx + 0.25 + side * 0.6, ty + th, 0.06, 0.06, G, top, "#868e96");
+    for (let r = G + 6; r < top; r += 7) box(slide, tx + 0.25, ty + th + 0.01, 0.66, 0.05, r, r + 1.2, "#868e96");
+    // The chute, from the deck down into the pit.
+    const x0 = tx + tw, x1 = pit.x + 0.5, y0 = top / UNIT, y1 = (G + 5) / UNIT, len = Math.hypot(x1 - x0, y0 - y1), ang = Math.atan2(y0 - y1, x1 - x0);
+    const chute = new THREE.Mesh(new THREE.BoxGeometry(len, 0.05, 0.62), material("#4dabf7")); chute.position.set((x0 + x1) / 2, (y0 + y1) / 2, P.top.y); chute.rotation.z = -ang; chute.castShadow = true; slide.add(chute);
+    for (const side of [-1, 1]) { const rail = new THREE.Mesh(new THREE.BoxGeometry(len, 0.14, 0.05), material("#1c7ed6")); rail.position.set((x0 + x1) / 2, (y0 + y1) / 2 + 0.06, P.top.y + side * 0.31); rail.rotation.z = -ang; slide.add(rail); }
   }
   const outside: [number, number][] = [];
   for (let tx = -2; tx <= W + 3; tx += 9) if (Math.abs(tx - W / 2) > 4) outside.push([tx, D + 10.5 + ((tx * 7) % 3)]);

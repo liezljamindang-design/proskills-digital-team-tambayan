@@ -1,4 +1,4 @@
-export type ZoneId = "lobby" | "focus" | "huddle" | "cafe" | "lounge" | "game" | "deck" | "nap" | "gym" | "library" | "dance" | "cinema" | "court" | "pool" | "plaza" | "canteen" | "music";
+export type ZoneId = "lobby" | "focus" | "huddle" | "cafe" | "lounge" | "game" | "deck" | "nap" | "gym" | "library" | "dance" | "cinema" | "court" | "pool" | "plaza" | "canteen" | "music" | "play";
 
 export interface Zone {
   id: ZoneId;
@@ -149,6 +149,10 @@ export interface Act {
   ride?: { kind: string; color: string; name?: string };
   /** The latest trick done on a bike or in a car. `n` changes each time, so everyone plays it once. */
   trick?: { kind: "wheelie" | "hop" | "spin"; n: number };
+  /** When this person went down the playground slide (ms). Everyone plays the slide once per new value. */
+  slide?: number;
+  /** After a few alcoholic drinks: 1 tipsy, 2 lasing. Wears off by itself, faster with coffee. */
+  tipsy?: 1 | 2;
   /** Holding a basketball on the court. */
   ball?: boolean;
   /** Using gym equipment: running on a treadmill or lifting weights. */

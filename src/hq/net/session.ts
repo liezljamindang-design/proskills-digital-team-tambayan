@@ -249,6 +249,33 @@ export function setAct(patch: Partial<NonNullable<Profile["act"]>>) {
   if (me) updateMyProfile({ ...me, act: { ...me.act, ...patch } });
 }
 
+/** Alcoholic drinks in the last half hour. Three makes you tipsy, five makes you lasing. */
+let rounds: number[] = [];
+let soberTimer = 0;
+const HALF_HOUR = 30 * 60 * 1000;
+function tipsyLevel(): 0 | 1 | 2 {
+  rounds = rounds.filter((t) => Date.now() - t < HALF_HOUR);
+  return rounds.length >= 5 ? 2 : rounds.length >= 3 ? 1 : 0;
+}
+/** Orders a drink. Alcohol adds up; hot coffee, barako or salabat sobers you up a bit. */
+export function orderDrink(id: string) {
+  const d = drinkOf(id)!;
+  if (d.adult) rounds.push(Date.now());
+  else if (d.hot) rounds = rounds.slice(2);
+  const before = useHq.getState().me?.act?.tipsy ?? 0, level = tipsyLevel();
+  setAct({ drink: id, tipsy: level || undefined });
+  const me = useHq.getState().me;
+  if (me && level > before) useHq.getState().showBubble(me.id, level > 1 ? "Lasing na ako… hik! 🥴" : "Medyo tipsy na… hik! 🍺", false);
+  if (me && level < before) useHq.getState().showBubble(me.id, "Ahh, kape. Medyo okay na ako ☕", false);
+  // Wears off by itself as the half hour passes.
+  window.clearInterval(soberTimer);
+  if (rounds.length) soberTimer = window.setInterval(() => {
+    const now = tipsyLevel();
+    if (now !== (useHq.getState().me?.act?.tipsy ?? 0)) setAct({ tipsy: now || undefined });
+    if (!rounds.length) window.clearInterval(soberTimer);
+  }, 60 * 1000);
+}
+
 let moodTimer = 0;
 /** A short reaction: it shows on your chibi for a few seconds, then clears. */
 export function react(mood: NonNullable<NonNullable<Profile["act"]>["mood"]>) {

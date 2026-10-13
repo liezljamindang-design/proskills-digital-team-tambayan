@@ -27,6 +27,7 @@ const BY_ZONE: Record<ZoneId, Status> = {
   plaza: { id: "available", label: "Available", emoji: "🟢", tone: "ok" },
   canteen: { id: "eating", label: "Eating", emoji: "🍜", tone: "rest" },
   music: { id: "jamming", label: "Jamming", emoji: "🎵", tone: "fun" },
+  play: { id: "playground", label: "At the playground", emoji: "🛝", tone: "fun" },
 };
 const AVAILABLE: Status = BY_ZONE.lobby;
 

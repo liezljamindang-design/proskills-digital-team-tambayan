@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { classOngoing, HQ } from "../config";
 import { ZONES } from "../data/office";
-import { openMeeting, setAct, shoot } from "../net/session";
+import { openMeeting, orderDrink, setAct, shoot } from "../net/session";
 import { PersonFace } from "../office/Chibi";
 import { zoneAt } from "../office/engine";
 import { useHq } from "../store";
@@ -22,7 +22,7 @@ export function RoomCard() {
   const [closed, setClosed] = useState<string | null>(null);
   useEffect(() => { if (zone !== closed) setClosed(null); }, [zone, closed]);
   const bandMuted = useHq((s) => s.bandMuted);
-  if (!me || !zone || !["cafe", "lounge", "nap", "huddle", "focus", "court", "gym", "canteen", "music", "pool"].includes(zone) || closed === zone) return null;
+  if (!me || !zone || !["cafe", "lounge", "nap", "huddle", "focus", "court", "gym", "canteen", "music", "pool", "play"].includes(zone) || closed === zone) return null;
   const act = me.act ?? {};
   const name = ZONES.find((z) => z.id === zone)!.name;
 
@@ -37,7 +37,7 @@ export function RoomCard() {
           <p>{act.drink ? `Enjoy your ${drinkOf(act.drink)!.label.toLowerCase()}!` : "What can we get you?"}</p>
           <div className="room-actions">
             {menu("cafe", false).map(([id, d]) => (
-              <button key={id} type="button" className="service-chip" aria-pressed={act.drink === id} onClick={() => setAct({ drink: id })}>{d.emoji} {d.label}</button>
+              <button key={id} type="button" className="service-chip" aria-pressed={act.drink === id} onClick={() => orderDrink(id)}>{d.emoji} {d.label}</button>
             ))}
             {act.drink && <button type="button" className="btn-secondary" onClick={() => setAct({ drink: undefined })}>Finish drink</button>}
           </div>
@@ -59,7 +59,7 @@ export function RoomCard() {
                 <button key={emoji} type="button" className="service-chip" aria-pressed={act.food === emoji} onClick={() => setAct({ food: emoji })}>{emoji} {label}</button>
               ))
               : menu("canteen", tab === "inuman").map(([id, d]) => (
-                <button key={id} type="button" className="service-chip" aria-pressed={act.drink === id} onClick={() => setAct({ drink: id })}>{d.emoji} {d.label}</button>
+                <button key={id} type="button" className="service-chip" aria-pressed={act.drink === id} onClick={() => orderDrink(id)}>{d.emoji} {d.label}</button>
               ))}
           </div>
           {(act.food || act.drink) && (
@@ -118,6 +118,13 @@ export function RoomCard() {
           {act.gym
             ? <button type="button" className="btn-secondary" onClick={() => requestPose("stand")}>Stop</button>
             : <div className="room-actions"><button type="button" className="btn-primary" onClick={() => requestPose("sit", "treadmill-" + Math.floor(Math.random() * 4))}>Run on a treadmill</button><button type="button" className="btn-secondary" onClick={() => requestPose("sit", Math.random() < 0.5 ? "weights-1" : "weights-2")}>Lift weights</button></div>}
+        </>
+      )}
+
+      {zone === "play" && (
+        <>
+          <p>🛝 Climb up, slide down and land in the ball pit! Tap the slide, or use the button.</p>
+          <button type="button" className="btn-primary" onClick={() => requestPose("sit", "slide")}>Go down the slide</button>
         </>
       )}
 

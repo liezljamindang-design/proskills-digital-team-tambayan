@@ -826,3 +826,19 @@ select option, select optgroup { background-color: var(--surface); color: var(--
 .room-card .eyebrow { padding-right: 36px; }
 /* The time-of-day label sits bottom-left so it never covers the view controls. */
 .sky-badge { top: auto; bottom: 10px; left: 10px; }
+
+/* Playground (flat view) */
+.pit-rim { fill: #4dabf7; }
+.pit-fill { fill: #e7f5ff; }
+.pit-ball-0 { fill: #ff4fa3; } .pit-ball-1 { fill: #ffd43b; } .pit-ball-2 { fill: #4dabf7; } .pit-ball-3 { fill: #51cf66; } .pit-ball-4 { fill: #ff922b; } .pit-ball-5 { fill: #cc5de8; }
+.slide-set { cursor: pointer; }
+.slide-post { stroke: #f2b705; stroke-width: 3; }
+.slide-deck { fill: #ff922b; stroke: #d9480f; stroke-width: 0.6; }
+.slide-chute { fill: #4dabf7; stroke: #1c7ed6; stroke-width: 1.2; }
+.slide-roof { fill: #ff4fa3; }
+/* Tipsy chibis sway; lasing ones wobble harder. */
+.chibi.tipsy-1 { animation: tipsy 2.6s ease-in-out infinite; transform-box: fill-box; transform-origin: 50% 100%; }
+.chibi.tipsy-2 { animation: tipsy 1.6s ease-in-out infinite; transform-box: fill-box; transform-origin: 50% 100%; --tip: 11deg; }
+@keyframes tipsy { 0%, 100% { transform: rotate(calc(var(--tip, 5deg) * -1)); } 50% { transform: rotate(var(--tip, 5deg)); } }
+.chibi .tipsy-blush { fill: #ff6b8a; opacity: .75; }
+.zone-play .zone-plate, .zone-play.is-selected .zone-plate { fill: transparent; stroke-dasharray: 6 4; }

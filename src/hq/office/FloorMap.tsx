@@ -1,7 +1,7 @@
 import { skyLabel, useSky } from "../sky";
 import { useCallback, useMemo, useRef, useState, type ReactNode } from "react";
 import { classOngoing, HQ } from "../config";
-import { BALL_SPOT, COURT, DANCE_FLOOR, ENTRANCE, FLOOR, FURNITURE, PICKLE, RUGS, WORLD, WALL_HEIGHT, WALLS, ZONES } from "../data/office";
+import { BALL_SPOT, COURT, DANCE_FLOOR, ENTRANCE, FLOOR, FURNITURE, PICKLE, PLAYGROUND, RUGS, WORLD, WALL_HEIGHT, WALLS, ZONES } from "../data/office";
 import { useMovement, type WalkView } from "../hooks/useMovement";
 import { useHq } from "../store";
 import { Figure } from "./Actors";
@@ -13,6 +13,8 @@ import { project, rectPoints } from "./iso";
 import { Box as Cuboid, panelX, panelY, pt } from "./primitives";
 
 const SLAB = 14;
+/** A repeatable scatter, so the ball pit looks the same for everyone. */
+const rnd = (n: number) => { const v = Math.sin(n * 12.9898) * 43758.5453; return v - Math.floor(v); };
 
 /**
  * The isometric office. Furniture and glass are sorted back to front once;
@@ -115,6 +117,7 @@ export function FloorMap() {
         if (target.closest("[data-pickle]")) return { kind: "pickle" };
         if (target.closest("[data-ball]")) return { kind: "ball" };
         if (target.closest("[data-hoop]")) return { kind: "hoop" };
+        if (target.closest("[data-slide]")) return { kind: "slide" };
         const gym = target.closest<SVGGElement>("[data-gym]");
         if (gym?.dataset.gym) return { kind: "gym", id: gym.dataset.gym };
         const seat = target.closest<SVGGElement>("[data-seat]");
@@ -187,6 +190,26 @@ export function FloorMap() {
           <polygon className="slab-side slab-side-right" points={rightFace} />
           <polygon className="lawn" points={`${pt(0, D, -SLAB)} ${pt(W, D, -SLAB)} ${pt(W, 0, -SLAB)} ${pt(WORLD.width, 0, -SLAB)} ${pt(WORLD.width, WORLD.depth, -SLAB)} ${pt(0, WORLD.depth, -SLAB)}`} />
           <polygon className="slab-top" points={rectPoints(0, 0, W, D)} />
+          {/* The playground on the front lawn: a ball pit and a slide (tap it to go down). */}
+          <g className="playground">
+            {(() => {
+              const P = PLAYGROUND, G = -SLAB, top = G + P.height * 36, s = P.slide, pit = P.pit;
+              const dots = Array.from({ length: 90 }, (_, n) => ({ x: pit.x + 0.25 + rnd(n * 2 + 1) * (pit.w - 0.5), y: pit.y + 0.25 + rnd(n * 2 + 2) * (pit.h - 0.5), c: n % 6 }));
+              return (
+                <>
+                  <polygon className="pit-rim" points={rectPoints(pit.x, pit.y, pit.w, pit.h, G + 6)} />
+                  <polygon className="pit-fill" points={rectPoints(pit.x, pit.y, pit.w, pit.h, G + 5, 0.18)} />
+                  {dots.map((d, i) => { const [cx, cy] = project(d.x, d.y, G + 7); return <circle key={i} className={`pit-ball pit-ball-${d.c}`} cx={cx} cy={cy} r={2.6} />; })}
+                  <g className="slide-set" data-slide="1">
+                    {[[s.x, s.y], [s.x + 1.1, s.y], [s.x, s.y + 1.1], [s.x + 1.1, s.y + 1.1]].map(([px, py]) => <polyline key={`${px}-${py}`} className="slide-post" points={`${pt(px + 0.05, py + 0.05, G)} ${pt(px + 0.05, py + 0.05, top + 20)}`} />)}
+                    <polygon className="slide-deck" points={rectPoints(s.x, s.y, 1.2, s.h, top)} />
+                    <polygon className="slide-chute" points={`${pt(s.x + 1.2, P.top.y - 0.3, top)} ${pt(s.x + 1.2, P.top.y + 0.3, top)} ${pt(pit.x + 0.5, P.top.y + 0.3, G + 5)} ${pt(pit.x + 0.5, P.top.y - 0.3, G + 5)}`} />
+                    <polygon className="slide-roof" points={`${pt(s.x + 0.6, s.y + 0.6, top + 40)} ${pt(s.x - 0.1, s.y + 1.3, top + 20)} ${pt(s.x + 1.3, s.y + 1.3, top + 20)}`} />
+                  </g>
+                </>
+              );
+            })()}
+          </g>
           <g className="marble">
             {Array.from({ length: W / 2 - 1 }, (_, i) => (i + 1) * 2).map((x) => <polyline key={`x${x}`} className="tile-line" points={`${pt(x, 0)} ${pt(x, D)}`} />)}
             {Array.from({ length: D / 2 - 1 }, (_, i) => (i + 1) * 2).map((y) => <polyline key={`y${y}`} className="tile-line" points={`${pt(0, y)} ${pt(W, y)}`} />)}
@@ -204,11 +227,12 @@ export function FloorMap() {
 
           {ZONES.map((zone) => {
             const { x, y, w, h } = zone.rect;
-            const [kx, ky] = project(x + 0.42, y + h - 0.42);
-            const [tx, ty] = project(x + 0.78, y + h - 0.3);
+            const zz = zone.id === "play" ? -SLAB : 0; // the playground is outside, on the lawn
+            const [kx, ky] = project(x + 0.42, y + h - 0.42, zz);
+            const [tx, ty] = project(x + 0.78, y + h - 0.3, zz);
             return (
               <g key={zone.id} className={`zone zone-${zone.id}${selected === zone.id ? " is-selected" : ""}`}>
-                <polygon className="zone-plate" points={rectPoints(x, y, w, h, 0, 0.1)} />
+                <polygon className="zone-plate" points={rectPoints(x, y, w, h, zz, 0.1)} />
                 <text className="zone-name" transform={`matrix(0.894 0.447 -0.894 0.447 ${tx} ${ty})`}>{zone.name}</text>
                 <circle className="zone-key" cx={kx} cy={ky} r={8.5} />
                 <text className="zone-key-text" x={kx} y={ky + 3.4} textAnchor="middle">{zone.key}</text>

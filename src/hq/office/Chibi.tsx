@@ -294,7 +294,7 @@ export const ChibiArt = memo(function ChibiArt({ look, act }: { look: Look; act?
   const sleeve = fit === "cool" ? "#1b1d26" : fit === "formal" ? "#1f2a44" : fit === "punk" ? "#16161d" : look.outfit;
   const body = fit === "formal" ? "#ffffff" : fit === "punk" ? "#16161d" : look.outfit;
   return (
-    <g className={`chibi${mood ? ` mood-${mood}` : ""}${look.fx ? ` fx-${look.fx}` : ""}`} transform={sitting ? "translate(0 2.4)" : undefined}>
+    <g className={`chibi${mood ? ` mood-${mood}` : ""}${look.fx ? ` fx-${look.fx}` : ""}${act?.tipsy && !asleep ? ` tipsy-${act.tipsy}` : ""}`} transform={sitting ? "translate(0 2.4)" : undefined}>
       <BackHair look={look} />
       <rect x={-3.7} y={-5.4} width={2.9} height={sitting ? 2.4 : 4.6} rx={1.2} fill={legs} />
       <rect x={0.8} y={-5.4} width={2.9} height={sitting ? 2.4 : 4.6} rx={1.2} fill={legs} />
@@ -311,6 +311,7 @@ export const ChibiArt = memo(function ChibiArt({ look, act }: { look: Look; act?
       <FrontHair look={look} />
       <ellipse cx={-6.1} cy={-21.3} rx={1.9} ry={1.1} fill="#f29bb0" opacity={0.55} /><ellipse cx={6.1} cy={-21.3} rx={1.9} ry={1.1} fill="#f29bb0" opacity={0.55} />
       <Face mood={mood} asleep={asleep} />
+      {act?.tipsy && !asleep && <><ellipse className="tipsy-blush" cx={-6.1} cy={-21.3} rx={2.4} ry={1.4} /><ellipse className="tipsy-blush" cx={6.1} cy={-21.3} rx={2.4} ry={1.4} /><text x={10} y={-30} fontSize={6} stroke="none">{act.tipsy > 1 ? "🥴" : "🍺"}</text></>}
       <AccessoryArt kind={look.accessory} />
       <HeadGear fit={fit} cool={mood === "cool"} />
       <Hat id={look.hat} />

@@ -431,7 +431,23 @@ export function buildOffice(): Office {
   for (let i = 0; i < 9; i++) { const a = (i / 9) * Math.PI * 2; ball(root, 16.3 + Math.cos(a) * 0.82, 8.3 + Math.sin(a) * 0.82, 2, 0.11, "#adb5bd", 0.6); }
   ball(root, 16.1, 8.2, 2.2, 0.16, "#2f9e44", 0.15); ball(root, 16.55, 8.5, 2.2, 0.12, "#2f9e44", 0.15);
   box(wallX, 0.02, 5.5, 0.05, 1.9, 22, 52, "screen").castShadow = false;
-  box(wallX, 0.07, 5.6, 0.01, 1.7, 25, 49, "#16324f", { emissive: "#3f8fe6", emissiveIntensity: 0.6 }).castShadow = false;
+  // The lounge TV shows the Pro Skills Digital logo.
+  { const cv = document.createElement("canvas"); cv.width = 680; cv.height = 360;
+    const c = cv.getContext("2d")!;
+    const paint = (img?: HTMLImageElement) => {
+      const g = c.createLinearGradient(0, 0, 0, 360); g.addColorStop(0, "#ffffff"); g.addColorStop(1, "#e8f5ec"); c.fillStyle = g; c.fillRect(0, 0, 680, 360);
+      c.fillStyle = "#15803d"; c.fillRect(0, 330, 680, 30);
+      if (img) { const h = 230, w = h * (img.width / img.height); c.drawImage(img, 60, 50, w, h); }
+      c.fillStyle = "#10141c"; c.textBaseline = "middle"; c.font = "800 64px Nunito, system-ui, sans-serif"; c.fillText("Pro Skills", img ? 250 : 60, 130, 410);
+      c.fillStyle = "#15803d"; c.fillText("Digital", img ? 250 : 60, 210, 410);
+      tex.needsUpdate = true;
+    };
+    const tex = new THREE.CanvasTexture(cv); tex.colorSpace = THREE.SRGBColorSpace; tex.anisotropy = 4;
+    paint();
+    if (HQ.logo) { const img = new Image(); img.onload = () => paint(img); img.src = HQ.logo; }
+    const screen = new THREE.Mesh(new THREE.PlaneGeometry(1.7, 24 / UNIT), new THREE.MeshBasicMaterial({ map: tex }));
+    screen.rotation.y = Math.PI / 2; screen.position.set(0.08, 37 / UNIT, 6.45); wallX.add(screen);
+  }
   box(wallZ, 3.0, 0.02, 2.4, 0.04, 14, 34, "#ffffff").castShadow = false; box(wallZ, 2.95, 0.0, 2.5, 0.03, 13, 35, "dark").castShadow = false;
   { const note = new THREE.Mesh(new THREE.PlaneGeometry(0.3 * 5.33, 0.3), new THREE.MeshBasicMaterial({ map: label("Live training on Zoom", "#1565c0", 40), transparent: true })); note.position.set(4.25, 24 / UNIT, 0.075); wallZ.add(note); }
   const clock = new THREE.Mesh(new THREE.CylinderGeometry(0.32, 0.32, 0.05, 32), material("#ffffff")); clock.rotation.x = Math.PI / 2; clock.position.set(11.7, 58 / UNIT, 0.05); wallZ.add(clock);

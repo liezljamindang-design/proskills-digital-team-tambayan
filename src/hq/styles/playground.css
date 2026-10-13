@@ -842,3 +842,9 @@ select option, select optgroup { background-color: var(--surface); color: var(--
 @keyframes tipsy { 0%, 100% { transform: rotate(calc(var(--tip, 5deg) * -1)); } 50% { transform: rotate(var(--tip, 5deg)); } }
 .chibi .tipsy-blush { fill: #ff6b8a; opacity: .75; }
 .zone-play .zone-plate, .zone-play.is-selected .zone-plate { fill: transparent; stroke-dasharray: 6 4; }
+
+/* Using the phone: screen glow on the face, flickering as the feed scrolls */
+.phone-glow { opacity: .35; mix-blend-mode: screen; animation: phone-glow 2.6s ease-in-out infinite; }
+.phone-screen { animation: phone-scroll 1.8s steps(3) infinite; }
+@keyframes phone-glow { 0%, 100% { opacity: .28; } 50% { opacity: .45; } }
+@keyframes phone-scroll { 0% { fill: #bfe3ff; } 33% { fill: #ffd6e8; } 66% { fill: #d3f9d8; } 100% { fill: #bfe3ff; } }

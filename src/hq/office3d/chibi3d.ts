@@ -197,7 +197,18 @@ export function buildChibi(look: Look, act?: Act): THREE.Group {
 
   // In the hands
   if (act?.drink && !asleep) { const cup = add(armR, new THREE.CylinderGeometry(0.05, 0.04, 0.11, 12), mat(drinkOf(act.drink)!.cup), 0.02, -0.27, 0.07); cup.name = "cup"; }
-  if (act?.phone && !asleep) add(armL, new THREE.BoxGeometry(0.07, 0.12, 0.015), mat("#1b1d26"), -0.02, -0.27, 0.07);
+  // Using the phone: held up in both hands in front of the face, screen glowing onto it.
+  if (act?.phone && !asleep) {
+    const phone = new THREE.Group(); phone.name = "phone"; phone.position.set(0, 0.74, 0.31); phone.rotation.x = 0.5; inner.add(phone);
+    add(phone, new THREE.BoxGeometry(0.1, 0.17, 0.018), mat("#1b1d26"), 0, 0, 0);
+    const screen = new THREE.Mesh(new THREE.PlaneGeometry(0.084, 0.148), new THREE.MeshBasicMaterial({ color: "#bfe3ff" }));
+    screen.name = "screen"; screen.rotation.y = Math.PI; screen.position.z = -0.0095; phone.add(screen);
+    // The screen's light on the face: a soft blue wash over the lower face.
+    const glow = new THREE.Mesh(new THREE.SphereGeometry(R + 0.006, 24, 16, Math.PI / 2 - 0.85, 1.7, 1.05, 1.0), new THREE.MeshBasicMaterial({ color: "#8cc8ff", transparent: true, opacity: 0.3, blending: THREE.AdditiveBlending, depthWrite: false }));
+    glow.name = "phoneGlow"; glow.position.set(0, headY, 0); inner.add(glow);
+    const spill = new THREE.Mesh(new THREE.CircleGeometry(0.16, 20), new THREE.MeshBasicMaterial({ color: "#8cc8ff", transparent: true, opacity: 0.18, blending: THREE.AdditiveBlending, depthWrite: false }));
+    spill.name = "phoneSpill"; spill.position.set(0, 0.62, 0.2); spill.rotation.x = -0.9; inner.add(spill);
+  }
 
   // Special skins change how every surface looks.
   if (look.fx) inner.traverse((o) => {
@@ -256,6 +267,18 @@ export function animateChibi(root: THREE.Object3D, t: number, o: { moving: boole
   if (o.boing !== undefined) { const k = (t - o.boing) / 0.55; if (k >= 0 && k < 1) y += Math.sin(k * Math.PI) * 0.35; }
   if (o.dizzy !== undefined) { const k = (t - o.dizzy) / 1.6; if (k >= 0 && k < 1) { spin = k * Math.PI * 4; tilt = Math.sin(k * Math.PI * 6) * 0.2; } }
   p.inner.position.y = y; p.inner.rotation.z = tilt; p.inner.rotation.y = spin;
+  // On the phone: both hands up holding it, the thumb scrolling, the screen flickering as the feed moves.
+  const phone = root.getObjectByName("phone");
+  if (phone && o.grip === undefined && !o.lift && !o.play && !o.strum && !o.sing) {
+    const scroll = Math.sin(t * 3.1) * 0.06;
+    p.armL.rotation.x = -1.95; p.armR.rotation.x = -1.95 + scroll;
+    p.armL.rotation.z = 0.42; p.armR.rotation.z = -0.42;
+    const screen = phone.getObjectByName("screen") as THREE.Mesh | undefined, glow = root.getObjectByName("phoneGlow") as THREE.Mesh | undefined;
+    const k = 0.5 + 0.5 * Math.sin(t * 2.3) * Math.sin(t * 0.9 + 1);
+    if (screen) (screen.material as THREE.MeshBasicMaterial).color.setHSL(0.58 - k * 0.08, 0.7, 0.78 + k * 0.12);
+    if (glow) (glow.material as THREE.MeshBasicMaterial).opacity = 0.24 + k * 0.14;
+    phone.position.y = 0.74 + Math.sin(t * 1.3) * 0.006;
+  }
   const cup = root.getObjectByName("cup");
   if (cup && !o.moving) { const sip = Math.max(0, Math.sin(t * 1.6)) ** 6; p.armR.rotation.x = -sip * 2.2; }
   const companion = root.getObjectByName("pet");

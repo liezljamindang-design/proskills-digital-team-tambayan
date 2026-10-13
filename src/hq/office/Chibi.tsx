@@ -336,9 +336,12 @@ export const ChibiArt = memo(function ChibiArt({ look, act }: { look: Look; act?
       {act?.ball && !asleep && <circle cx={7.5} cy={-10} r={3.6} fill="#ff922b" stroke="#b85c00" strokeWidth={0.7} />}
       {act?.gym === "lift" && <g className="float-up" stroke="none"><rect x={-13} y={-43} width={26} height={1.6} rx={0.8} fill="#3a4150" /><rect x={-15} y={-46} width={3} height={7.6} rx={1} fill="#e03131" /><rect x={12} y={-46} width={3} height={7.6} rx={1} fill="#e03131" /></g>}
       {act?.phone && !asleep && (
-        <g className="phone">
-          <rect x={-8.6} y={-13.2} width={3.4} height={5.6} rx={0.7} fill={INK} />
-          <rect x={-8.1} y={-12.6} width={2.4} height={4} rx={0.3} fill="#6fb4ff" stroke="none" />
+        <g className="phone phone-in-use" stroke="none">
+          {/* The screen's light on the face */}
+          <ellipse className="phone-glow" cx={0} cy={-20} rx={8.5} ry={6} fill="#8cc8ff" />
+          <rect x={-3} y={-19.2} width={6} height={8.6} rx={1} fill={INK} />
+          <rect className="phone-screen" x={-2.4} y={-18.6} width={4.8} height={7.2} rx={0.5} fill="#bfe3ff" />
+          <circle cx={-4.2} cy={-12.4} r={1.6} fill={look.skin} /><circle cx={4.2} cy={-12.4} r={1.6} fill={look.skin} />
         </g>
       )}
     </g>

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { classOngoing, HQ } from "../config";
 import { ZONES } from "../data/office";
 import { openMeeting, setAct, shoot } from "../net/session";
@@ -18,13 +18,17 @@ export function RoomCard() {
   const requestPose = useHq((s) => s.requestPose);
   const hoopScore = useHq((s) => s.hoopScore);
   const [tab, setTab] = useState<"food" | "drinks" | "inuman">("food");
+  // Closed with ×, it stays closed until you leave the room; it comes back next time you walk in.
+  const [closed, setClosed] = useState<string | null>(null);
+  useEffect(() => { if (zone !== closed) setClosed(null); }, [zone, closed]);
   const bandMuted = useHq((s) => s.bandMuted);
-  if (!me || !zone || !["cafe", "lounge", "nap", "huddle", "focus", "court", "gym", "canteen", "music", "pool"].includes(zone)) return null;
+  if (!me || !zone || !["cafe", "lounge", "nap", "huddle", "focus", "court", "gym", "canteen", "music", "pool"].includes(zone) || closed === zone) return null;
   const act = me.act ?? {};
   const name = ZONES.find((z) => z.id === zone)!.name;
 
   return (
     <div className="room-card" role="region" aria-label={name}>
+      <button type="button" className="room-card-close" aria-label={`Close the ${name} card`} title="Close" onClick={() => setClosed(zone)}>×</button>
       <p className="eyebrow">{name}</p>
 
       {zone === "cafe" && (

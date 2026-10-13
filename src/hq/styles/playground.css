@@ -820,3 +820,9 @@ select option, select optgroup { background-color: var(--surface); color: var(--
 .menu-tabs { display: flex; gap: 4px; margin: 4px 0 8px; }
 .menu-tabs button { flex: 1; min-height: 34px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); font-weight: 700; font-size: 12.5px; cursor: pointer; }
 .menu-tabs button.is-on { background: var(--green); border-color: var(--green); color: #fff; }
+
+.room-card-close { position: absolute; top: 8px; right: 8px; width: 32px; height: 32px; border-radius: 50%; border: 1px solid var(--line); background: var(--surface); color: var(--ink); font-size: 20px; line-height: 1; cursor: pointer; display: grid; place-items: center; z-index: 1; }
+.room-card-close:hover { background: var(--surface-2); }
+.room-card .eyebrow { padding-right: 36px; }
+/* The time-of-day label sits bottom-left so it never covers the view controls. */
+.sky-badge { top: auto; bottom: 10px; left: 10px; }

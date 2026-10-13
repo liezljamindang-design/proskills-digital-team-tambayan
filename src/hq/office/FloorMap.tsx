@@ -1,3 +1,4 @@
+import { skyLabel, useSky } from "../sky";
 import { useCallback, useMemo, useRef, useState, type ReactNode } from "react";
 import { classOngoing, HQ } from "../config";
 import { BALL_SPOT, COURT, DANCE_FLOOR, ENTRANCE, FLOOR, FURNITURE, PICKLE, RUGS, WORLD, WALL_HEIGHT, WALLS, ZONES } from "../data/office";
@@ -18,6 +19,7 @@ const SLAB = 14;
  * you and everyone else are slotted into that order by where you stand.
  */
 export function FloorMap() {
+  const sky = useSky();
   const selected = useHq((s) => s.selectedZone);
   const overview = useHq((s) => s.overview);
   const setOverview = useHq((s) => s.setOverview);
@@ -178,6 +180,7 @@ export function FloorMap() {
 
   return (
     <div className="floor">
+      <p className="sky-badge" aria-label="Time in the Philippines">{skyLabel(sky)}</p>
       <svg ref={svgRef} viewBox="-730 -100 1840 1030" className="floor-svg" aria-hidden="true" focusable="false">
         <g ref={cameraRef}>
           <polygon className="slab-side slab-side-left" points={leftFace} />
@@ -303,8 +306,13 @@ export function FloorMap() {
               </g>
             ))}
             <polygon className="frame" points={panelY(0, 12.4, 16, 30, 70)} />
-            <polygon className="screen" points={panelY(0, 12.5, 15.9, 33, 67)} />
-            {[60, 53, 46, 39].map((z, i) => <polygon key={z} className={i === 0 ? "screen-gold" : "screen-line"} points={panelY(0, 12.8, 12.8 + [2.2, 2.6, 1.8, 2.3][i], z, z + 2.8)} />)}
+            <polygon className="chalkboard" points={panelY(0, 12.5, 15.9, 33, 67)} />
+            {(() => { const [cx, cy] = project(14.2, 0, 50); return (
+              <g transform={`matrix(0.894 0.447 0 1 ${cx} ${cy})`} textAnchor="middle">
+                <text className="chalk-text" y={-3}>☕ Libreng kape</text>
+                <text className="chalk-text chalk-gold" y={9}>ni Arnold!</text>
+              </g>
+            ); })()}
             <polygon className="frame" points={panelX(0, 10.4, 13.4, 28, 70)} />
             <polygon className="screen" points={panelX(0, 10.5, 13.3, 31, 67)} />
             {[0, 1, 2, 3, 4].map((i) => <polygon key={i} className={i % 2 ? "screen-alert" : "screen-gold"} points={panelX(0, 12.8 - i * 0.5, 13.15 - i * 0.5, 35, 41 + [20, 12, 24, 9, 16][i])} />)}

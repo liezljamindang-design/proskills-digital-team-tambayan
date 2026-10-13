@@ -324,8 +324,17 @@ export function buildOffice(): Office {
     const face = new THREE.Mesh(new THREE.PlaneGeometry(3.2, 3.2 * (176 / 768)), new THREE.MeshBasicMaterial({ map: tex, transparent: true })); face.position.set(9, 57 / UNIT, 0.05); wallZ.add(face);
   }
   for (const [a, b] of [[0.8, 3.4], [5.4, 8.6]]) box(wallX, 0, a, 0.03, b - a, 32, 70, "#bfe3ff", glow).castShadow = false;
-  box(wallZ, 12.4, 0, 3.6, 0.04, 30, 70, "screen").castShadow = false;
-  [60, 53, 46, 39].forEach((z, i) => box(wallZ, 12.8, 0.04, [2.2, 2.6, 1.8, 2.3][i], 0.01, z, z + 2.8, i === 0 ? "#f4c21f" : "#6fb4ff", { emissive: i === 0 ? "#f4c21f" : "#6fb4ff", emissiveIntensity: 0.7 }).castShadow = false);
+  // The café's chalkboard: free coffee, courtesy of Arnold.
+  { box(wallZ, 12.4, 0, 3.6, 0.04, 30, 70, "#6b4a2e").castShadow = false;
+    const w = 3.4, h = 36 / UNIT, cv = document.createElement("canvas"); cv.width = 768; cv.height = Math.round(768 * h / w);
+    const c = cv.getContext("2d")!; c.fillStyle = "#1f3a2c"; c.fillRect(0, 0, cv.width, cv.height);
+    c.textAlign = "center"; c.textBaseline = "middle"; const H = cv.height;
+    c.fillStyle = "#ffffff"; c.font = `800 ${Math.round(H * 0.2)}px Nunito, system-ui, sans-serif`; c.fillText("☕ Libreng kape", 384, H * 0.32, 730);
+    c.fillStyle = "#ffd43b"; c.font = `800 ${Math.round(H * 0.22)}px Nunito, system-ui, sans-serif`; c.fillText("ni Arnold!", 384, H * 0.62, 730);
+    c.fillStyle = "rgba(255,255,255,0.7)"; c.font = `600 ${Math.round(H * 0.09)}px Nunito, system-ui, sans-serif`; c.fillText("Kape · Barako · Tsokolate · Salabat · Milk tea", 384, H * 0.86, 730);
+    const tex = new THREE.CanvasTexture(cv); tex.colorSpace = THREE.SRGBColorSpace; tex.anisotropy = 4;
+    const face = new THREE.Mesh(new THREE.PlaneGeometry(w, h), new THREE.MeshBasicMaterial({ map: tex })); face.position.set(14.2, 50 / UNIT, 0.06); wallZ.add(face);
+  }
   const scoreboard = box(wallX, 0, 10.4, 0.04, 3.0, 28, 70, "screen"); scoreboard.castShadow = false; scoreboard.userData.arcade = true;
   [0, 1, 2, 3, 4].forEach((i) => box(wallX, 0.04, 12.8 - i * 0.5, 0.01, 0.35, 35, 41 + [20, 12, 24, 9, 16][i], i % 2 ? "#33c447" : "#f4c21f", { emissive: i % 2 ? "#33c447" : "#f4c21f", emissiveIntensity: 0.7 }).castShadow = false);
   [["#17b02a", 5.6], ["#f4c21f", 6.5], ["#1565c0", 7.4]].forEach(([color, y]) => box(wallX, 0, Number(y) + 3.3, 0.03, 0.55, 20, 50, String(color)).castShadow = false);

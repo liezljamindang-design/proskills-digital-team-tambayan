@@ -794,3 +794,29 @@ select option, select optgroup { background-color: var(--surface); color: var(--
 .builder-photo { width: 96px; height: 96px; border-radius: 50%; object-fit: cover; border: 3px solid var(--green); display: block; margin: 0 auto 8px; }
 
 .face-photo { border-radius: 50%; object-fit: cover; flex: none; display: block; background: var(--line, #ddd); }
+
+.free-coffee { font-weight: 800; color: var(--green); margin: 0 0 4px; }
+.menu-head { font-weight: 700; margin: 8px 0 2px; font-size: 13px; }
+.menu-head small { font-weight: 500; opacity: .7; }
+
+.chalkboard { fill: #1f3a2c; }
+.chalk-text { fill: #fff; font: 800 9px Nunito, system-ui, sans-serif; }
+.chalk-gold { fill: #ffd43b; font-size: 10px; }
+
+/* Day and night, on Philippine time */
+.sky-badge { position: absolute; left: 10px; top: 10px; z-index: 3; margin: 0; padding: 4px 10px; border-radius: 999px; font-size: 12px; font-weight: 700; background: color-mix(in srgb, var(--surface) 85%, transparent); border: 1px solid var(--line); color: var(--ink); pointer-events: none; }
+.floor::after { content: ""; position: absolute; inset: 0; pointer-events: none; border-radius: 16px; transition: background 2s; z-index: 1; }
+[data-sky="dawn"] .floor:not(.floor-is-3d)::after { background: #ffc7a8; mix-blend-mode: multiply; opacity: 0.45; }
+[data-sky="dusk"] .floor:not(.floor-is-3d)::after { background: #ff9d5c; mix-blend-mode: multiply; opacity: 0.5; }
+[data-sky="night"] .floor:not(.floor-is-3d)::after { background: #4a5aa8; mix-blend-mode: multiply; opacity: 0.7; }
+[data-sky="night"] .floor-is-3d { background: linear-gradient(180deg, #0f1a3d, #26346b 70%); }
+[data-sky="dusk"] .floor-is-3d { background: linear-gradient(180deg, #f08a5d, #ffd1a1 70%); }
+[data-sky="dawn"] .floor-is-3d { background: linear-gradient(180deg, #9db7ff, #ffd8c2 70%); }
+[data-sky="day"] .floor-is-3d { background: linear-gradient(180deg, #8fd3ff, color-mix(in srgb, #dff3ff 70%, var(--bg)) 70%); }
+.floor > .floor-btn, .floor > .floor-note, .floor > div:not(.floor-3d-host) { z-index: 2; }
+
+.room-card { z-index: 4; }
+.food-menu { max-height: 190px; overflow-y: auto; }
+.menu-tabs { display: flex; gap: 4px; margin: 4px 0 8px; }
+.menu-tabs button { flex: 1; min-height: 34px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); font-weight: 700; font-size: 12.5px; cursor: pointer; }
+.menu-tabs button.is-on { background: var(--green); border-color: var(--green); color: #fff; }

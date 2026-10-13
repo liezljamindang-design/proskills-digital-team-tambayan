@@ -1,5 +1,6 @@
 import { memo, useState } from "react";
 import type { Act, Accessory, Fit, HairStyle, Look, Mood } from "../types";
+import { drinkOf } from "../types";
 
 /**
  * The HQ's chibi characters, drawn in SVG from a Look: skin, hair, outfit,
@@ -284,7 +285,6 @@ export function PetArt({ id }: { id?: string }) {
   }
 }
 
-const DRINKS = { coffee: ["#ffffff", "#6b4226"], iced: ["#cfeaff", "#8a5a3a"], tea: ["#f1d9b5", "#c79a63"] } as const;
 
 /** One character, full body. `act` changes the face, what is in the hands, and the pose. */
 export const ChibiArt = memo(function ChibiArt({ look, act }: { look: Look; act?: Act }) {
@@ -316,9 +316,9 @@ export const ChibiArt = memo(function ChibiArt({ look, act }: { look: Look; act?
       <Hat id={look.hat} />
       {act?.drink && !asleep && (
         <g className="sip">
-          <rect x={5.2} y={-12} width={3.6} height={4.4} rx={0.7} fill={DRINKS[act.drink][0]} />
-          <rect x={5.2} y={-12} width={3.6} height={1.2} rx={0.5} fill={DRINKS[act.drink][1]} />
-          {act.drink === "coffee"
+          <rect x={5.2} y={-12} width={3.6} height={4.4} rx={0.7} fill={drinkOf(act.drink)!.cup} />
+          <rect x={5.2} y={-12} width={3.6} height={1.2} rx={0.5} fill={drinkOf(act.drink)!.top} />
+          {drinkOf(act.drink)!.hot
             ? <path className="steam" d="M6.2 -13 q-0.8 -1.2 0 -2.2 M7.8 -13 q0.8 -1.2 0 -2.2" fill="none" stroke="#9aa3b2" strokeWidth={0.45} strokeLinecap="round" />
             : <path d="M7.4 -12 L8.4 -15.4" fill="none" stroke="#e03131" strokeWidth={0.6} strokeLinecap="round" />}
         </g>

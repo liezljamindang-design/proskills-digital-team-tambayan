@@ -1,5 +1,6 @@
 import * as THREE from "three";
 import type { Act, Look, Mood } from "../types";
+import { drinkOf } from "../types";
 
 /**
  * A chibi as a small 3D toy figure, built from simple shapes. The face is
@@ -195,7 +196,7 @@ export function buildChibi(look: Look, act?: Act): THREE.Group {
   else hat(inner, look.hat === "halo" ? "halo" : undefined, top + 0.12);
 
   // In the hands
-  if (act?.drink && !asleep) { const cup = add(armR, new THREE.CylinderGeometry(0.05, 0.04, 0.11, 12), mat(act.drink === "coffee" ? "#ffffff" : act.drink === "iced" ? "#cfeaff" : "#f1d9b5"), 0.02, -0.27, 0.07); cup.name = "cup"; }
+  if (act?.drink && !asleep) { const cup = add(armR, new THREE.CylinderGeometry(0.05, 0.04, 0.11, 12), mat(drinkOf(act.drink)!.cup), 0.02, -0.27, 0.07); cup.name = "cup"; }
   if (act?.phone && !asleep) add(armL, new THREE.BoxGeometry(0.07, 0.12, 0.015), mat("#1b1d26"), -0.02, -0.27, 0.07);
 
   // Special skins change how every surface looks.

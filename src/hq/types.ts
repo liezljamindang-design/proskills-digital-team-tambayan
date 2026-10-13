@@ -96,7 +96,31 @@ export const BATCHES = 13;
 export const displayName = (p: Pick<Profile, "name" | "firstName">) => (p.firstName ? `${p.name} (${p.firstName})` : p.name);
 export type ManualStatus = "offline" | "dnd" | "brb" | "meeting" | "working" | "client" | "interview" | "call";
 export type Mood = "happy" | "laugh" | "love" | "wow" | "cool" | "shy" | "think" | "sleepy" | "cry" | "angry" | "dance" | "blink";
-export type Drink = "coffee" | "iced" | "tea";
+/** A drink id: one of the DRINKS keys. */
+export type Drink = string;
+interface DrinkInfo { label: string; emoji: string; cup: string; top: string; hot?: boolean; place: "cafe" | "canteen"; adult?: boolean }
+/** Café and canteen drinks. cup and top are the colours of the glass and the drink. */
+export const DRINKS: Record<string, DrinkInfo> = {
+  coffee: { label: "Hot coffee", emoji: "☕", cup: "#ffffff", top: "#6b4226", hot: true, place: "cafe" },
+  barako: { label: "Kapeng barako", emoji: "☕", cup: "#ffffff", top: "#3b2314", hot: true, place: "cafe" },
+  iced: { label: "Iced coffee", emoji: "🧊", cup: "#cfeaff", top: "#8a5a3a", place: "cafe" },
+  tea: { label: "Milk tea", emoji: "🧋", cup: "#f1d9b5", top: "#c79a63", place: "cafe" },
+  tsokolate: { label: "Tsokolate", emoji: "🍫", cup: "#ffffff", top: "#5a2e1a", hot: true, place: "cafe" },
+  salabat: { label: "Salabat", emoji: "🫚", cup: "#ffffff", top: "#e0b04a", hot: true, place: "cafe" },
+  sago: { label: "Sago't gulaman", emoji: "🥤", cup: "#e9d8c4", top: "#a0662f", place: "canteen" },
+  buko: { label: "Buko juice", emoji: "🥥", cup: "#f4f1e6", top: "#ffffff", place: "canteen" },
+  calamansi: { label: "Calamansi juice", emoji: "🍋", cup: "#f6f9d2", top: "#c8d93a", place: "canteen" },
+  mango: { label: "Mango shake", emoji: "🥭", cup: "#ffe39a", top: "#ffb627", place: "canteen" },
+  melon: { label: "Melon juice", emoji: "🍈", cup: "#e5f7cf", top: "#f7c27a", place: "canteen" },
+  pandan: { label: "Buko pandan", emoji: "🥤", cup: "#d8f2c8", top: "#5fbf5a", place: "canteen" },
+  soda: { label: "Softdrinks", emoji: "🥤", cup: "#e03131", top: "#2b1a12", place: "canteen" },
+  beer: { label: "Malamig na beer", emoji: "🍺", cup: "#f5c542", top: "#fffbe8", place: "canteen", adult: true },
+  tuba: { label: "Tuba", emoji: "🥥", cup: "#f0dcc4", top: "#d9a86c", place: "canteen", adult: true },
+  lambanog: { label: "Lambanog", emoji: "🥃", cup: "#eef4f7", top: "#e8eef2", place: "canteen", adult: true },
+  basi: { label: "Basi", emoji: "🍷", cup: "#f3e3e3", top: "#8a2a2a", place: "canteen", adult: true },
+  gin: { label: "Gin pomelo", emoji: "🍸", cup: "#fde2ea", top: "#f29bb0", place: "canteen", adult: true },
+};
+export const drinkOf = (id?: string) => (id ? DRINKS[id] ?? DRINKS.coffee : undefined);
 /** The canteen menu. The key is what is shown in the chibi's hand. */
 export const FOODS: Record<string, string> = {
   "🍛": "Adobo rice", "🍜": "Pancit", "🍗": "Fried chicken", "🍲": "Sinigang", "🥟": "Siomai", "🌯": "Lumpia wrap",

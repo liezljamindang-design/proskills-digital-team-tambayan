@@ -23,7 +23,7 @@ export const ZONES: Zone[] = [
   { id: "lobby", key: 1, name: "Central Hall", summary: "The open space in the middle. Say hi on your way through.", rect: { x: 6.6, y: 5, w: 4.8, h: 9 } },
   { id: "focus", key: 2, name: "Classroom", summary: `${HQ.classTitle} · Monday to Friday, ${HQ.classSchedule}. Live training on Zoom: walk in and the class opens.`, rect: { x: 0, y: 0, w: 6.5, h: 4.2 } },
   { id: "huddle", key: 3, name: "Collaboration Room", summary: "The glass meeting room. Join the team's live Zoom call from here.", rect: { x: 7, y: 0, w: 4, h: 4 } },
-  { id: "cafe", key: 4, name: "Café", summary: "Walk in and order a coffee. Your chibi sips it.", rect: { x: 11.5, y: 0, w: 6.5, h: 4.2 } },
+  { id: "cafe", key: 4, name: "Café", summary: "Libreng kape ni Arnold! Order a coffee, barako, tsokolate or salabat.", rect: { x: 11.5, y: 0, w: 6.5, h: 4.2 } },
   { id: "lounge", key: 5, name: "Lounge", summary: "Sit on the sofa and scroll your phone.", rect: { x: 0, y: 5, w: 6, h: 4.2 } },
   { id: "game", key: 6, name: "Recreation Room", summary: "The arcade. Walk in and it opens up, with everyone who is inside.", rect: { x: 0, y: 9.8, w: 6, h: 4.2 } },
   { id: "deck", key: 7, name: "Garden Deck", summary: "Trees, a bench and fresh pretend air.", rect: { x: 12, y: 5, w: 6, h: 4.4 } },
@@ -35,7 +35,7 @@ export const ZONES: Zone[] = [
   { id: "court", key: 12, name: "Basketball Court", summary: "Shoot some hoops outside.", rect: { x: 0, y: 14.6, w: 7, h: 7.4 } },
   { id: "pool", key: 13, name: "Pickleball Court", summary: "Tap the court to play pickleball against a teammate or the robot.", rect: { x: 7.4, y: 14.6, w: 5, h: 7.4 } },
   { id: "plaza", key: 14, name: "Main Entrance", summary: "The front door. Everyone arrives here.", rect: { x: 12.8, y: 14.6, w: 8.4, h: 7.4 } },
-  { id: "canteen", key: 15, name: "Canteen", summary: "Tables for lunch and merienda together.", rect: { x: 21.6, y: 14.6, w: 6, h: 7.4 } },
+  { id: "canteen", key: 15, name: "Canteen", summary: "Filipino food, juices, sago't gulaman and an inuman corner.", rect: { x: 21.6, y: 14.6, w: 6, h: 7.4 } },
   { id: "music", key: 16, name: "Music Room", summary: "A full band set: drums, guitar, bass, a mic and a piano.", rect: { x: 28, y: 14.6, w: 6, h: 7.4 } },
 ];
 

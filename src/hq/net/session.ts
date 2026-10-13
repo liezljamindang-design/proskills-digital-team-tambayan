@@ -7,7 +7,7 @@ import { safeImage } from "../media";
 import { mentionedIds, mentions } from "../mentions";
 import { MANUAL } from "../status";
 import { ARCADE, PUBLIC, useHq } from "../store";
-import { batchesOf, displayName, FOODS, REACTIONS, type Profile, type Quote } from "../types";
+import { batchesOf, displayName, drinkOf, FOODS, REACTIONS, type Profile, type Quote } from "../types";
 import { notifyOthers, refreshPush } from "./push";
 import { loadHistory, saveMarks, saveMessage } from "./history";
 import { startRoster } from "./roster";
@@ -32,12 +32,11 @@ const nextId = () => `${Date.now().toString(36)}-${++lineId}-${Math.random().toS
 function note(id: string, name: string, text: string) {
   useHq.getState().addLine(PUBLIC, { id: nextId(), from: id, name, text: `${name} ${text}`, time: clock(), system: true });
 }
-const DRINK = { coffee: "a hot coffee ☕", iced: "an iced coffee 🧊", tea: "a milk tea 🧋" } as const;
 /** Everything that changed between two versions of a person, as short activity lines. */
 function changes(old: Profile, next: Profile): string[] {
   // Kept short on purpose: faces, sitting, phones and music show on the chibi itself and are not announced.
   const a = old.act ?? {}, b = next.act ?? {}, out: string[] = [];
-  if (b.drink && a.drink !== b.drink) out.push(`bought ${DRINK[b.drink]}`);
+  if (b.drink && a.drink !== b.drink) out.push(`got ${drinkOf(b.drink)!.label.toLowerCase()} ${drinkOf(b.drink)!.emoji}`);
   if (b.food && a.food !== b.food && FOODS[b.food]) out.push(`is eating ${b.food} ${FOODS[b.food].toLowerCase()}`);
   if (b.party && !a.party) out.push("started a party 🎉");
   const bought = (next.owned ?? []).filter((id) => !(old.owned ?? []).includes(id));

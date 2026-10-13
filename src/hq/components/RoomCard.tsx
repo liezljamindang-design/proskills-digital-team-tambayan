@@ -5,13 +5,9 @@ import { openMeeting, setAct, shoot } from "../net/session";
 import { PersonFace } from "../office/Chibi";
 import { zoneAt } from "../office/engine";
 import { useHq } from "../store";
-import { FOODS, type Drink } from "../types";
+import { DRINKS, drinkOf, FOODS } from "../types";
 
-const MENU: { id: Drink; label: string }[] = [
-  { id: "coffee", label: "☕ Hot coffee" },
-  { id: "iced", label: "🧊 Iced coffee" },
-  { id: "tea", label: "🧋 Milk tea" },
-];
+const menu = (place: "cafe" | "canteen", adult: boolean) => Object.entries(DRINKS).filter(([, d]) => d.place === place && Boolean(d.adult) === adult);
 
 /** A small card for the room you are standing in, with the things you can do there. */
 export function RoomCard() {
@@ -21,7 +17,7 @@ export function RoomCard() {
   const blocked = useHq((s) => s.meetingBlocked);
   const requestPose = useHq((s) => s.requestPose);
   const hoopScore = useHq((s) => s.hoopScore);
-  const [menuOpen, setMenuOpen] = useState(false);
+  const [tab, setTab] = useState<"food" | "drinks" | "inuman">("food");
   const bandMuted = useHq((s) => s.bandMuted);
   if (!me || !zone || !["cafe", "lounge", "nap", "huddle", "focus", "court", "gym", "canteen", "music", "pool"].includes(zone)) return null;
   const act = me.act ?? {};
@@ -33,10 +29,11 @@ export function RoomCard() {
 
       {zone === "cafe" && (
         <>
-          <p>{act.drink ? "Enjoy! Your chibi is sipping it." : "What can we get you?"}</p>
+          <p className="free-coffee">☕ Libreng kape ni Arnold!</p>
+          <p>{act.drink ? `Enjoy your ${drinkOf(act.drink)!.label.toLowerCase()}!` : "What can we get you?"}</p>
           <div className="room-actions">
-            {MENU.map((d) => (
-              <button key={d.id} type="button" className="service-chip" aria-pressed={act.drink === d.id} onClick={() => setAct({ drink: d.id })}>{d.label}</button>
+            {menu("cafe", false).map(([id, d]) => (
+              <button key={id} type="button" className="service-chip" aria-pressed={act.drink === id} onClick={() => setAct({ drink: id })}>{d.emoji} {d.label}</button>
             ))}
             {act.drink && <button type="button" className="btn-secondary" onClick={() => setAct({ drink: undefined })}>Finish drink</button>}
           </div>
@@ -45,15 +42,28 @@ export function RoomCard() {
 
       {zone === "canteen" && (
         <>
-          <p>{act.food && FOODS[act.food] ? `${act.food} Enjoy your ${FOODS[act.food].toLowerCase()}!` : "What would you like to eat?"}</p>
-          {(!act.food || menuOpen) && (
-            <div className="room-actions food-menu">
-              {Object.entries(FOODS).map(([emoji, label]) => (
-                <button key={emoji} type="button" className="service-chip" aria-pressed={act.food === emoji} onClick={() => { setAct({ food: emoji }); setMenuOpen(false); }}>{emoji} {label}</button>
+          <p>{[act.food && FOODS[act.food] ? `${act.food} ${FOODS[act.food]}` : "", act.drink ? `${drinkOf(act.drink)!.emoji} ${drinkOf(act.drink)!.label}` : ""].filter(Boolean).join(" + ") || "Kain tayo! What would you like?"}</p>
+          <div className="menu-tabs" role="tablist">
+            {([["food", "🍛 Pagkain"], ["drinks", "🥤 Inumin"], ["inuman", "🍻 Inuman"]] as const).map(([id, label]) => (
+              <button key={id} type="button" role="tab" aria-selected={tab === id} className={tab === id ? "is-on" : ""} onClick={() => setTab(id)}>{label}</button>
+            ))}
+          </div>
+          {tab === "inuman" && <p className="field-hint">18+ only, and just for fun: nobody actually drinks. 😄</p>}
+          <div className="room-actions food-menu">
+            {tab === "food"
+              ? Object.entries(FOODS).map(([emoji, label]) => (
+                <button key={emoji} type="button" className="service-chip" aria-pressed={act.food === emoji} onClick={() => setAct({ food: emoji })}>{emoji} {label}</button>
+              ))
+              : menu("canteen", tab === "inuman").map(([id, d]) => (
+                <button key={id} type="button" className="service-chip" aria-pressed={act.drink === id} onClick={() => setAct({ drink: id })}>{d.emoji} {d.label}</button>
               ))}
+          </div>
+          {(act.food || act.drink) && (
+            <div className="room-actions">
+              {act.food && <button type="button" className="btn-secondary" onClick={() => setAct({ food: undefined })}>Finish eating</button>}
+              {act.drink && <button type="button" className="btn-secondary" onClick={() => setAct({ drink: undefined })}>Finish drink</button>}
             </div>
           )}
-          {act.food && !menuOpen && <div className="room-actions"><button type="button" className="btn-primary" onClick={() => setMenuOpen(true)}>Order something else</button><button type="button" className="btn-secondary" onClick={() => setAct({ food: undefined })}>Finish eating</button></div>}
         </>
       )}
 

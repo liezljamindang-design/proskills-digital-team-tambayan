@@ -1,3 +1,4 @@
+import { daylight, skyAt, skyLabel, useSky } from "../sky";
 import { useCallback, useEffect, useRef } from "react";
 import * as THREE from "three";
 import { isBirthday } from "../birthday";
@@ -55,13 +56,25 @@ export function Floor3D() {
     const scene = new THREE.Scene();
     const office = buildOffice();
     scene.add(office.root);
-    scene.add(new THREE.HemisphereLight("#ffffff", "#b9c6da", 1.25));
+    const hemi = new THREE.HemisphereLight("#ffffff", "#b9c6da", 1.25);
+    scene.add(hemi);
     const sun = new THREE.DirectionalLight("#fff6e5", 2.1);
     sun.position.set(FLOOR.width / 2 - 12, 24, FLOOR.depth / 2 + 11); sun.target.position.set(FLOOR.width / 2, 0, FLOOR.depth / 2);
     sun.castShadow = !useHq.getState().lite; sun.shadow.mapSize.set(2048, 2048);
     Object.assign(sun.shadow.camera, { left: -24, right: 24, top: 20, bottom: -20, near: 1, far: 90 });
     sun.shadow.bias = -0.0006; sun.shadow.normalBias = 0.03;
     scene.add(sun, sun.target);
+    // Day and night follow the time in the Philippines.
+    const DAY = new THREE.Color("#fff6e5"), DUSK = new THREE.Color("#ffad6b"), NIGHT = new THREE.Color("#8ea6ff");
+    const SKY_DAY = new THREE.Color("#ffffff"), SKY_NIGHT = new THREE.Color("#7f8fc9");
+    const applySky = () => {
+      const d = daylight(), sky = skyAt();
+      hemi.intensity = 0.55 + 0.7 * d; hemi.color.copy(SKY_NIGHT).lerp(SKY_DAY, d);
+      sun.intensity = 0.35 + 1.75 * d;
+      sun.color.copy(sky === "night" ? NIGHT : sky === "day" ? DAY : DUSK);
+    };
+    applySky();
+    const skyTimer = window.setInterval(applySky, 60 * 1000);
     const partyLights = ["#ff4fa3", "#35c9ff", "#ffd43b"].map((color) => { const l = new THREE.PointLight(color, 0, 14, 1.4); l.position.y = 3; scene.add(l); return l; });
 
     const camera = new THREE.PerspectiveCamera(30, 1, 0.3, 300);
@@ -423,7 +436,7 @@ export function Floor3D() {
     raf = requestAnimationFrame(frame);
 
     return () => {
-      cancelAnimationFrame(raf); unsubscribe(); observer.disconnect(); viewRef.current = null;
+      cancelAnimationFrame(raf); unsubscribe(); window.clearInterval(skyTimer); observer.disconnect(); viewRef.current = null;
       canvas.removeEventListener("pointerdown", onDown); window.removeEventListener("pointermove", onMove); window.removeEventListener("pointerup", onUp); window.removeEventListener("pointercancel", onUp);
       for (const a of actors.values()) disposeChibi(a.chibi);
       scene.traverse((o) => { (o as THREE.Mesh).geometry?.dispose(); });
@@ -431,6 +444,7 @@ export function Floor3D() {
     };
   }, []);
 
+  const sky = useSky();
   const makeView = useCallback(() => viewRef.current, []);
   useMovement(makeView);
 
@@ -440,6 +454,7 @@ export function Floor3D() {
   return (
     <div className="floor floor-is-3d">
       <div ref={hostRef} className="floor-3d-host" />
+      <p className="sky-badge" aria-label="Time in the Philippines">{skyLabel(sky)}</p>
       <div className="tags" aria-hidden="true">
         {people.map((p) => {
           const status = statusOf(p, p.zone), bubble = bubbles[p.id];

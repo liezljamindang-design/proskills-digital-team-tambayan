@@ -130,6 +130,7 @@ export const FOODS: Record<string, string> = {
   "🍛": "Adobo rice", "🍜": "Pancit", "🍗": "Fried chicken", "🍲": "Sinigang", "🥟": "Siomai", "🌯": "Lumpia wrap",
   "🍔": "Burger", "🍕": "Pizza", "🍟": "Fries", "🍝": "Spaghetti", "🍣": "Sushi", "🥗": "Salad",
   "🥪": "Sandwich", "🍩": "Donut", "🍧": "Halo-halo", "🍦": "Ice cream", "🍌": "Banana cue", "🥭": "Mango",
+  "🍳": "Sinangag at itlog", "🥚": "Tortang talong", "🐟": "Fried fish", "🥘": "Lutong bahay",
 };
 /** What a person is doing right now. Shared live with everyone, never saved. */
 export interface Act {

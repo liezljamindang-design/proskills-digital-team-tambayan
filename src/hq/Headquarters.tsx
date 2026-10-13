@@ -15,6 +15,7 @@ import { RoomCard } from "./components/RoomCard";
 import { HelpDialog } from "./components/HelpDialog";
 import { UpdateBanner } from "./components/UpdateBanner";
 import { Wardrobe } from "./components/Wardrobe";
+import { Kitchen } from "./components/Kitchen";
 import { FloatHost } from "./components/FloatWindow";
 import { Garage } from "./components/Garage";
 import { BandSound } from "./components/BandSound";
@@ -82,6 +83,7 @@ export function Headquarters() {
       <Shop />
       <Garage />
       <Wardrobe />
+      <Kitchen />
       <FloatHost />
       <PongPrompt />
       <PongMenu />

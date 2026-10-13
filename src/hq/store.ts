@@ -70,6 +70,8 @@ interface State {
   pongMenu: boolean;
   garageOpen: boolean;
   wardrobeOpen: boolean;
+  /** The canteen kitchen, where you cook your own food. */
+  kitchenOpen: boolean;
   /** Which table game the menu (and the next match) is for. */
   pongGame: "pong" | "pickle";
   pong: { opp: string; name: string; stage: "inviting" | "invited" | "playing"; host: boolean; game?: "pong" | "pickle" } | null;
@@ -184,6 +186,7 @@ export const useHq = create<State>((set, get) => ({
   pongMenu: false,
   garageOpen: false,
   wardrobeOpen: false,
+  kitchenOpen: false,
   pongGame: "pong",
   voice: { on: false, muted: false, deaf: false, error: "", links: {}, speaking: [] },
   shopOpen: false,

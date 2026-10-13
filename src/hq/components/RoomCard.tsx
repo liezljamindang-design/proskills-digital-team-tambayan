@@ -47,6 +47,7 @@ export function RoomCard() {
       {zone === "canteen" && (
         <>
           <p>{[act.food && FOODS[act.food] ? `${act.food} ${FOODS[act.food]}` : "", act.drink ? `${drinkOf(act.drink)!.emoji} ${drinkOf(act.drink)!.label}` : ""].filter(Boolean).join(" + ") || "Kain tayo! What would you like?"}</p>
+          <button type="button" className="btn-primary kt-open" onClick={() => useHq.setState({ kitchenOpen: true })}>🍳 Cook your own in the kitchen</button>
           <div className="menu-tabs" role="tablist">
             {([["food", "🍛 Pagkain"], ["drinks", "🥤 Inumin"], ["inuman", "🍻 Inuman"]] as const).map(([id, label]) => (
               <button key={id} type="button" role="tab" aria-selected={tab === id} className={tab === id ? "is-on" : ""} onClick={() => setTab(id)}>{label}</button>

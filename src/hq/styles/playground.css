@@ -866,3 +866,44 @@ select option, select optgroup { background-color: var(--surface); color: var(--
 .mini-lobby input { flex: 1; min-width: 0; min-height: 36px; border-radius: 999px; border: 1px solid var(--line); padding: 0 12px; background: var(--surface); color: var(--ink); }
 .mini-lobby form button, .mini-back { min-height: 36px; border-radius: 999px; border: 0; padding: 0 14px; background: var(--green); color: #fff; font-weight: 700; cursor: pointer; }
 .mini-back { background: var(--surface); color: var(--ink); border: 1px solid var(--line); }
+
+/* Canteen kitchen (Toca-style cooking) */
+.dialog:has(.kitchen) { width: min(52rem, calc(100% - 20px)); }
+.kitchen { display: grid; gap: 12px; }
+.kt-body { display: grid; grid-template-columns: 1.1fr 1fr; gap: 14px; }
+@media (max-width: 640px) { .kt-body { grid-template-columns: 1fr; } }
+.kt-storage { display: grid; gap: 8px; align-content: start; }
+.kt-fridge { position: relative; height: 92px; border-radius: 16px; border: 2px solid #9fb3c8; background: linear-gradient(180deg, #eef6ff, #d7e7f7); cursor: pointer; perspective: 600px; overflow: visible; color: #1f2a44; font-weight: 800; }
+.kt-door { position: absolute; inset: 0; border-radius: 14px; background: linear-gradient(180deg, #f8fbff, #dbe8f5); transform-origin: left center; transition: transform .45s cubic-bezier(.3,1.4,.6,1); box-shadow: inset 0 0 0 2px #c3d3e3; }
+.kt-handle { position: absolute; right: 14px; top: 22px; width: 8px; height: 46px; border-radius: 4px; background: #9fb3c8; }
+.kt-fridge.is-open .kt-door { transform: rotateY(-75deg); }
+.kt-door-label { position: relative; z-index: 1; }
+.kt-fridge.is-open { background: radial-gradient(circle at 50% 40%, #fffbe6, #d7e7f7); }
+.kt-shelf { display: flex; flex-wrap: wrap; gap: 6px; padding: 8px; border-radius: 12px; background: var(--surface-2, #f1f3f5); }
+.kt-cold { background: linear-gradient(180deg, #e7f5ff, #d0ebff); animation: kt-pop .35s ease-out; }
+.kt-shelf-title { margin: 4px 0 0; font-weight: 800; font-size: 13px; }
+.kt-item { display: grid; place-items: center; width: 64px; height: 64px; border-radius: 14px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); cursor: grab; touch-action: none; user-select: none; }
+.kt-item span { font-size: 28px; line-height: 1; }
+.kt-item small { font-size: 10.5px; font-weight: 700; }
+.kt-item:active { transform: scale(.94); }
+.kt-stove { display: grid; gap: 8px; justify-items: center; align-content: start; padding: 12px; border-radius: 16px; background: linear-gradient(180deg, #2b2f3a, #1b1d26); color: #fff; }
+.kt-pan { position: relative; width: min(240px, 80%); aspect-ratio: 1.6; border-radius: 50%; background: radial-gradient(circle at 50% 45%, #5c6370, #2a2e36 70%); border: 6px solid #3a3f4a; display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 2px; padding: 14px; box-sizing: border-box; transition: transform .2s; }
+.kt-pan.is-over { transform: scale(1.06); box-shadow: 0 0 0 4px #ffd43b; }
+.kt-pan.is-cooking { animation: kt-shake .25s linear infinite; }
+.kt-in { font-size: 30px; animation: kt-drop .45s cubic-bezier(.3,1.6,.6,1) both; }
+.kt-pan.is-cooking .kt-in { animation: kt-toss .6s ease-in-out infinite; animation-delay: calc(var(--n) * 90ms); }
+.kt-empty { font-size: 12.5px; color: #c9ced6; text-align: center; }
+.kt-dish { font-size: 64px; animation: kt-pop .5s cubic-bezier(.3,1.6,.6,1); }
+.kt-steam { position: absolute; top: -26px; left: 50%; transform: translateX(-50%); font-size: 22px; animation: kt-steam 1.2s ease-out infinite; }
+.kt-flame { font-size: 22px; opacity: .15; filter: grayscale(1); transition: .3s; }
+.kt-flame.is-on { opacity: 1; filter: none; animation: kt-flicker .3s ease-in-out infinite alternate; }
+.kt-status { margin: 0; font-weight: 700; text-align: center; }
+.kt-tip { margin: 0; font-size: 12px; color: #c9ced6; text-align: center; }
+.kt-ghost { font-size: 40px; }
+.kt-open { width: 100%; }
+@keyframes kt-drop { from { transform: translateY(-40px) scale(.6); opacity: 0; } to { transform: none; opacity: 1; } }
+@keyframes kt-toss { 0%, 100% { transform: translateY(0) rotate(0); } 50% { transform: translateY(-14px) rotate(20deg); } }
+@keyframes kt-shake { 0%, 100% { transform: translateX(0); } 50% { transform: translateX(3px); } }
+@keyframes kt-steam { from { opacity: .9; transform: translate(-50%, 0); } to { opacity: 0; transform: translate(-50%, -22px); } }
+@keyframes kt-flicker { from { transform: scaleY(1); } to { transform: scaleY(1.15); } }
+@keyframes kt-pop { from { transform: scale(.5); opacity: 0; } to { transform: none; opacity: 1; } }

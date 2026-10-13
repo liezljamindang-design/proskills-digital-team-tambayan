@@ -50,7 +50,11 @@ export interface Look {
   pet?: string;
   /** A special all-over skin, such as a limited edition. */
   fx?: string;
+  /** Singing voice at the mic. Unset: guessed from the look. */
+  voice?: "girl" | "boy";
 }
+/** A girl's or a boy's singing voice: what they picked, otherwise a guess from the look. */
+export const voiceOf = (look: Look): "girl" | "boy" => look.voice ?? (look.bottoms === "skirt" || ["bob", "long-straight", "long-wavy", "bun", "ponytail", "pigtails"].includes(look.style) ? "girl" : "boy");
 export type Fit = "basic" | "nerd" | "funk" | "cool" | "sporty" | "formal" | "hoodie" | "punk" | "royal";
 export type HairStyle = "short" | "swept" | "bob" | "long-straight" | "long-wavy" | "bun" | "ponytail" | "pigtails";
 export type Accessory = "none" | "glasses" | "headset" | "headphones" | "bow" | "clip";

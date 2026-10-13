@@ -4,7 +4,8 @@ import { useHq } from "../store";
 import { usePhoto } from "../photo";
 import { Chibi3DPreview } from "./Chibi3DPreview";
 import { ChibiFull, randomLook } from "../office/Chibi";
-import { BATCHES, batchesOf, type Look, type Profile } from "../types";
+import { BATCHES, batchesOf, voiceOf, type Look, type Profile } from "../types";
+import { previewVoice } from "../audio/band";
 
 interface Props {
   initial: Profile | null;
@@ -44,7 +45,7 @@ export function AvatarBuilder({ initial, submitLabel, onSubmit, onCancel, admin 
       <div className="builder-preview">
         {photo && <img className="builder-photo" src={photo} alt="Your profile photo" referrerPolicy="no-referrer" onError={noPhoto} />}
         {view3d ? <Chibi3DPreview look={look} size={210} /> : <ChibiFull look={look} size={170} />}
-        <button type="button" className="btn-secondary" onClick={() => setLook((l) => ({ ...randomLook(), hat: l.hat, pet: l.pet }))}>Surprise me</button>
+        <button type="button" className="btn-secondary" onClick={() => setLook((l) => ({ ...randomLook(), hat: l.hat, pet: l.pet, voice: l.voice }))}>Surprise me</button>
       </div>
 
       <div className="builder-fields">
@@ -106,6 +107,16 @@ export function AvatarBuilder({ initial, submitLabel, onSubmit, onCancel, admin 
         </fieldset>
 
         <p className="field-hint">{onCancel ? "To change" : "You start with a random chibi. To change"} your skin, hair, clothes and accessories, open Wardrobe at the bottom of the office.</p>
+
+        <fieldset className="field">
+          <legend>Singing voice (at the Music Room mic)</legend>
+          <div className="chips">
+            {(["girl", "boy"] as const).map((v) => (
+              <button key={v} type="button" className="service-chip" aria-pressed={voiceOf(look) === v} onClick={() => { setLook((l) => ({ ...l, voice: v })); previewVoice(v); }}>{v === "girl" ? "👧 Girl" : "👦 Boy"}</button>
+            ))}
+            <button type="button" className="text-btn" onClick={() => previewVoice(voiceOf(look))}>🔊 Hear it</button>
+          </div>
+        </fieldset>
 
         {error && <p className="field-error" role="alert">{error}</p>}
         <div className="builder-actions">

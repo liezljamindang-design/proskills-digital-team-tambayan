@@ -3,7 +3,7 @@
  * Everyone's clock is lined up on the same beat, so a drummer on one phone and a guitarist on
  * another are in time with each other.
  */
-export type Instrument = "drums" | "guitar" | "bass" | "mic" | "piano";
+export type Instrument = "drums" | "guitar" | "bass" | "piano" | "voice-girl" | "voice-boy";
 
 const STEP = 60 / 96 / 4; // a sixteenth note at 96 beats a minute, in seconds
 // C, G, A minor, F: one chord per bar. Notes as semitones above C.
@@ -38,6 +38,62 @@ function kick(at: number) {
   osc.connect(gain).connect(out); osc.start(at); osc.stop(at + 0.25);
 }
 
+/** Vowel formants (Hz) for the sung syllables. */
+const VOWELS = { a: [800, 1150, 2900], e: [400, 2000, 2600], i: [300, 2300, 3000], o: [450, 800, 2830], u: [330, 700, 2500] } as const;
+type Vowel = keyof typeof VOWELS;
+/** What the singers sing: "la la li la, lu la na na…" */
+const LYRIC: { c: "l" | "n" | "d"; v: Vowel }[] = [
+  { c: "l", v: "a" }, { c: "l", v: "a" }, { c: "l", v: "i" }, { c: "l", v: "a" }, { c: "l", v: "u" }, { c: "l", v: "a" }, { c: "n", v: "a" }, { c: "n", v: "a" },
+  { c: "d", v: "u" }, { c: "d", v: "u" }, { c: "l", v: "e" }, { c: "l", v: "a" }, { c: "n", v: "o" }, { c: "l", v: "a" }, { c: "l", v: "i" }, { c: "l", v: "a" },
+];
+/**
+ * A sung syllable: a buzzing voice shaped by three vowel filters (how real vowels are made),
+ * with a little scoop up into the note, vibrato, and a quick consonant at the start.
+ * Girls get higher, brighter formants; both are pitched up a touch to sound cute.
+ */
+function sing(at: number, freq: number, syl: { c: "l" | "n" | "d"; v: Vowel }, who: "girl" | "boy") {
+  if (!ctx || !out) return;
+  const len = STEP * 3.7, shift = who === "girl" ? 1.22 : 1.08;
+  const src = ctx.createOscillator(), src2 = ctx.createOscillator(), lfo = ctx.createOscillator(), depth = ctx.createGain();
+  src.type = "sawtooth"; src2.type = "triangle";
+  src.frequency.setValueAtTime(freq * 0.94, at); src.frequency.exponentialRampToValueAtTime(freq, at + 0.07);
+  src2.frequency.setValueAtTime(freq * 0.94, at); src2.frequency.exponentialRampToValueAtTime(freq, at + 0.07);
+  lfo.frequency.value = who === "girl" ? 6.2 : 5.4; depth.gain.value = freq * 0.018;
+  lfo.connect(depth); depth.connect(src.frequency); depth.connect(src2.frequency);
+  const pre = ctx.createGain(); pre.gain.value = 0.6; src.connect(pre); src2.connect(pre);
+  const env = ctx.createGain();
+  env.gain.setValueAtTime(0.0001, at);
+  env.gain.exponentialRampToValueAtTime(syl.c === "d" ? 0.5 : 0.35, at + 0.03);
+  env.gain.exponentialRampToValueAtTime(0.3, at + len * 0.6);
+  env.gain.exponentialRampToValueAtTime(0.0001, at + len);
+  const gains = [1, 0.5, 0.18];
+  VOWELS[syl.v].forEach((f, i) => {
+    const bp = ctx!.createBiquadFilter(), g = ctx!.createGain();
+    bp.type = "bandpass"; bp.Q.value = i === 0 ? 6 : 9;
+    // The consonant: "l" and "n" start darker and open into the vowel.
+    const start = syl.c === "d" ? f * shift : f * shift * (i === 0 ? 0.45 : 0.75);
+    bp.frequency.setValueAtTime(start, at); bp.frequency.linearRampToValueAtTime(f * shift, at + 0.06);
+    g.gain.value = gains[i] * 1.6;
+    pre.connect(bp).connect(g).connect(env);
+  });
+  env.connect(out);
+  for (const o of [src, src2, lfo]) { o.start(at); o.stop(at + len + 0.05); }
+}
+
+/** Sings a short phrase once, to hear what a voice sounds like (the profile screen's "Hear it"). */
+export function previewVoice(who: "girl" | "boy") {
+  try {
+    if (!ctx) {
+      const Ctor = window.AudioContext ?? (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+      if (!Ctor) return;
+      ctx = new Ctor(); out = ctx.createGain(); out.gain.value = 0.5; out.connect(ctx.destination);
+    }
+    void ctx.resume();
+    const t0 = ctx.currentTime + 0.05;
+    for (let i = 0; i < 8; i++) sing(t0 + i * STEP * 4, hz(TUNE[i], who === "girl" ? 0 : -1), LYRIC[i], who);
+  } catch { /* no sound on this device */ }
+}
+
 function playStep(index: number, at: number) {
   const s = index % 16, chord = CHORDS[Math.floor(index / 16) % 4];
   if (active.has("drums")) {
@@ -48,7 +104,12 @@ function playStep(index: number, at: number) {
   if (active.has("bass") && (s === 0 || s === 6 || s === 8 || s === 14)) tone(at, hz(chord[0], -2), "sawtooth", 0.3, 0.38, 420);
   if (active.has("guitar") && (s === 0 || s === 4 || s === 6 || s === 10 || s === 12)) chord.forEach((n, i) => tone(at + i * 0.018, hz(n, 0), "sawtooth", 0.42, 0.11, 2200));
   if (active.has("piano") && s % 2 === 0) { const n = chord[(s / 2) % 3] + (s % 8 === 6 ? 12 : 0); tone(at, hz(n, 0), "triangle", 0.5, 0.22); tone(at, hz(n, 1), "sine", 0.35, 0.07); }
-  if (active.has("mic") && s % 4 === 0) tone(at, hz(TUNE[Math.floor(index / 4) % 16], 0), "sine", STEP * 3.6, 0.2, 1800, 5);
+  // The singers: a cute "la la la" voice following the tune. Girls sing an octave up.
+  if (s % 4 === 0) {
+    const n = Math.floor(index / 4), note = TUNE[n % 16], syl = LYRIC[n % LYRIC.length];
+    if (active.has("voice-girl")) sing(at, hz(note, 0), syl, "girl");
+    if (active.has("voice-boy")) sing(at, hz(note, -1), syl, "boy");
+  }
 }
 
 function tick() {
@@ -70,6 +131,8 @@ export function setBand(instruments: Instrument[]) {
       const Ctor = window.AudioContext ?? (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
       if (!Ctor) return;
       ctx = new Ctor(); out = ctx.createGain(); out.gain.value = 0.5; out.connect(ctx.destination);
+    }
+    if (!noise) {
       noise = ctx.createBuffer(1, ctx.sampleRate * 0.3, ctx.sampleRate);
       const data = noise.getChannelData(0); for (let i = 0; i < data.length; i++) data[i] = Math.random() * 2 - 1;
     }

@@ -78,7 +78,7 @@ export function Wardrobe() {
       <div className="wardrobe">
         <header className="wd-head">
           <div><p className="eyebrow">Wardrobe</p><h2 id="wardrobe-title">Dress up your chibi</h2></div>
-          <button type="button" className="btn-secondary" onClick={() => { setLook((l) => ({ ...randomLook(), hat: l.hat, pet: l.pet, fx: l.fx })); setPop((n) => n + 1); }}>🎲 Surprise me</button>
+          <button type="button" className="btn-secondary" onClick={() => { setLook((l) => ({ ...randomLook(), hat: l.hat, pet: l.pet, fx: l.fx, voice: l.voice })); setPop((n) => n + 1); }}>🎲 Surprise me</button>
         </header>
         <div className="wd-body">
           <div ref={stageRef} className={`wd-stage${over ? " is-over" : ""}`}>

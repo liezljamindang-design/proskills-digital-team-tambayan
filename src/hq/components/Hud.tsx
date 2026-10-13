@@ -7,6 +7,7 @@ import { useHq } from "../store";
 import { InstallButton } from "./InstallButton";
 import { Bell } from "./Bell";
 import { MusicToggle } from "./MusicToggle";
+import { FloatButton } from "./FloatWindow";
 
 /** Top bar: the space's name, how many people are in, and the controls. */
 export function Hud() {
@@ -56,6 +57,7 @@ export function Hud() {
         <InstallButton />
         {joined && <Bell />}
         <MusicToggle />
+        {joined && <FloatButton />}
         <button type="button" className="icon-btn" onClick={toggleTheme} aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}>
           {theme === "dark" ? (
             <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><circle cx="12" cy="12" r="4.2" fill="none" stroke="currentColor" strokeWidth="1.6" /><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M5.3 18.7l2.1-2.1M16.6 7.4l2.1-2.1" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" fill="none" /></svg>

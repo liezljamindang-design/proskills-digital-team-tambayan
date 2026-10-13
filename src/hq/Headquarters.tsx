@@ -15,6 +15,7 @@ import { RoomCard } from "./components/RoomCard";
 import { HelpDialog } from "./components/HelpDialog";
 import { UpdateBanner } from "./components/UpdateBanner";
 import { Wardrobe } from "./components/Wardrobe";
+import { FloatHost } from "./components/FloatWindow";
 import { Garage } from "./components/Garage";
 import { BandSound } from "./components/BandSound";
 import { myPosition } from "./net/session";
@@ -81,6 +82,7 @@ export function Headquarters() {
       <Shop />
       <Garage />
       <Wardrobe />
+      <FloatHost />
       <PongPrompt />
       <PongMenu />
       <BandSound myAt={myPosition} />

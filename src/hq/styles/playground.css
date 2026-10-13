@@ -848,3 +848,21 @@ select option, select optgroup { background-color: var(--surface); color: var(--
 .phone-screen { animation: phone-scroll 1.8s steps(3) infinite; }
 @keyframes phone-glow { 0%, 100% { opacity: .28; } 50% { opacity: .45; } }
 @keyframes phone-scroll { 0% { fill: #bfe3ff; } 33% { fill: #ffd6e8; } 66% { fill: #d3f9d8; } 100% { fill: #bfe3ff; } }
+
+/* The floating mini Lobby (Float button) */
+.float-body { margin: 0; background: var(--bg); color: var(--ink); font-family: inherit; }
+.mini-lobby { display: grid; gap: 10px; padding: 12px; min-height: 100vh; box-sizing: border-box; align-content: start; }
+.mini-lobby header { display: flex; align-items: center; gap: 8px; }
+.mini-lobby header img { width: 26px; height: 26px; object-fit: contain; background: #fff; border-radius: 6px; }
+.mini-lobby header strong { font-size: 14px; flex: 1; }
+.mini-online { font-size: 12px; font-weight: 700; display: inline-flex; align-items: center; gap: 5px; }
+.mini-people { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px; }
+.mini-people li { position: relative; }
+.mini-people li span { position: absolute; right: -4px; bottom: -4px; font-size: 12px; }
+.mini-chat { list-style: none; margin: 0; padding: 8px; display: grid; gap: 6px; border-radius: 10px; background: var(--surface); border: 1px solid var(--line); font-size: 13px; overflow-wrap: anywhere; }
+.mini-chat b { color: var(--green); }
+.mini-empty { color: var(--ink-2); font-size: 12.5px; }
+.mini-lobby form { display: flex; gap: 6px; }
+.mini-lobby input { flex: 1; min-width: 0; min-height: 36px; border-radius: 999px; border: 1px solid var(--line); padding: 0 12px; background: var(--surface); color: var(--ink); }
+.mini-lobby form button, .mini-back { min-height: 36px; border-radius: 999px; border: 0; padding: 0 14px; background: var(--green); color: #fff; font-weight: 700; cursor: pointer; }
+.mini-back { background: var(--surface); color: var(--ink); border: 1px solid var(--line); }

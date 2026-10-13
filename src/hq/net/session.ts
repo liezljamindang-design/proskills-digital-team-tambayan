@@ -1,3 +1,4 @@
+import { keepAlive } from "./keepAlive";
 import { HOOPS, START } from "../data/office";
 import { earn } from "../economy";
 import { ZONES } from "../data/office";
@@ -88,6 +89,7 @@ function stepOut() {
 
 export async function joinOffice(joining: Profile): Promise<void> {
   // Everyone starts as active when they come in; a status set after that is kept until they leave.
+  keepAlive();
   const me: Profile = { ...joining, status: undefined };
   useHq.getState().setMe(me);
   mySince = Date.now();

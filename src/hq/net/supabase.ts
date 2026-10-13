@@ -17,6 +17,10 @@ let client: Promise<SupabaseClient> | null = null;
 export function getSupabase(): Promise<SupabaseClient> {
   if (!supabaseConfigured) return Promise.reject(new Error("Supabase is not configured"));
   // Bundled with the page on purpose: a piece loaded later can go missing when a new version is published mid-visit.
-  client ??= Promise.resolve(createClient(URL!, KEY!));
+  client ??= Promise.resolve(createClient(URL!, KEY!, {
+    // The connection's heartbeat runs in a worker, which browsers do not slow down when the
+    // app is minimised, so the office stays connected in the background.
+    realtime: { worker: true },
+  }));
   return client;
 }

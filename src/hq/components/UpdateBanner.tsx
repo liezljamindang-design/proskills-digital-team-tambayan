@@ -5,7 +5,7 @@ const mine = () => document.querySelector<HTMLScriptElement>('script[type="modul
 
 /**
  * Notices when a newer version of the site has been published. If the page is in the
- * background it reloads quietly; if someone is using it, it offers a Refresh button.
+ * background it waits; when the person comes back it offers a Refresh button.
  * Without this, people keep running an old copy until they happen to reload.
  */
 export function UpdateBanner() {
@@ -18,7 +18,8 @@ export function UpdateBanner() {
         const html = await (await fetch(`/?v=${Date.now()}`, { cache: "no-store" })).text();
         const latest = /<script[^>]+type="module"[^>]+src="([^"]*\/assets\/[^"]+)"/.exec(html)?.[1];
         if (!latest || latest === current) return;
-        if (document.visibilityState === "hidden") window.location.reload(); else setReady(true);
+        // Never reload by itself: the app keeps running while minimised (voice, music, chat).
+        setReady(true);
       } catch { /* offline: try again later */ }
     }
     const timer = window.setInterval(() => void check(), 3 * 60 * 1000);

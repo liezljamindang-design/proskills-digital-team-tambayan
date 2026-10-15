@@ -1,3 +1,5 @@
+import { buildFestive, type Festive } from "./festive";
+import { everyoneToCelebrate } from "../birthday";
 import { daylight, skyAt, skyLabel, useSky } from "../sky";
 import { useCallback, useEffect, useRef } from "react";
 import * as THREE from "three";
@@ -7,7 +9,7 @@ import { useMovement, type Hit, type WalkView } from "../hooks/useMovement";
 import { inPit, zoneAt } from "../office/engine";
 import { myPosition } from "../net/session";
 import { statusOf } from "../status";
-import { useHq, type CamMode } from "../store";
+import { PUBLIC, useHq, type CamMode } from "../store";
 import type { Act, Look } from "../types";
 import { animateChibi, buildChibi, disposeChibi } from "./chibi3d";
 import { buildRide, disposeRide } from "./ride3d";
@@ -56,6 +58,19 @@ export function Floor3D() {
     const scene = new THREE.Scene();
     const office = buildOffice();
     scene.add(office.root);
+    // Birthday decorations, rebuilt whenever the list of people to celebrate changes.
+    let festive: Festive | null = null, festiveKey = "";
+    const syncFestive = () => {
+      const s = useHq.getState();
+      const party = s.joined ? everyoneToCelebrate(s.me, s.peers, s.away, s.threads[PUBLIC] ?? []) : [];
+      const key = party.map((c) => `${c.key}|${c.photo ?? ""}`).join(",");
+      if (key === festiveKey) return;
+      festiveKey = key;
+      if (festive) { scene.remove(festive.group); festive.dispose(); festive = null; }
+      if (party.length) { festive = buildFestive(party); scene.add(festive.group); }
+    };
+    syncFestive();
+    const unFestive = useHq.subscribe((s, prev) => { if (s.threads !== prev.threads || s.away !== prev.away || s.peers !== prev.peers || s.joined !== prev.joined) syncFestive(); });
     const hemi = new THREE.HemisphereLight("#ffffff", "#b9c6da", 1.25);
     scene.add(hemi);
     const sun = new THREE.DirectionalLight("#fff6e5", 2.1);
@@ -282,6 +297,7 @@ export function Floor3D() {
       if (mode !== lastMode) { cam.tilt = 0; if (mine && (mode === "third" || mode === "first")) cam.heading = mine.facing; if (mine && mode === "front") cam.heading = mine.facing; lastMode = mode; }
       const partyOn = Boolean(s.me?.act?.party) || Object.values(s.peers).some((p) => p.act?.party);
 
+      festive?.animate(t);
       if (!s.lite) office.animate(t); // the cinema cartoon and clock rest in Lite mode
       // Start any new shot, and move the ones already in the air.
       for (const shot of s.shots) {
@@ -455,7 +471,7 @@ export function Floor3D() {
     raf = requestAnimationFrame(frame);
 
     return () => {
-      cancelAnimationFrame(raf); unsubscribe(); window.clearInterval(skyTimer); observer.disconnect(); viewRef.current = null;
+      cancelAnimationFrame(raf); unsubscribe(); unFestive(); if (festive) festive.dispose(); window.clearInterval(skyTimer); observer.disconnect(); viewRef.current = null;
       canvas.removeEventListener("pointerdown", onDown); window.removeEventListener("pointermove", onMove); window.removeEventListener("pointerup", onUp); window.removeEventListener("pointercancel", onUp);
       for (const a of actors.values()) disposeChibi(a.chibi);
       scene.traverse((o) => { (o as THREE.Mesh).geometry?.dispose(); });

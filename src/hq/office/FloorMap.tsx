@@ -3,9 +3,9 @@ import { useCallback, useMemo, useRef, useState, type ReactNode } from "react";
 import { classOngoing, HQ } from "../config";
 import { BALL_SPOT, COURT, DANCE_FLOOR, ENTRANCE, FLOOR, FURNITURE, PICKLE, PLAYGROUND, RUGS, WORLD, WALL_HEIGHT, WALLS, ZONES } from "../data/office";
 import { useMovement, type WalkView } from "../hooks/useMovement";
-import { useHq } from "../store";
+import { PUBLIC, useHq } from "../store";
 import { Figure } from "./Actors";
-import { celebrants, isBirthday } from "../birthday";
+import { everyoneToCelebrate, isBirthday } from "../birthday";
 import { statusOf } from "../status";
 import { sceneToFloor, slotFor, wallRect, zoneAt, type Box } from "./engine";
 import { Furniture } from "./Furniture";
@@ -22,6 +22,8 @@ const rnd = (n: number) => { const v = Math.sin(n * 12.9898) * 43758.5453; retur
  */
 export function FloorMap() {
   const sky = useSky();
+  const away = useHq((s) => s.away);
+  const publicLines = useHq((s) => s.threads[PUBLIC] ?? []);
   const selected = useHq((s) => s.selectedZone);
   const overview = useHq((s) => s.overview);
   const setOverview = useHq((s) => s.setOverview);
@@ -178,7 +180,7 @@ export function FloorMap() {
   const leftFace = `${pt(0, D)} ${pt(W, D)} ${pt(W, D, -SLAB)} ${pt(0, D, -SLAB)}`;
   const rightFace = `${pt(W, 0)} ${pt(W, D)} ${pt(W, D, -SLAB)} ${pt(W, 0, -SLAB)}`;
   const [signX, signY] = project(3.25, 0, 50);
-  const party = celebrants(me, peers);
+  const party = everyoneToCelebrate(me, peers, away, publicLines);
   const partyNames = party.map((c) => c.name).join(" & ");
 
   return (

@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { BottomNav } from "./components/BottomNav";
 import { Composer } from "./components/Composer";
 import { Arcade } from "./components/Arcade";
-import { celebrants } from "./birthday";
+import { everyoneToCelebrate } from "./birthday";
 import { earnForChat } from "./economy";
 import { Shop } from "./components/Shop";
 import { EmoteBar } from "./components/EmoteBar";
@@ -15,6 +15,7 @@ import { RoomCard } from "./components/RoomCard";
 import { HelpDialog } from "./components/HelpDialog";
 import { UpdateBanner } from "./components/UpdateBanner";
 import { Wardrobe } from "./components/Wardrobe";
+import { BirthdayBalloon } from "./components/BirthdayBalloon";
 import { Kitchen } from "./components/Kitchen";
 import { FloatHost } from "./components/FloatWindow";
 import { Garage } from "./components/Garage";
@@ -28,7 +29,7 @@ import { HQ } from "./config";
 import { say } from "./net/session";
 import { FloorMap } from "./office/FloorMap";
 import { Floor3D } from "./office3d/Floor3D";
-import { useHq } from "./store";
+import { PUBLIC, useHq } from "./store";
 
 /** The whole space: the office in the middle, chat and people beside it. */
 export function Headquarters() {
@@ -38,7 +39,9 @@ export function Headquarters() {
   const me = useHq((s) => s.me);
   const peers = useHq((s) => s.peers);
   const joined = useHq((s) => s.joined);
-  const party = joined ? celebrants(me, peers) : [];
+  const away = useHq((s) => s.away);
+  const publicLines = useHq((s) => s.threads[PUBLIC] ?? []);
+  const party = joined ? everyoneToCelebrate(me, peers, away, publicLines) : [];
   const unreadTotal = useHq((s) => Object.values(s.unread).reduce((a, b) => a + b, 0));
   useEffect(() => { document.title = unreadTotal > 0 ? `(${unreadTotal}) ${HQ.name}` : HQ.name; }, [unreadTotal]);
   const partyOn = Boolean(me?.act?.party) || Object.values(peers).some((p) => p.act?.party);
@@ -64,6 +67,7 @@ export function Headquarters() {
           <div className="stage-body">
             {view3d ? <Floor3D /> : <FloorMap />}
             {!gameOpen && <Party />}
+            {!gameOpen && <BirthdayBalloon />}
             {gameOpen && <Arcade />}
             {!gameOpen && <RoomCard />}
             {!gameOpen && <SitPrompt />}

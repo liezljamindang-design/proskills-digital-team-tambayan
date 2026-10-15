@@ -12,14 +12,14 @@ const TABLE = "tambayan_members";
 let available = supabaseConfigured;
 let timer = 0;
 
-interface Row { id: string; name: string; first_name: string | null; role: string | null; look: (Profile["look"] & { photo?: unknown }) | null; batches: number[] | null; admin: boolean | null; last_seen: string }
+interface Row { id: string; name: string; first_name: string | null; role: string | null; look: (Profile["look"] & { photo?: unknown; bday?: unknown }) | null; batches: number[] | null; admin: boolean | null; last_seen: string }
 
 async function saveMember(me: Profile) {
   if (!available || me.id.startsWith("guest-")) return;
   try {
     const supabase = await getSupabase();
     const { error } = await supabase.from(TABLE).upsert({
-      id: me.id, name: me.name, first_name: me.firstName ?? null, role: me.role, look: me.photo ? { ...me.look, photo: me.photo } : me.look, batches: batchesOf(me), admin: Boolean(me.admin) && !me.hideAdmin, last_seen: new Date().toISOString(),
+      id: me.id, name: me.name, first_name: me.firstName ?? null, role: me.role, look: { ...me.look, photo: me.photo, bday: me.birthday }, batches: batchesOf(me), admin: Boolean(me.admin) && !me.hideAdmin, last_seen: new Date().toISOString(),
     });
     if (error) available = false;
   } catch { available = false; }
@@ -32,7 +32,7 @@ async function loadMembers() {
     const { data, error } = await supabase.from(TABLE).select("*").order("last_seen", { ascending: false }).limit(300);
     if (error) { available = false; return; }
     const members: Away[] = ((data ?? []) as Row[]).map((r) => ({
-      id: r.id, name: r.name, firstName: r.first_name ?? undefined, role: r.role ?? "", look: { ...DEFAULT_LOOK, ...r.look }, photo: typeof r.look?.photo === "string" && r.look.photo.startsWith("https://") ? r.look.photo : undefined,
+      id: r.id, name: r.name, firstName: r.first_name ?? undefined, role: r.role ?? "", look: { ...DEFAULT_LOOK, ...r.look }, birthday: typeof r.look?.bday === "string" && /^\d\d-\d\d$/.test(r.look.bday) ? r.look.bday : undefined, photo: typeof r.look?.photo === "string" && r.look.photo.startsWith("https://") ? r.look.photo : undefined,
       leftAt: Date.parse(r.last_seen) || 0, batches: r.batches ?? undefined, admin: r.admin ?? undefined,
     }));
     useHq.getState().mergeAway(members);

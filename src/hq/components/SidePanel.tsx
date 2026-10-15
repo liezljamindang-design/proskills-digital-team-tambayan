@@ -1,3 +1,4 @@
+import { shrinkPhoto } from "../media";
 import { announcement } from "../birthday";
 import { useEffect, useRef, useState } from "react";
 import { HQ } from "../config";
@@ -242,6 +243,7 @@ function PeoplePane() {
   return (
     <>
     <StatusPicker />
+    {me?.admin && <BirthdayForm />}
     <ul className="people">
       {me && (
         <li>
@@ -297,5 +299,30 @@ function RoomsPane() {
         );
       })}
     </ul>
+  );
+}
+
+/** Admins: celebrate anyone's birthday, with a photo, even if they are not in the member list. */
+function BirthdayForm() {
+  const [open, setOpen] = useState(false);
+  const [name, setName] = useState("");
+  const [photo, setPhoto] = useState<string | undefined>();
+  const [busy, setBusy] = useState("");
+  if (!open) return <button type="button" className="btn-secondary bday-form-open" onClick={() => setOpen(true)}>🎂 Celebrate a birthday</button>;
+  return (
+    <form className="bday-form" onSubmit={(e) => { e.preventDefault(); if (!name.trim()) return; say(announcement(name.trim()), undefined, photo); setOpen(false); setName(""); setPhoto(undefined); }}>
+      <p className="bday-form-title">🎂 Celebrate a birthday</p>
+      <input type="text" value={name} maxLength={40} onChange={(e) => setName(e.target.value)} placeholder="Their name, e.g. Juan Dela Cruz" aria-label="Birthday person's name" />
+      <label className="btn-secondary bday-photo">
+        {photo ? <img src={photo} alt="" /> : "📷"} {photo ? "Change photo" : "Add their photo"}
+        <input type="file" accept="image/*" hidden onChange={async (e) => { const f = e.target.files?.[0]; if (!f) return; setBusy("Adding photo…"); try { setPhoto(await shrinkPhoto(f)); setBusy(""); } catch (err) { setBusy(err instanceof Error ? err.message : "That photo could not be added."); } }} />
+      </label>
+      {busy && <p className="muted">{busy}</p>}
+      <div className="room-actions">
+        <button type="submit" className="btn-primary" disabled={!name.trim()}>✈️ Fly the banner</button>
+        <button type="button" className="btn-secondary" onClick={() => setOpen(false)}>Cancel</button>
+      </div>
+      <p className="field-hint">Everyone sees an airplane with a birthday banner over the office for the rest of the day.</p>
+    </form>
   );
 }

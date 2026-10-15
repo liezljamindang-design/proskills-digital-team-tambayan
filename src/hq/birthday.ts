@@ -22,7 +22,7 @@ export function everyoneToCelebrate(
   me: Profile | null,
   peers: Record<string, Profile>,
   away: Record<string, { id: string; name: string; firstName?: string; look: Profile["look"]; photo?: string; birthday?: string }>,
-  lines: { id: string; text: string }[],
+  lines: { id: string; text: string; image?: string }[],
 ): Celebrant[] {
   const out = new Map<string, Celebrant>();
   const people = [...(me ? [me] : []), ...Object.values(peers), ...Object.values(away)];
@@ -33,20 +33,25 @@ export function everyoneToCelebrate(
     if (!name) continue;
     const who = people.find((p) => p.name === name || (p.firstName ? `${p.name} (${p.firstName})` : p.name) === name);
     const key = who?.id ?? `name:${name}`;
-    if (!out.has(key)) out.set(key, { key, name: who?.name ?? name, look: who?.look, photo: who?.photo });
+    // A photo attached to the announcement wins: that is how admins add a picture for anyone.
+    const photo = l.image?.startsWith("data:image/") ? l.image : who?.photo;
+    out.set(key, { key, name: who ? (who.firstName ? `${who.name} (${who.firstName})` : who.name) : name, look: who?.look, photo });
   }
   // Celebrations set up ahead of time, for people the app can't find in the member list.
   const today = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Manila" }).format(new Date());
   for (const d of DECORATE) {
     if (d.date !== today) continue;
-    const who = people.find((p) => p.name.toLowerCase().includes(d.name.toLowerCase()));
+    const first = d.name.split(" ")[0].toLowerCase();
+    const who = people.find((p) => p.name.toLowerCase().includes(first) || (p.firstName ?? "").toLowerCase().includes(first));
+    if ([...out.values()].some((c) => c.name.toLowerCase().includes(first))) continue;
     const key = who?.id ?? `name:${d.name}`;
-    if (!out.has(key)) out.set(key, { key, name: who?.name ?? d.name, look: who?.look, photo: who?.photo });
+    if (!out.has(key)) out.set(key, { key, name: d.name, look: who?.look, photo: who?.photo });
   }
   return [...out.values()];
 }
 
 /** Office decorations booked for a day (Philippine date). First names only. They end by themselves the next day. */
 const DECORATE: { date: string; name: string }[] = [
-  { date: "2026-10-15", name: "Protegenes" },
+  { date: "2026-10-15", name: "Protegenes Lasam" },
+  { date: "2026-10-15", name: "Marilyn Pelarco Ramos" },
 ];

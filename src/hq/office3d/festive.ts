@@ -22,8 +22,8 @@ function bannerTexture(c: Celebrant) {
       g.lineWidth = 8; g.strokeStyle = "#ffd43b"; g.beginPath(); g.arc(138, 128, 96, 0, Math.PI * 2); g.stroke();
       x = 256;
     }
-    g.textBaseline = "middle"; g.fillStyle = "#c2255c"; g.font = "900 54px Nunito, system-ui, sans-serif"; g.fillText("HAPPY BIRTHDAY", x, 88, 768 - x - 30);
-    g.fillStyle = "#10141c"; g.font = "900 64px Nunito, system-ui, sans-serif"; g.fillText(`${c.name.split(" ")[0]}! 🎂`, x, 168, 768 - x - 30);
+    g.textBaseline = "middle"; g.fillStyle = "#c2255c"; g.font = "900 54px Nunito, system-ui, sans-serif"; g.fillText("Happy birthday", x, 88, 768 - x - 30);
+    g.fillStyle = "#10141c"; g.font = "900 58px Nunito, system-ui, sans-serif"; g.fillText(`${c.name}! 🎂`, x, 168, 768 - x - 30);
     tex.needsUpdate = true;
   };
   draw();
@@ -31,29 +31,30 @@ function bannerTexture(c: Celebrant) {
   return tex;
 }
 
-function hotAirBalloon(c: Celebrant, i: number) {
+/** A little propeller plane towing a long banner made of strips, so the banner can ripple in the wind. */
+const STRIPS = 16;
+function airplane(c: Celebrant) {
   const g = new THREE.Group();
-  // Striped envelope
-  const stripes = 12, env = new THREE.Group();
-  for (let k = 0; k < stripes; k++) {
-    const seg = new THREE.Mesh(new THREE.SphereGeometry(1.6, 6, 18, (k / stripes) * Math.PI * 2, (Math.PI * 2) / stripes), new THREE.MeshStandardMaterial({ color: COLOURS[(k + i) % COLOURS.length], roughness: 0.6 }));
-    seg.scale.y = 1.2; env.add(seg);
+  const plane = new THREE.Group(); g.add(plane);
+  const white = new THREE.MeshStandardMaterial({ color: "#ffffff", roughness: 0.4 }), pink = new THREE.MeshStandardMaterial({ color: "#ff4fa3" }), yellow = new THREE.MeshStandardMaterial({ color: "#ffd43b" });
+  const body = new THREE.Mesh(new THREE.CapsuleGeometry(0.28, 1.5, 6, 14), white); body.rotation.z = Math.PI / 2; plane.add(body);
+  const wing = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.06, 2.6), pink); wing.position.x = 0.15; plane.add(wing);
+  const tail = new THREE.Mesh(new THREE.BoxGeometry(0.35, 0.05, 0.9), pink); tail.position.x = -0.9; plane.add(tail);
+  const fin = new THREE.Mesh(new THREE.BoxGeometry(0.35, 0.45, 0.05), yellow); fin.position.set(-0.9, 0.25, 0); plane.add(fin);
+  const cockpit = new THREE.Mesh(new THREE.SphereGeometry(0.2, 12, 10), new THREE.MeshStandardMaterial({ color: "#4dabf7", roughness: 0.1, metalness: 0.3 })); cockpit.position.set(0.35, 0.2, 0); plane.add(cockpit);
+  const prop = new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.8, 0.08), new THREE.MeshStandardMaterial({ color: "#495057" })); prop.position.x = 1.05; prop.name = "prop"; plane.add(prop);
+  const rope = new THREE.Mesh(new THREE.CylinderGeometry(0.01, 0.01, 1.2), new THREE.MeshBasicMaterial({ color: "#495057" })); rope.rotation.z = Math.PI / 2; rope.position.x = -1.6; plane.add(rope);
+  // The banner: strips side by side, each showing its slice of the picture.
+  const tex = bannerTexture(c), W = 4.2, H = 1.4, strips: THREE.Mesh[] = [];
+  const banner = new THREE.Group(); banner.position.x = -2.2; plane.add(banner);
+  for (let i = 0; i < STRIPS; i++) {
+    const geo = new THREE.PlaneGeometry(W / STRIPS + 0.002, H);
+    const uv = geo.attributes.uv as THREE.BufferAttribute;
+    for (let k = 0; k < uv.count; k++) uv.setX(k, 1 - (i + (1 - uv.getX(k))) / STRIPS);
+    const m = new THREE.Mesh(geo, new THREE.MeshBasicMaterial({ map: tex, side: THREE.DoubleSide }));
+    m.position.x = -(i + 0.5) * (W / STRIPS); banner.add(m); strips.push(m);
   }
-  env.position.y = 3.2; g.add(env);
-  const skirt = new THREE.Mesh(new THREE.CylinderGeometry(0.55, 0.9, 0.6, 16, 1, true), new THREE.MeshStandardMaterial({ color: "#ffffff", side: THREE.DoubleSide }));
-  skirt.position.y = 1.35; g.add(skirt);
-  for (const [x, z] of [[-0.3, -0.3], [0.3, -0.3], [-0.3, 0.3], [0.3, 0.3]]) {
-    const rope = new THREE.Mesh(new THREE.CylinderGeometry(0.012, 0.012, 1.1), new THREE.MeshStandardMaterial({ color: "#7a4a1e" }));
-    rope.position.set(x, 0.55, z); g.add(rope);
-  }
-  const basket = new THREE.Mesh(new THREE.BoxGeometry(0.7, 0.5, 0.7), new THREE.MeshStandardMaterial({ color: "#a86a33", roughness: 0.9 }));
-  basket.position.y = -0.1; g.add(basket);
-  // The banner hanging under the basket, facing both ways.
-  const tex = bannerTexture(c);
-  for (const side of [1, -1]) {
-    const banner = new THREE.Mesh(new THREE.PlaneGeometry(2.4, 0.8), new THREE.MeshBasicMaterial({ map: tex, transparent: true, side: THREE.FrontSide }));
-    banner.position.set(0, -0.95, side * 0.02); if (side < 0) banner.rotation.y = Math.PI; g.add(banner);
-  }
+  g.userData = { strips, prop, plane };
   return g;
 }
 
@@ -62,14 +63,9 @@ export interface Festive { group: THREE.Group; animate(t: number): void; dispose
 export function buildFestive(party: Celebrant[]): Festive {
   const group = new THREE.Group(); group.name = "festive";
   const W = FLOOR.width, D = FLOOR.depth;
-  const balloons: { g: THREE.Group; x: number; z: number; y: number; r: number; s: number; p: number }[] = [];
-  // Hot air balloons: a few per celebrant, circling slowly over the building.
-  const spots = [[W * 0.3, D * 0.45, 6.5], [W * 0.7, D * 0.4, 7.5], [W * 0.5, D * 0.85, 6]];
-  party.slice(0, 3).forEach((c, ci) => spots.forEach(([x, z, y], k) => {
-    if (party.length > 1 && k > 0 && k !== ci) return;
-    const g = hotAirBalloon(c, ci * 3 + k); group.add(g);
-    balloons.push({ g, x: x + ci * 2, z, y, r: 2.2 + k, s: 0.08 + k * 0.03, p: ci + k * 2 });
-  }));
+  const planes: { g: THREE.Group; r: number; y: number; s: number; p: number }[] = [];
+  // Airplanes circling the building, one per birthday person.
+  party.slice(0, 3).forEach((c, ci) => { const g = airplane(c); g.scale.setScalar(1.9); group.add(g); planes.push({ g, r: 13 + ci * 2.5, y: 6.5 + ci * 1.2, s: 0.16, p: (ci * Math.PI * 2) / Math.min(3, party.length) }); });
   // Bunting across the Central Hall and the front of the office.
   const flagGeo = new THREE.ConeGeometry(0.16, 0.34, 3);
   const garland = (x0: number, z0: number, x1: number, z1: number, h: number) => {
@@ -96,10 +92,15 @@ export function buildFestive(party: Celebrant[]): Festive {
   return {
     group,
     animate(t) {
-      for (const b of balloons) {
-        const a = t * b.s + b.p;
-        b.g.position.set(b.x + Math.cos(a) * b.r, b.y + Math.sin(t * 0.6 + b.p) * 0.35, b.z + Math.sin(a) * b.r * 0.6);
-        b.g.rotation.y = Math.sin(t * 0.2 + b.p) * 0.4;
+      for (const f of planes) {
+        const a = t * f.s + f.p, cx = W / 2, cz = D / 2;
+        f.g.position.set(cx + Math.cos(a) * f.r, f.y + Math.sin(t * 0.8 + f.p) * 0.3, cz + Math.sin(a) * f.r * 0.75);
+        // Face along the flight path (counter-clockwise), banking a little into the turn.
+        f.g.rotation.set(0, -Math.atan2(Math.cos(a) * 0.75, -Math.sin(a)), 0);
+        const u = f.g.userData as { strips: THREE.Mesh[]; prop: THREE.Object3D; plane: THREE.Object3D };
+        u.plane.rotation.x = -0.18;
+        u.prop.rotation.x = t * 40;
+        u.strips.forEach((m, i) => { m.position.z = Math.sin(t * 6 - i * 0.55) * 0.12 * (i / STRIPS + 0.2); m.rotation.y = Math.cos(t * 6 - i * 0.55) * 0.25; });
       }
       for (const p of party3) { p.m.position.y = Math.sin(t * 1.6 + p.p) * 0.08; p.m.rotation.z = Math.sin(t * 1.1 + p.p) * 0.08; }
     },

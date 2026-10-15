@@ -362,7 +362,7 @@ export function PersonFace({ look, photo, size = 40 }: { look: Look; photo?: str
   const [broken, setBroken] = useState(false);
   const [loaded, setLoaded] = useState(false);
   // The chibi shows until the photo has arrived, so there is never an empty circle.
-  if (photo && !broken && photo.startsWith("https://")) return (
+  if (photo && !broken && (photo.startsWith("https://") || photo.startsWith("data:image/"))) return (
     <span className="face-wrap" style={{ width: size, height: size }}>
       {!loaded && <ChibiPortrait look={look} size={size} />}
       <img className="face-photo" src={photo} width={size} height={size} alt="" referrerPolicy="no-referrer" style={loaded ? undefined : { position: "absolute", opacity: 0 }} onLoad={() => setLoaded(true)} onError={() => setBroken(true)} />

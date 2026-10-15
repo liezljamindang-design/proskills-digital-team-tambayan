@@ -35,5 +35,18 @@ export function everyoneToCelebrate(
     const key = who?.id ?? `name:${name}`;
     if (!out.has(key)) out.set(key, { key, name: who?.name ?? name, look: who?.look, photo: who?.photo });
   }
+  // Celebrations set up ahead of time, for people the app can't find in the member list.
+  const today = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Manila" }).format(new Date());
+  for (const d of DECORATE) {
+    if (d.date !== today) continue;
+    const who = people.find((p) => p.name.toLowerCase().includes(d.name.toLowerCase()));
+    const key = who?.id ?? `name:${d.name}`;
+    if (!out.has(key)) out.set(key, { key, name: who?.name ?? d.name, look: who?.look, photo: who?.photo });
+  }
   return [...out.values()];
 }
+
+/** Office decorations booked for a day (Philippine date). First names only. They end by themselves the next day. */
+const DECORATE: { date: string; name: string }[] = [
+  { date: "2026-10-15", name: "Protegenes" },
+];

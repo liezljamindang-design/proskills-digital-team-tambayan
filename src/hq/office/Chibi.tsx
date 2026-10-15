@@ -360,7 +360,14 @@ export function ChibiPortrait({ look, size = 40 }: { look: Look; size?: number }
 /** A person's Google photo when they have one, otherwise their chibi's face. */
 export function PersonFace({ look, photo, size = 40 }: { look: Look; photo?: string; size?: number }) {
   const [broken, setBroken] = useState(false);
-  if (photo && !broken && photo.startsWith("https://")) return <img className="face-photo" src={photo} width={size} height={size} alt="" loading="lazy" referrerPolicy="no-referrer" onError={() => setBroken(true)} />;
+  const [loaded, setLoaded] = useState(false);
+  // The chibi shows until the photo has arrived, so there is never an empty circle.
+  if (photo && !broken && photo.startsWith("https://")) return (
+    <span className="face-wrap" style={{ width: size, height: size }}>
+      {!loaded && <ChibiPortrait look={look} size={size} />}
+      <img className="face-photo" src={photo} width={size} height={size} alt="" referrerPolicy="no-referrer" style={loaded ? undefined : { position: "absolute", opacity: 0 }} onLoad={() => setLoaded(true)} onError={() => setBroken(true)} />
+    </span>
+  );
   return <ChibiPortrait look={look} size={size} />;
 }
 
